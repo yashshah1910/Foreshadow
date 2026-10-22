@@ -99,7 +99,12 @@ function verdictSentence(input: NarrationInput): string {
   const when = v.reactionWindow === "T" ? "that day" : "the next day";
   const actual =
     v.realizedMovePct === null ? "the actual move wasn't available" : `the stock ${moveVerb(v.realizedMovePct)} ${formatPct(v.realizedMovePct)} ${when}`;
-  return `${expected}; ${actual}, so the bets were ${v.verdict === "matched" ? "right" : "wrong"}.`;
+  if (v.verdict === "matched" || v.realizedMovePct === null) return `${expected}; ${actual}, so the bets were ${v.verdict === "matched" ? "right" : "wrong"}.`;
+  if (input.direction === "mixed") return `${expected}; ${actual}, and the bets didn't lean either way.`;
+  const theirWay = (input.direction === "bullish") === (v.realizedMovePct > 0);
+  return theirWay
+    ? `${expected}; ${actual}, the way the bets leaned but less than expected, so it doesn't count as right.`
+    : `${expected}; ${actual}, against the bets, so they were wrong.`;
 }
 
 function buildCaption(input: NarrationInput): string {
@@ -111,7 +116,9 @@ function buildCaption(input: NarrationInput): string {
   ];
   const v = input.verdict;
   if (v && (v.verdict === "matched" || v.verdict === "missed") && v.realizedMovePct !== null) {
-    parts.push(`The stock ${moveVerb(v.realizedMovePct)} ${formatPct(v.realizedMovePct)}, so the bets were ${v.verdict === "matched" ? "right" : "wrong"}.`);
+    const theirWay = input.direction !== "mixed" && (input.direction === "bullish") === (v.realizedMovePct > 0);
+    const result = v.verdict === "matched" ? "so the bets were right" : theirWay ? "their way, but less than expected" : "against the bets";
+    parts.push(`The stock ${moveVerb(v.realizedMovePct)} ${formatPct(v.realizedMovePct)}, ${result}.`);
   }
   let caption = "";
   for (const part of parts) {

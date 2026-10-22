@@ -11,7 +11,7 @@ export const NARRATION_MAX_TOKENS = 2048;
 
 /** `${ticker}:${eventDate}:${score}` — stable per scored event, so the app can cache stories. */
 /** Bump when the narration prompt changes so cached write-ups are regenerated. */
-export const NARRATION_VERSION = 3;
+export const NARRATION_VERSION = 5;
 
 export function narrationCacheKey(input: Pick<NarrationInput, "ticker" | "eventDate" | "score">): string {
   return `${input.ticker}:${input.eventDate}:${input.score}`;

@@ -1,6 +1,16 @@
 import { toTradeExample } from "@foreshadow/core";
 import type { EventDetail, Dossier } from "@/lib/data";
 import type { DossierInput, NarrationInput } from "@foreshadow/narrator";
+import { outcomeOf, type Outcome } from "@/lib/plain";
+
+const NARRATION_OUTCOME: Record<Outcome, "right" | "right way, small move" | "wrong way" | "no clear side" | undefined> = {
+  right: "right",
+  rightWay: "right way, small move",
+  wrongWay: "wrong way",
+  noLean: "no clear side",
+  pending: undefined,
+  none: undefined,
+};
 
 /** Project an EventDetail onto the narrow, serializable shape the narrator reads. */
 export function toNarrationInput(ev: EventDetail): NarrationInput {
@@ -32,6 +42,7 @@ export function toNarrationInput(ev: EventDetail): NarrationInput {
           realizedMovePct: s.realizedMovePct,
           impliedMovePct: s.impliedMovePct,
           reactionWindow: stored.breakdown.verdict.reactionWindow,
+          outcome: NARRATION_OUTCOME[outcomeOf(s)],
         },
     flags: {
       insufficientHistory: s.flags.insufficientHistory,

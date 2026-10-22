@@ -59,7 +59,7 @@ describe("fallbackNarration", () => {
     expect(n.story).toContain("a fund, not a single company");
     expect(n.story).not.toContain("z-score");
     expect(n.story).toContain("rose 2.1% the next day");
-    expect(n.story).toContain("so the bets were wrong");
+    expect(n.story).toContain("against the bets, so they were wrong");
     expect(verifyNumbers(`${n.story}\n${n.caption}`, flagged).numbersVerified).toBe(true);
 
     const insufficient = { ...sampleInput(), verdict: { ...flagged.verdict, verdict: "insufficient" as const } };

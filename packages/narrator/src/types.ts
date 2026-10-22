@@ -36,6 +36,11 @@ export interface NarrationVerdict {
   realizedMovePct: number | null;
   impliedMovePct: number | null;
   reactionWindow: "T" | "T+1";
+  /**
+   * The result in words, computed from verdict, lean and move:
+   * "right", "right way, small move" or "wrong way" (absent when unknown).
+   */
+  outcome?: "right" | "right way, small move" | "wrong way" | "no clear side";
 }
 
 export interface NarrationFlags {

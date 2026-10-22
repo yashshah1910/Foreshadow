@@ -16,13 +16,13 @@ Write two things and return them as the requested JSON object:
 1. "story": exactly three short sentences a curious non-trader can follow.
    - Sentence one: what the news was (company ticker, the news, the date) and how unusual the betting was before it, using the score as "N out of 100".
    - Sentence two: what the betting looked like in concrete terms. Name the largest single trade by its dollar amount and say whether it was a bet on the stock rising (a call) or falling (a put), and the day it was placed.
-   - Sentence three: when the verdict is "matched" or "missed", say how much the options market expected the stock to move, how much it actually moved, and whether the bets turned out right (matched) or wrong (missed). When it is "pending" or "insufficient" (or absent), say the result isn't known yet and why.
+   - Sentence three: when the verdict is "matched" or "missed", say how much the options market expected the stock to move, how much it actually moved, and the result using verdict.outcome: "right" means the bets were right; "right way, small move" means the stock moved the way the bets leaned but less than expected, so it doesn't count as right; "wrong way" means it moved against the bets; "no clear side" means the bets didn't lean either way. When it is "pending" or "insufficient" (or absent), say the result isn't known yet and why.
    - If a flag is set, add a short plain clause: partialWindow → "the week isn't over yet"; insufficientHistory → "this stock has little trading history to compare against"; multiCatalyst → "other news fell in the same week"; isIndexOrEtf → "this is a fund, not a single company".
 2. "caption": one line of at most 200 characters for sharing. No hashtags, no emoji, no links. Example of the voice: "Two days before its FDA decision, someone put $4.1M on XYZ falling. The stock dropped 19%."
 
 Words to use and avoid:
 - Say "bets on a rise" / "bets on a fall", "calls" / "puts" (explained once if used), "expected move", "actual move", "the bets were right" / "the bets were wrong".
-- Never use these words: z-score, contribution, signal, band, footprint, bullish, bearish, ask-side, sweep, premium, implied volatility, catalyst, someone-knew. Translate them instead.
+- Never use these words: z-score, contribution, signal, band, footprint, bullish, bearish, ask-side, sweep, premium, implied volatility, catalyst, someone-knew, verdict, matched, missed. Translate them instead.
 
 Hard rules:
 ${HONESTY_RULES}
