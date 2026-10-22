@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getScorecard } from "@/lib/data";
+import { getLeaderboard, getScorecard } from "@/lib/data";
+import { CaseList } from "@/components/cases/CaseList";
 import type { Scorecard, ScorecardBand } from "@/lib/data";
 import { KIND_LABELS } from "@/lib/format";
 import { kindsLiftFirst, SCORECARD_MIN_CASES as MIN_CASES, scorecardFinding } from "@/lib/plain";
@@ -14,7 +15,11 @@ export const metadata: Metadata = {
 const BAND_WORD: Record<number, string> = { 0: "Ordinary", 20: "A little unusual", 40: "Unusual", 70: "Very unusual" };
 
 export default async function ScorecardPage() {
-  const card = await getScorecard().then((c) => ({ ...c, kinds: kindsLiftFirst(c.kinds) }));
+  const [card, rightCalls] = await Promise.all([
+    getScorecard().then((c) => ({ ...c, kinds: kindsLiftFirst(c.kinds) })),
+    getLeaderboard({ minScore: 40, matchedOnly: true, limit: 60 }),
+  ]);
+  const biggest = [...rightCalls].sort((a, b) => Math.abs(b.realizedMovePct ?? 0) - Math.abs(a.realizedMovePct ?? 0)).slice(0, 6);
   const maxPct = Math.max(...card.kinds.flatMap((k) => k.bands.filter((b) => b.cases >= 3).map((b) => pct(b.right, b.cases))), 0);
   const scaleMax = Math.max(30, Math.ceil(maxPct / 10) * 10);
 
@@ -64,6 +69,17 @@ export default async function ScorecardPage() {
           Bars share one scale, 0 to {scaleMax}%. Rows marked &ldquo;few cases&rdquo; have under {MIN_CASES}: too few to read much into.
         </p>
       </section>
+
+      {biggest.length > 0 ? (
+        <section aria-labelledby="right-h" className="mt-20">
+          <h2 id="right-h" className="display text-[34px] text-ink">When unusual betting was right</h2>
+          <p className="mt-3 mb-7 max-w-[720px] text-[16px] leading-relaxed text-ink-2">
+            The cases behind the numbers: betting scored 40 or more, and the stock then moved more than expected in the
+            direction the bets leaned. Biggest moves first.
+          </p>
+          <CaseList rows={biggest} showYear />
+        </section>
+      ) : null}
 
       <section aria-labelledby="table-h" className="mt-20">
         <h2 id="table-h" className="display text-[28px] text-ink">All the numbers</h2>
