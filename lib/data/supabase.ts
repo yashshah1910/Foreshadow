@@ -242,15 +242,18 @@ export class SupabaseDataSource implements DataSource {
       return q;
     };
     const sort = filters.sort ?? "score";
+    // Twice the rows asked for (plus a margin) covers the few that applyLeaderboardFilters drops, without reading
+    // 400 rows of JSON for a list of 20: that read timed out while the database was busy.
+    const want = Math.min(400, (filters.limit ?? 20) * 2 + 20);
     const queries =
       sort === "new"
-        ? [base().order("event_date", { ascending: false }).order("score", { ascending: false }).limit(400)]
+        ? [base().order("event_date", { ascending: false }).order("score", { ascending: false }).limit(want)]
         : sort === "move"
           ? [
-              base().not("realized_move_pct", "is", null).order("realized_move_pct", { ascending: false }).limit(200),
-              base().not("realized_move_pct", "is", null).order("realized_move_pct", { ascending: true }).limit(200),
+              base().not("realized_move_pct", "is", null).order("realized_move_pct", { ascending: false }).limit(Math.min(200, want)),
+              base().not("realized_move_pct", "is", null).order("realized_move_pct", { ascending: true }).limit(Math.min(200, want)),
             ]
-          : [base().order("score", { ascending: false }).limit(400)];
+          : [base().order("score", { ascending: false }).limit(want)];
     const results = await Promise.all(queries);
     const seen = new Set<string>();
     const rows: EventSummary[] = [];
