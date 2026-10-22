@@ -27,6 +27,7 @@ export async function Footer() {
         <div className="flex flex-col gap-2.5">
           <Link href="/docs#mcp" className="hover:text-ink">Use it from Claude</Link>
           <Link href="/docs#api" className="hover:text-ink">API</Link>
+          <a href="/feed.xml" className="hover:text-ink">RSS feed</a>
           {stats?.lastComputedAt ? <span className="text-ink-3">Scores updated {fmtDate(stats.lastComputedAt.slice(0, 10), { year: true })}</span> : null}
         </div>
       </div>

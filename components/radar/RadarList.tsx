@@ -48,6 +48,7 @@ export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }
           {live ? "Live: this list updates on its own" : "Sample data: these scores don't change"}
         </span>
         {lastEvent ? <span className="tnum">Updated {lastEvent}</span> : null}
+        <a href="/feed.xml" className="link ml-auto text-[14px]">Follow by RSS</a>
       </div>
       {lead ? (
         <Link

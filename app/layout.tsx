@@ -34,6 +34,7 @@ export const metadata: Metadata = {
   description:
     "Before big company news, some traders place unusually large options bets. Foreshadow finds those bets in Unusual Whales data, scores how unusual they were, and checks whether they turned out right.",
   openGraph: { siteName: "Foreshadow", type: "website" },
+  alternates: { types: { "application/rss+xml": [{ url: "/feed.xml", title: "Foreshadow: unusual betting" }] } },
   twitter: { card: "summary_large_image" },
 };
 
