@@ -225,6 +225,25 @@ export default async function DocsPage() {
           (ticker, date), <span className="font-mono text-ink">week_ahead</span> and <span className="font-mono text-ink">stock_track_record</span>{" "}
           (ticker). Each chains the tools and asks for a short, plain answer. All five tools are read-only.
         </p>
+        <h3 className="mt-6 text-[18px] font-semibold text-ink">What it looks like in Claude</h3>
+        <div className="tray mt-3 grid gap-2 p-2">
+          <p className="card px-4 py-3 text-[15px] text-ink">
+            <span className="mb-1 block text-[13px] font-medium text-ink-3">You</span>
+            Was there unusual options betting before TENX&apos;s FDA news in August, and has betting like that been right before?
+          </p>
+          <p className="px-4 py-1 text-[13.5px] text-ink-3">
+            Claude calls <span className="font-mono">foreshadow_history</span>, <span className="font-mono">foreshadow_score</span> and{" "}
+            <span className="font-mono">foreshadow_similar</span>.
+          </p>
+          <p className="card px-4 py-3 text-[15px] leading-relaxed text-ink-2">
+            <span className="mb-1 block text-[13px] font-medium text-ink-3">Claude</span>
+            Yes. The betting before TENX&apos;s Aug 10 TNX-103 results scored 53/100. Puts dominated: about $2.5M against $0.7M in
+            calls, and the largest trade was a roughly $983K put bought Aug 7, the last trading day before the news. The bets were
+            right: the stock fell about 90%, past the roughly 81% move options had priced in. Of seven similar finished cases, the
+            stock moved the bets&apos; way in 5 and beat the expected move in 2. It&apos;s a small sample.
+          </p>
+        </div>
+        <p className="mt-2 text-[13px] text-ink-3">A real exchange with the live server (Claude Sonnet 5.5, Oct 23, 2026), shortened.</p>
         <h3 className="mt-6 text-[18px] font-semibold text-ink">Try the tools here</h3>
         <p className="mt-1">Each tool has a REST twin that returns the same thing. Run one to see exactly what Claude gets.</p>
         <ToolPlayground ticker={top?.catalyst.ticker ?? "TSLA"} eventDate={top?.catalyst.eventDate ?? "2026-10-21"} />
