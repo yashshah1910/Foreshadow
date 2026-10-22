@@ -3,7 +3,7 @@
  * every page says the same thing the same way.
  */
 import type { Direction, StoredScore, Verdict } from "@foreshadow/core";
-import type { EventSummary } from "@/lib/data";
+import type { EventSummary, ScorecardBand } from "@/lib/data";
 import { fmtDate, fmtPct } from "@/lib/format";
 
 /** "$674K", "$2.9M", "$1.2B": the way a person would say it. */
@@ -103,4 +103,34 @@ export function factsFromStored(stored: StoredScore): CaseFacts {
   const premium = call + put;
   const timesNormal = flow && flow.baselineMean > 0 ? flow.footprintValue / flow.baselineMean : null;
   return { premium, callShare: premium > 0 ? call / premium : 0.5, timesNormal };
+}
+
+/** Below this many cases a scorecard row is shown faded and findings say "early". */
+export const SCORECARD_MIN_CASES = 10;
+const MIN_CASES = SCORECARD_MIN_CASES;
+
+function pct(n: number, d: number): number {
+  return d > 0 ? (n / d) * 100 : 0;
+}
+
+/** One honest sentence per kind: unusual (40+) against ordinary (under 20), with the sample size. */
+export function scorecardFinding(kind: string, bands: ScorecardBand[]): string {
+  const noun = kind === "fda" ? "FDA news" : kind === "earnings" ? "earnings" : "this kind of news";
+  const unusual = bands.filter((b) => b.min >= 40);
+  const u = { cases: unusual.reduce((n, b) => n + b.cases, 0), right: unusual.reduce((n, b) => n + b.right, 0) };
+  const ordinary = bands.find((b) => b.min === 0);
+  if (!ordinary || ordinary.cases < MIN_CASES) return `Not enough finished cases before ${noun} to compare yet.`;
+  if (u.cases < 5) return `Unusual betting before ${noun} has been rare so far: ${u.cases} case${u.cases === 1 ? "" : "s"}. Too few to judge.`;
+  const up = pct(u.right, u.cases);
+  const op = pct(ordinary.right, ordinary.cases);
+  const early = u.cases < MIN_CASES * 2 ? ` That's only ${u.cases} cases, so treat it as early.` : "";
+  // One-sided check against the ordinary rate: is the lift bigger than chance would give at this sample size?
+  const p0 = Math.min(Math.max(ordinary.right / ordinary.cases, 0.01), 0.99);
+  const z = (u.right / u.cases - p0) / Math.sqrt((p0 * (1 - p0)) / u.cases);
+  if (z >= 1.65 && u.right >= 3) {
+    const times = up / Math.max(op, 0.1);
+    const ratio = times >= 1.95 ? `about ${Math.round(times)} times as often as` : "more often than";
+    return `Before ${noun}, unusual betting was right ${up.toFixed(0)}% of the time, ${ratio} ordinary betting (${op.toFixed(0)}%).${early}`;
+  }
+  return `Before ${noun}, unusual betting hasn't clearly beaten ordinary betting so far: ${up.toFixed(0)}% right against ${op.toFixed(0)}%.${early}`;
 }

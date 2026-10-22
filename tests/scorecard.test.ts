@@ -40,3 +40,30 @@ describe("buildScorecard", () => {
     expect(card.kinds[0].bands.find((b) => b.min === 40)!.cases).toBe(1);
   });
 });
+
+describe("scorecardFinding", () => {
+  const band = (min: number, cases: number, right: number) => ({ min, max: min + 19, label: "", cases, right, movedMore: 0, leaned: 0, leanedRight: 0 });
+
+  it("reports a lift with its size and flags a small sample", async () => {
+    const { scorecardFinding } = await import("@/lib/plain");
+    const s = scorecardFinding("fda", [band(0, 219, 12), band(20, 92, 5), band(40, 18, 5), band(70, 0, 0)]);
+    expect(s).toBe("Before FDA news, unusual betting was right 28% of the time, about 5 times as often as ordinary betting (5%). That's only 18 cases, so treat it as early.");
+  });
+
+  it("says plainly when there is no edge", async () => {
+    const { scorecardFinding } = await import("@/lib/plain");
+    expect(scorecardFinding("earnings", [band(0, 233, 17), band(20, 127, 14), band(40, 24, 2), band(70, 0, 0)])).toBe(
+      "Before earnings, unusual betting hasn't clearly beaten ordinary betting so far: 8% right against 7%.",
+    );
+  });
+
+  it("doesn't call a small lift a win", async () => {
+    const { scorecardFinding } = await import("@/lib/plain");
+    expect(scorecardFinding("earnings", [band(0, 236, 18), band(40, 25, 3)])).toContain("hasn't clearly beaten");
+  });
+
+  it("refuses to judge tiny samples", async () => {
+    const { scorecardFinding } = await import("@/lib/plain");
+    expect(scorecardFinding("fda", [band(0, 50, 3), band(40, 2, 1)])).toContain("Too few to judge");
+  });
+});
