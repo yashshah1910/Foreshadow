@@ -5,7 +5,7 @@ import type { CatalystKind } from "@foreshadow/core";
 import { CaseList } from "@/components/cases/CaseList";
 import { Filters } from "@/components/leaderboard/Filters";
 import { PAGE, readFilters } from "@/components/leaderboard/filters-state";
-import Link from "next/link";
+import { ListPendingProvider, PendingRegion, ShowMoreButton } from "@/components/leaderboard/ListPending";
 import { Legend } from "@/components/cases/Legend";
 import { fmtDate } from "@/lib/format";
 
@@ -38,19 +38,21 @@ export default async function LeaderboardPage({ searchParams }: PageProps<"/lead
           {fmtDate(today, { year: true })}.
         </p>
       </header>
-      <div className="mb-5">
-        <Suspense>
-          <Filters initial={f} total={rows.length} />
-        </Suspense>
-      </div>
-      <CaseList rows={rows} />
-      {rows.length >= f.show && f.show < 200 ? (
-        <div className="mt-5 flex justify-center">
-          <Link href={moreHref(sp, f.show + PAGE)} scroll={false} className="pressable btn btn-soft">
-            Show 20 more cases
-          </Link>
+      <ListPendingProvider>
+        <div className="mb-5">
+          <Suspense>
+            <Filters initial={f} total={rows.length} />
+          </Suspense>
         </div>
-      ) : null}
+        <PendingRegion>
+          <CaseList rows={rows} />
+        </PendingRegion>
+        {rows.length >= f.show && f.show < 200 ? (
+          <div className="mt-5 flex justify-center">
+            <ShowMoreButton href={moreHref(sp, f.show + PAGE)}>Show 20 more cases</ShowMoreButton>
+          </div>
+        ) : null}
+      </ListPendingProvider>
       <Legend />
     </div>
   );

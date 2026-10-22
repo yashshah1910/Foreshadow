@@ -16,10 +16,11 @@ export function readFilters(sp: URLSearchParams | Record<string, string | string
     return Array.isArray(v) ? v[0] : (v ?? null);
   };
   return {
-    kind: get("kind") ?? "all",
+    // Only FDA and earnings are scored; older links to other kinds fall back to everything.
+    kind: ["fda", "earnings"].includes(get("kind") ?? "") ? (get("kind") as string) : "all",
     min70: get("min") === "70",
     matched: get("matched") === "1",
-    days: Number(get("days") ?? 90) || 90,
+    days: Number(get("days")) === 30 ? 30 : 90,
     show: Math.min(MAX_SHOW, Math.max(PAGE, Math.round((Number(get("show")) || PAGE) / PAGE) * PAGE)),
   };
 }

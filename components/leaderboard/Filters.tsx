@@ -1,22 +1,21 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useOptimistic, useTransition } from "react";
+import { useOptimistic } from "react";
+import { useListPending } from "./ListPending";
 import { PAGE, type FilterState } from "./filters-state";
 
 const KINDS = [
   ["all", "All news"],
   ["fda", "FDA"],
   ["earnings", "Earnings"],
-  ["congress", "Congress"],
-  ["insider", "Insiders"],
 ] as const;
 
 export function Filters({ initial, total }: { initial: FilterState; total: number }) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
-  const [pending, startTransition] = useTransition();
+  const { pending, startTransition } = useListPending();
   const [state, setOptimistic] = useOptimistic(initial);
 
   function update(patch: Partial<FilterState>) {
@@ -57,13 +56,12 @@ export function Filters({ initial, total }: { initial: FilterState; total: numbe
         options={[
           { value: "30", label: "30 days" },
           { value: "90", label: "90 days" },
-          { value: "365", label: "1 year" },
         ]}
         value={String(state.days)}
         onChange={(v) => update({ days: Number(v) })}
       />
       <span className="ml-auto text-[15px] text-ink-3 tnum" aria-live="polite">
-        {total >= state.show ? `Top ${total}` : `${total} case${total === 1 ? "" : "s"}`}
+        {pending ? "Updating…" : total >= state.show ? `Top ${total}` : `${total} case${total === 1 ? "" : "s"}`}
       </span>
     </div>
   );
