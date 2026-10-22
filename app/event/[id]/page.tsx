@@ -119,6 +119,7 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
             reactionDate={s.partialWindow ? null : rw.to}
             signals={stored.breakdown.signals}
             eventLabel={eventPhrase(s)}
+            replay
           />
           </div>
         </div>

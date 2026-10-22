@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { DailyMetrics, OhlcBar, SignalBreakdown } from "@foreshadow/core";
 import { useMeasure } from "@/lib/hooks/useMeasure";
 import { bandPath } from "@/components/viz/Highlight";
@@ -19,6 +19,8 @@ export interface TraceProps {
   rows?: TraceRowKey[];
   priceHeight?: number;
   eventLabel: string;
+  /** Show a "Replay the days" control that steps through the chart one day at a time. */
+  replay?: boolean;
 }
 
 const PAD_L = 2;
@@ -43,11 +45,38 @@ const ROW_SPEC: Record<TraceRowKey, { label: string; height: number; signals: Si
  */
 export function Trace(p: TraceProps) {
   const { ref, width } = useMeasure<HTMLDivElement>(960);
-  const [active, setActive] = useState<number | null>(null);
+  const [hover, setHover] = useState<number | null>(null);
+  const [step, setStep] = useState<number | null>(null);
   const m = useMemo(() => layout(p, width), [p, width]);
+  const active = step ?? hover;
+  const setActive = setHover;
+  const lastStep = m.days.length - 1;
+
+  // Replay: reveal one day at a time, then hold on the last day before handing back.
+  useEffect(() => {
+    if (step === null) return;
+    const t = setTimeout(() => setStep((s) => (s === null ? null : s >= lastStep ? null : s + 1)), step >= lastStep ? 2200 : 1100);
+    return () => clearTimeout(t);
+  }, [step, lastStep]);
 
   return (
     <div ref={ref} className="relative w-full select-none">
+      {p.replay ? (
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setStep((s) => (s === null ? 0 : null))}
+            className="pressable btn btn-soft h-9 px-4 text-[14px]"
+            aria-pressed={step !== null}
+          >
+            <span aria-hidden="true">{step === null ? "▶" : "■"}</span>
+            {step === null ? "Replay the days" : "Stop"}
+          </button>
+          <p className="min-w-0 flex-1 text-[14.5px] text-ink-2" aria-live="polite">
+            {step !== null ? replayCaption(m, p, step) : "Watch the betting build up, one trading day at a time."}
+          </p>
+        </div>
+      ) : null}
       <svg
         width={width}
         height={m.height}
@@ -199,25 +228,61 @@ export function Trace(p: TraceProps) {
           ) : null,
         )}
 
+        {/* Replay: hide the days that haven't "happened" yet */}
+        {step !== null ? (
+          <rect
+            x={replayMaskX(m, p, step)}
+            y={PAD_T - 12}
+            width={Math.max(0, PAD_L + m.plotW - replayMaskX(m, p, step))}
+            height={m.height - X_AXIS - PAD_T + 16}
+            className="fill-surface"
+            opacity={0.94}
+          />
+        ) : null}
+
         {/* Crosshair dot */}
         {active !== null && m.closeOf(active) !== null ? (
           <circle cx={m.xOf(active)} cy={m.yPrice(m.closeOf(active)!)} r="4" className="fill-ink stroke-surface" strokeWidth="2" pointerEvents="none" />
         ) : null}
       </svg>
 
-      {active !== null ? (
+      {hover !== null && step === null ? (
         <TraceTooltip
-          day={m.days[active]}
-          close={m.closeOf(active)}
-          metrics={m.metricsOf(m.days[active])}
-          left={m.xOf(active)}
+          day={m.days[hover]}
+          close={m.closeOf(hover)}
+          metrics={m.metricsOf(m.days[hover])}
+          left={m.xOf(hover)}
           width={width}
-          inWindow={p.windowDays.includes(m.days[active])}
-          isEvent={m.days[active] === p.eventDate}
+          inWindow={p.windowDays.includes(m.days[hover])}
+          isEvent={m.days[hover] === p.eventDate}
         />
       ) : null}
     </div>
   );
+}
+
+/** Where the replay's mask starts: after the current day, and past the move label once the news is reached. */
+function replayMaskX(m: ReturnType<typeof layout>, p: TraceProps, step: number): number {
+  let x = PAD_L + (step + 1) * m.slot;
+  const eventIdx = m.days.indexOf(p.eventDate);
+  if (m.reaction && eventIdx >= 0 && step >= eventIdx && m.reaction.dir > 0) {
+    x = Math.max(x, m.reaction.bx + 12 + m.reaction.label.length * 7.4);
+  }
+  return Math.min(x, PAD_L + m.plotW);
+}
+
+/** One plain sentence about the day the replay is on. */
+function replayCaption(m: ReturnType<typeof layout>, p: TraceProps, i: number): string {
+  const day = m.days[i];
+  const date = fmtDateShort(day);
+  if (day === p.eventDate) {
+    return m.reaction ? `${date}: the news. The stock moved ${m.reaction.label.replace(" that day", "")}.` : `${date}: the news.`;
+  }
+  if (day > p.eventDate) return `${date}: after the news. Nothing from here counts.`;
+  const mt = m.metricsOf(day);
+  const counted = p.windowDays.includes(day);
+  const bets = mt ? `${money(mt.callPremium)} bet on a rise, ${money(mt.putPremium)} on a fall` : "no large bets flagged";
+  return counted ? `${date}: ${bets}. This day counts toward the score.` : `${date}: ${bets}. A normal day, for comparison.`;
 }
 
 function TraceTooltip(props: {
