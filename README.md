@@ -158,6 +158,18 @@ only run local stdio servers, `pnpm --filter foreshadow-mcp build`, then run
 `FORESHADOW_URL=https://<your-host> node packages/mcp-stdio/dist/index.js` (see `packages/mcp-stdio`).
 Try: *"was there unusual options betting before Tesla's Oct 21 earnings?"*
 
+A real exchange with the live server (Claude Sonnet 5.5 through the MCP connector, Oct 23 2026):
+
+> **You:** Was there unusual options betting before TENX's FDA news in August, and has betting like that been right before?
+>
+> *Claude calls `foreshadow_history`, `foreshadow_score` and `foreshadow_similar`.*
+>
+> **Claude:** Yes. The betting before TENX's Aug 10 TNX-103 results scored 53/100. Puts dominated: about $2.5M
+> against $0.7M in calls, and the largest trade was a roughly $983K put bought Aug 7, the last trading day before the
+> news. The bets were right: the stock fell about 90%, past the roughly 81% move options had priced in.
+> Has it been right before? Of seven similar finished cases (FDA news, betting leaning toward a fall, score 37–69),
+> the stock moved the bets' way in 5 and beat the expected move in 2. It's a small sample.
+
 All five tools are marked read-only. The server also offers three prompts, which Claude shows as slash commands:
 `investigate_case` (ticker, date), `week_ahead` and `stock_track_record` (ticker). Each one chains the tools and asks
 for a short answer in plain English. You can also run every tool from the "Try the tools here" panel on `/docs#mcp`.
