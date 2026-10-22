@@ -29,7 +29,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
         <h1 className="display text-[34px]">Demo mode</h1>
         <div className="mt-4 tray p-6 text-[14px] text-ink-2 space-y-3">
           <p>This deployment has no Supabase project configured, so it serves the seeded dataset and has no accounts.</p>
-          <p>To turn on accounts, bring-your-own-key, watchlists, alerts and Live Radar updates:</p>
+          <p>To turn on accounts, bring-your-own-key, watchlists, alerts and Coming up updates:</p>
           <ol className="list-decimal space-y-1 pl-5">
             <li>Create a free Supabase project and run <code className="font-mono text-ink">pnpm supabase db push</code> (or <code className="font-mono text-ink">db reset</code> locally).</li>
             <li>Set <code className="font-mono text-ink">NEXT_PUBLIC_SUPABASE_URL</code>, <code className="font-mono text-ink">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code> and <code className="font-mono text-ink">SUPABASE_SECRET_KEY</code>.</li>
@@ -67,7 +67,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
       {saved ? <p className="mb-4 rounded-xl bg-surface-2 px-3 py-2 text-[13px] text-ink" role="status">Saved.</p> : null}
       {error ? <p className="mb-4 rounded-xl bg-put-soft px-3 py-2 text-[13px] text-ink" role="alert">Could not save: {error === "key" ? "that doesn't look like a UW key" : error === "alert" ? "check the webhook URL or email" : error}.</p> : null}
 
-      <Section title="Unusual Whales API key" blurb="Stored in Supabase Vault, decrypted only on the server for your requests. Needed for Live Radar, fresh scoring and the Ask panel's UW tools.">
+      <Section title="Unusual Whales API key" blurb="Stored in Supabase Vault, decrypted only on the server for your requests. Used for Coming up, fresh scoring and the Ask panel's Unusual Whales lookups.">
         {keyRow ? (
           <p className="mb-3 text-[13px] text-ink-2">
             A key ending in <span className="font-mono text-ink">…{keyRow.key_hint}</span> is on file (updated {String(keyRow.updated_at).slice(0, 10)}).
@@ -87,12 +87,12 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
         <form action={saveWatchlist} className="flex flex-col gap-2 sm:flex-row">
           <input type="hidden" name="id" value={watchlist?.id ?? ""} />
           <label htmlFor="tickers" className="sr-only">Tickers</label>
-          <input id="tickers" name="tickers" defaultValue={(watchlist?.tickers ?? []).join(", ")} placeholder="VXRA, QNTM, LUMX" className="h-10 flex-1 rounded-xl bg-surface px-3 font-mono text-[13px] uppercase text-ink placeholder:normal-case placeholder:font-sans placeholder:text-ink-3" />
+          <input id="tickers" name="tickers" defaultValue={(watchlist?.tickers ?? []).join(", ")} placeholder="TSLA, AAPL, ACAD" className="h-10 flex-1 rounded-xl bg-surface px-3 font-mono text-[13px] uppercase text-ink placeholder:normal-case placeholder:font-sans placeholder:text-ink-3" />
           <button type="submit" className="pressable h-10 rounded-md bg-ink px-4 text-[13px] font-medium text-surface">Save</button>
         </form>
       </Section>
 
-      <Section title="Alerts" blurb="Fires when a Live Radar score crosses your threshold. Discord webhook or email (email needs RESEND_API_KEY on the server).">
+      <Section title="Alerts" blurb="Fires when a Coming up score crosses your threshold. Discord webhook or email (email needs RESEND_API_KEY on the server).">
         {(alerts as AlertRow[] | null)?.length ? (
           <ul className="mb-4 grid gap-1.5">
             {(alerts as AlertRow[]).map((a) => (

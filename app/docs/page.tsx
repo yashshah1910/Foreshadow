@@ -84,7 +84,7 @@ export default function DocsPage() {
         </p>
         <pre className="mt-3 overflow-x-auto well p-4 font-mono text-[13px] text-ink">{`Score = Σ_i  w_i · min( max(z_i, 0) / 4, 1 ) · 100`}</pre>
         <p className="mt-3">
-          Below 40 is quiet, 40–70 is notable, 70+ is &ldquo;someone knew&rdquo;. Direction is the sign of
+          Below 40 is ordinary, 40 to 70 is unusual, 70+ is very unusual. Direction is the sign of
           <span className="font-mono text-ink"> z(directional premium) + 2·OI imbalance − z(skew shift)</span>; within ±0.5 it is
           &ldquo;mixed&rdquo;. Dollar metrics are log1p-transformed before the z so one mega-print can&apos;t dominate, and
           every baseline gets a small standard-deviation floor so a near-constant history can&apos;t turn a bump into
@@ -96,7 +96,7 @@ export default function DocsPage() {
         <ul className="list-disc space-y-1 pl-5">
           <li><strong className="text-ink">Footprint</strong>: trading days T-5 through T-1 before the event.</li>
           <li><strong className="text-ink">Baseline</strong>: the 60 trading days before that (T-65 → T-6).</li>
-          <li><strong className="text-ink">Live Radar</strong>: upcoming events are scored on the part of the footprint window that has already happened and flagged <em>partial</em>.</li>
+          <li><strong className="text-ink">Coming up</strong>: upcoming events are scored on the part of the footprint window that has already happened and flagged <em>partial</em>.</li>
           <li>The calendar skips weekends and NYSE holidays. If your UW plan limits history, the baseline shrinks to what is available and the event is flagged.</li>
         </ul>
       </Section>
@@ -133,7 +133,7 @@ export default function DocsPage() {
           <span className="font-mono text-ink">/api/market/economic-calendar</span>. Outcomes come from{" "}
           <span className="font-mono text-ink">/api/stock/{"{t}"}/ohlc/1d</span> and{" "}
           <span className="font-mono text-ink">/api/stock/{"{t}"}/interpolated-iv</span>. Every response is cached in the{" "}
-          <span className="font-mono text-ink">footprints</span> table, so a 200-event leaderboard costs roughly 10k requests once.
+          <span className="font-mono text-ink">footprints</span> table, so scoring a stock a second time is mostly free.
         </p>
       </Section>
 
@@ -150,8 +150,8 @@ export default function DocsPage() {
 
       <Section id="noise" title="Noise controls">
         <ul className="list-disc space-y-1 pl-5">
-          <li>Index and ETF tickers are scored but never ranked on the leaderboard: they are always busy.</li>
-          <li>Fewer than 20 baseline days with any options activity → <em>insufficient history</em>, excluded from the leaderboard.</li>
+          <li>Index and ETF tickers are scored but never ranked in Past cases: they are always busy.</li>
+          <li>Fewer than 20 baseline days with any options activity → <em>insufficient history</em>, left out of Past cases.</li>
           <li>Two or more catalysts for one ticker inside the window → flagged <em>multi-catalyst</em> so a spike isn&apos;t misattributed.</li>
           <li>Only events with a verified outcome (matched or missed) rank; pending and data-less events are shown but not ranked.</li>
         </ul>
@@ -160,12 +160,12 @@ export default function DocsPage() {
       <Section id="claude" title="Where Claude fits">
         <p>
           Claude does the parts that need language, never the arithmetic. The <strong className="text-ink">Narrator</strong> writes the three-sentence
-          story and the tweet-ready caption on each Event Card from the raw alert rows; every number in the story is checked
+          story and the tweet-ready caption on each case page from the raw trade rows; every number in the story is checked
           against the input rows and the rows are rendered beside the story so you can verify. The{" "}
           <strong className="text-ink">Catalyst tagger</strong> maps President&apos;s-schedule and economic-calendar rows to tickers with a confidence. The{" "}
           <strong className="text-ink">Investigator</strong> (&ldquo;Ask Foreshadow&rdquo;) runs a short tool loop, capped at six calls, over Foreshadow&apos;s
           three tools plus the Unusual Whales hosted MCP, and shows its tool calls inline. The{" "}
-          <strong className="text-ink">Dossier summary</strong> is one paragraph on whether a ticker is a repeat offender. Narrations are cached by
+          <strong className="text-ink">Stock summary</strong> is one paragraph on whether unusual betting keeps showing up before a stock&apos;s news. Narrations are cached by
           (ticker, event date, score). Without <span className="font-mono text-ink">ANTHROPIC_API_KEY</span> every surface still works and shows the
           deterministic template instead.
         </p>
@@ -186,15 +186,15 @@ export default function DocsPage() {
         </ul>
         <p className="mt-3">
           For stdio-only clients: <span className="font-mono text-ink">FORESHADOW_URL={base} npx foreshadow-mcp</span> (package in{" "}
-          <span className="font-mono">packages/mcp-stdio</span>). Try it in Claude Desktop: &ldquo;did anyone know about VXRA before Sep 18?&rdquo;
+          <span className="font-mono">packages/mcp-stdio</span>). Try it in Claude Desktop: &ldquo;was there unusual options betting before Tesla&apos;s Oct 21 earnings?&rdquo;
         </p>
       </Section>
 
       <Section id="api" title="REST API">
         <ul className="list-disc space-y-1 pl-5 font-mono text-[12.5px]">
-          <li>GET /api/score?ticker=VXRA&amp;eventDate=2026-09-18</li>
+          <li>GET /api/score?ticker=TSLA&amp;eventDate=2026-10-21</li>
           <li>GET /api/radar?daysAhead=10&amp;minScore=40</li>
-          <li>GET /api/history?ticker=QNTM</li>
+          <li>GET /api/history?ticker=ACAD</li>
           <li>GET /api/narrate?id=&lt;catalyst id&gt;</li>
           <li>POST /api/ask {"{ question, context }"}</li>
           <li>GET /api/cron/ingest?mode=radar|daily|backfill (Bearer CRON_SECRET)</li>
@@ -206,7 +206,7 @@ export default function DocsPage() {
           Sign in (email magic link or Google) and paste your Unusual Whales API key in <Link href="/settings" className="link">Settings</Link>. It is
           stored in Supabase Vault and only decrypted server-side for your own requests: the Ask panel&apos;s UW tools use it,
           and Foreshadow never re-serves UW data to anyone else. Watchlists and alerts (Discord webhook or email) fire from
-          the cron when a Live Radar score crosses your threshold.
+          the cron when a Coming up score crosses your threshold.
         </p>
       </Section>
 

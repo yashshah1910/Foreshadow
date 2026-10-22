@@ -59,8 +59,8 @@ Checks: `pnpm test` (127 tests: scorer, UW client, narrator), `pnpm typecheck`, 
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Accounts, BYOK, watchlists, alerts, Realtime. Empty → demo mode from fixtures. |
 | `SUPABASE_SECRET_KEY` | The ingest, the narration cache and server-side reads. (`SUPABASE_SERVICE_ROLE_KEY` also works.) |
-| `UW_API_KEY` | Fresh scoring and Live Radar. Signed-in users can bring their own key instead (Settings → stored in Vault). |
-| `ANTHROPIC_API_KEY` | The Narrator story, Dossier summary, the Ask panel and the catalyst tagger. **Without it every surface still works**; the story slot shows the deterministic template. |
+| `UW_API_KEY` | Fresh scoring and Coming up. Signed-in users can bring their own key instead (Settings → stored in Vault). |
+| `ANTHROPIC_API_KEY` | The case summaries, stock summaries, the Ask panel and the catalyst tagger. **Without it every surface still works**; the story slot shows the deterministic template. |
 | `CRON_SECRET` | Protects `/api/cron/ingest`. Vercel Cron sends it as a Bearer token; the GitHub Actions radar workflow needs it as a repo secret. |
 | `RESEND_API_KEY` | Email alerts (Discord webhooks need nothing). |
 
@@ -94,7 +94,7 @@ on the card.
   ≥ 2 catalysts in the window → flagged multi-catalyst. Only events with a verified outcome rank.
 - **History depth.** If the UW plan refuses dates older than N days the loader finds the cut-off itself, shrinks the
   baseline to what is available and records a warning on the ingest run; the scoring still works with a 20-day
-  baseline, the leaderboard just covers a shorter span.
+  baseline, Past cases just covers a shorter span.
 
 Implementation: `packages/core/src/{windows,scorer,verdict}.ts` with tests in `packages/core/tests/`.
 
@@ -120,7 +120,7 @@ claude mcp add --transport http foreshadow https://<your-host>/api/mcp
 ```
 
 or for stdio-only clients `FORESHADOW_URL=https://<your-host> npx foreshadow-mcp` (see `packages/mcp-stdio`).
-Try: *"did anyone know about VXRA before Sep 18?"*
+Try: *"was there unusual options betting before Tesla's Oct 21 earnings?"*
 
 ## Architecture
 
