@@ -1,7 +1,7 @@
 {
   "name": "foreshadow-mcp",
-  "version": "0.1.0",
-  "description": "stdio MCP server that proxies to a Foreshadow deployment (foreshadow_score, foreshadow_radar, foreshadow_history).",
+  "version": "0.3.0",
+  "description": "stdio MCP server that proxies to a Foreshadow deployment (five read-only tools and three prompts).",
   "license": "MIT",
   "type": "module",
   "bin": { "foreshadow-mcp": "./dist/index.js" },

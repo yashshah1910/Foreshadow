@@ -211,6 +211,11 @@ export default async function DocsPage() {
           <li><span className="font-mono text-ink">foreshadow_scorecard</span> () → how often unusual betting was right, by kind of news and score band, against ordinary betting.</li>
           <li><span className="font-mono text-ink">foreshadow_similar</span> (ticker, eventDate) → finished cases like this one and how often their bets were right.</li>
         </ul>
+        <p className="mt-3">
+          The server also offers three prompts, which Claude shows as slash commands: <span className="font-mono text-ink">investigate_case</span>{" "}
+          (ticker, date), <span className="font-mono text-ink">week_ahead</span> and <span className="font-mono text-ink">stock_track_record</span>{" "}
+          (ticker). Each chains the tools and asks for a short, plain answer. All five tools are read-only.
+        </p>
         <h3 className="mt-6 text-[18px] font-semibold text-ink">Try the tools here</h3>
         <p className="mt-1">Each tool has a REST twin that returns the same thing. Run one to see exactly what Claude gets.</p>
         <ToolPlayground ticker={top?.catalyst.ticker ?? "TSLA"} eventDate={top?.catalyst.eventDate ?? "2026-10-21"} />

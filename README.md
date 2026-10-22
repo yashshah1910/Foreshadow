@@ -24,7 +24,7 @@ options.
 | **Scorecard** `/scorecard` | Foreshadow grading itself in public: across every finished case, how often the bets were right by kind of news and score band, against ordinary betting as the yardstick. A lift is only claimed when it clears a significance check at that sample size. |
 | **RSS** `/feed.xml` | Upcoming news once its betting turns unusual, plus recent unusual cases, for any feed reader or a Discord RSS bot. |
 | **How it works** `/docs` | The method in plain words, then the exact formula, data sources, API and MCP setup. |
-| **MCP** `/api/mcp` | Remote MCP (streamable HTTP): `foreshadow_score`, `foreshadow_radar`, `foreshadow_history`, `foreshadow_scorecard`, `foreshadow_similar`. Plus `packages/mcp-stdio` for stdio-only clients. |
+| **MCP** `/api/mcp` | Remote MCP (streamable HTTP): `foreshadow_score`, `foreshadow_radar`, `foreshadow_history`, `foreshadow_scorecard`, `foreshadow_similar`, plus three prompts (`investigate_case`, `week_ahead`, `stock_track_record`). Plus `packages/mcp-stdio` for stdio-only clients. |
 | **Accounts** `/settings` | Supabase Auth (magic link + Google). Bring your own UW key, stored in Supabase Vault. Watchlists. Discord-webhook or email alerts when a Coming-up score crosses your threshold. |
 
 ## Screenshots
@@ -139,6 +139,10 @@ claude mcp add --transport http foreshadow https://<your-host>/api/mcp
 
 or for stdio-only clients `FORESHADOW_URL=https://<your-host> npx foreshadow-mcp` (see `packages/mcp-stdio`).
 Try: *"was there unusual options betting before Tesla's Oct 21 earnings?"*
+
+All five tools are marked read-only. The server also offers three prompts, which Claude shows as slash commands:
+`investigate_case` (ticker, date), `week_ahead` and `stock_track_record` (ticker). Each one chains the tools and asks
+for a short answer in plain English. You can also run every tool from the "Try the tools here" panel on `/docs#mcp`.
 
 The five tools have REST twins with the same JSON:
 
