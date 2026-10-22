@@ -111,7 +111,9 @@ export function caseSummary(s: EventSummary, facts: CaseFacts): string {
       ? "mostly calls, which pay off if the stock rises"
       : facts.callShare <= 0.4
         ? "mostly puts, which pay off if the stock falls"
-        : "split between calls (bets on a rise) and puts (bets on a fall)";
+        : s.direction === "bullish" || s.direction === "bearish"
+          ? `split between calls (bets on a rise) and puts (bets on a fall), though the other signals lean toward a ${s.direction === "bullish" ? "rise" : "fall"}`
+          : "split between calls (bets on a rise) and puts (bets on a fall)";
   const pace = facts.timesNormal && facts.timesNormal >= 1.5 ? `, about ${Math.round(facts.timesNormal)}× ${t}'s normal pace` : "";
   const open = s.partialWindow
     ? `${t} has ${kindNoun(s.catalyst.kind) === "earnings report" ? "an earnings report" : "news"} coming on ${when}. So far this week, traders have put ${money(facts.premium)} into large options bets${pace}, ${side}.`
