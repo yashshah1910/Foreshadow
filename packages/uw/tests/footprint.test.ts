@@ -160,6 +160,24 @@ describe("loadDailyFootprints", () => {
     expect(second.calls.skew).toHaveLength(0);
   });
 
+  it("keeps the OI days that arrived when others fail, so the next run fetches only the rest", async () => {
+    const cache = new MemoryCache();
+    const { client } = stubClient();
+    const failOn = new Set([dates[6], dates[8]]);
+    const getOi = client.getOiChange.bind(client);
+    client.getOiChange = async (ticker, date) => {
+      if (failOn.has(date)) throw new Error(`Time budget exceeded before GET /oi-change ${date}`);
+      return getOi(ticker, date);
+    };
+    await expect(loadDailyFootprints(client, cache, TICKER, dates, { today: TODAY })).rejects.toThrow(/Time budget exceeded/);
+    expect(await cache.get(TICKER, dates[5], "oi-change")).toHaveLength(1);
+    expect(await cache.get(TICKER, dates[6], "oi-change")).toBeUndefined();
+
+    const second = stubClient();
+    await loadDailyFootprints(second.client, cache, TICKER, dates, { today: TODAY });
+    expect(second.calls.oi.sort()).toEqual([dates[6], dates[8]]);
+  });
+
   it("returns empty days for inaccessible history with a warning instead of failing", async () => {
     const cache = new MemoryCache();
     const span = tradingDaysBetween("2026-08-24", "2026-10-21");

@@ -177,7 +177,12 @@ async function loadDarkPoolRanges(
   return result;
 }
 
-/** One call per missing date; probes the oldest date first to find the lookback cut-off. */
+/**
+ * One call per missing date; probes the oldest date first to find the
+ * lookback cut-off. If some dates fail (a time budget running out, say), the
+ * ones that did arrive are still cached before the error is rethrown, so the
+ * next run only fetches the rest.
+ */
 async function loadPerDate<T>(
   cache: FootprintCache,
   ticker: string,
@@ -195,7 +200,7 @@ async function loadPerDate<T>(
     fetched.set(missing[lo], await fetchOne(missing[lo]));
   });
   if (firstOk > 0) warnings.push(historicWarning(endpoint, ticker, missing, firstOk));
-  await Promise.all(
+  const settled = await Promise.allSettled(
     missing
       .slice(firstOk)
       .filter((d) => !fetched.has(d))
@@ -209,6 +214,8 @@ async function loadPerDate<T>(
       }),
   );
   await cache.setMany(entries(ticker, endpoint, fetched, today));
+  const failed = settled.find((s): s is PromiseRejectedResult => s.status === "rejected");
+  if (failed) throw failed.reason;
   for (const [d, rows] of fetched) result.set(d, rows);
   return result;
 }
