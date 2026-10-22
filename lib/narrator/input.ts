@@ -35,7 +35,13 @@ export function toNarrationInput(ev: EventDetail): NarrationInput {
       baselineMean: x.baselineMean,
       detail: x.detail,
     })),
-    topAlerts: stored.breakdown.topAlerts.map(toTradeExample),
+    topAlerts: stored.breakdown.topAlerts.map((a) => {
+      // Amounts to three significant figures, as the page shows them ($983K, not $982,980).
+      const t = { ...toTradeExample(a), premium: Number(toTradeExample(a).premium.toPrecision(3)) };
+      // Counted here so the story never counts days itself: windowDays ends the trading day before the news.
+      const i = ev.windowDays.indexOf(t.tradeDate);
+      return i >= 0 ? { ...t, tradingDaysBefore: ev.windowDays.length - i } : t;
+    }),
     verdict: s.partialWindow
       ? undefined
       : {

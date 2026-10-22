@@ -49,3 +49,20 @@ describe("fallbackDossierSummary", () => {
     expect(text).not.toContain("the bets were wrong");
   });
 });
+
+describe("caseSummary for FDA news", () => {
+  it("puts the FDA headline in brackets instead of after a possessive", () => {
+    const text = caseSummary(
+      summary({
+        catalyst: { ticker: "TENX", eventDate: "2026-08-10", kind: "fda", session: "premarket", title: "Top-line results: TNX-103" } as EventSummary["catalyst"],
+        partialWindow: false,
+        verdict: "matched",
+        direction: "bearish",
+        realizedMovePct: -89.8,
+        impliedMovePct: 81,
+      }),
+      { premium: 3_200_000, callShare: 0.2, timesNormal: 9 },
+    );
+    expect(text).toContain("before TENX's news on Aug 10 (Top-line results: TNX-103)");
+  });
+});

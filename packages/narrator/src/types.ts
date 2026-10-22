@@ -29,6 +29,8 @@ export interface NarrationAlert {
   expiry: string;
   premium: number;
   isSweep: boolean;
+  /** Trading days between the trade and the news (1 = the trading day before), counted by the app. */
+  tradingDaysBefore?: number;
 }
 
 export interface NarrationVerdict {

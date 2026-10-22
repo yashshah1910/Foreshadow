@@ -117,7 +117,9 @@ export function caseSummary(s: EventSummary, facts: CaseFacts): string {
   const pace = facts.timesNormal && facts.timesNormal >= 1.5 ? `, about ${Math.round(facts.timesNormal)}× ${t}'s normal pace` : "";
   const open = s.partialWindow
     ? `${t} has ${kindNoun(s.catalyst.kind) === "earnings report" ? "an earnings report" : "news"} coming on ${when}. So far this week, traders have put ${money(facts.premium)} into large options bets${pace}, ${side}.`
-    : `In the five trading days before ${t}'s ${eventPhrase(s)} on ${when}, traders put ${money(facts.premium)} into large options bets${pace}, ${side}.`;
+    : s.catalyst.kind === "earnings"
+      ? `In the five trading days before ${t}'s ${eventPhrase(s)} on ${when}, traders put ${money(facts.premium)} into large options bets${pace}, ${side}.`
+      : `In the five trading days before ${t}'s news on ${when} (${eventName(s)}), traders put ${money(facts.premium)} into large options bets${pace}, ${side}.`;
   const how = `Foreshadow rates that ${scoreWord(s.score).toLowerCase()}: ${s.score.toFixed(0)} out of 100.`;
   let end = "";
   if (s.verdict === "matched" || s.verdict === "missed") {
