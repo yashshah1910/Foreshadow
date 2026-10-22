@@ -27,6 +27,13 @@ export async function createSupabaseServerClient(): Promise<SupabaseClient> {
 
 let serviceClient: SupabaseClient | null = null;
 
+/** No service-role request may hang: a busy database otherwise stalls a cron run past its limit. */
+const SERVICE_REQUEST_TIMEOUT_MS = 60_000;
+const fetchWithTimeout: typeof fetch = (input, init) => {
+  const timeout = AbortSignal.timeout(SERVICE_REQUEST_TIMEOUT_MS);
+  return fetch(input, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout });
+};
+
 /** Service-role client for server-only work (cron, caches). Bypasses RLS. */
 export function createSupabaseServiceClient(): SupabaseClient {
   const url = env.supabaseUrl;
@@ -35,6 +42,7 @@ export function createSupabaseServiceClient(): SupabaseClient {
   if (!serviceClient) {
     serviceClient = createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },
+      global: { fetch: fetchWithTimeout },
     });
   }
   return serviceClient;
