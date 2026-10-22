@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { StripDay } from "@/lib/data";
 import { TellStrip } from "@/components/viz/TellStrip";
 import { track } from "@/lib/analytics";
@@ -39,6 +39,29 @@ export function GuessGame({ pool, leanedRightPct }: { pool: GuessCase[]; leanedR
   const [cases, setCases] = useState<GuessCase[]>([]);
   const [guesses, setGuesses] = useState<Guess[]>([]);
   const [round, setRound] = useState(0);
+  const awaiting = cases.length > 0 && round < cases.length && !guesses[round];
+
+  const choose = (g: Guess) => {
+    const c = cases[round];
+    const next = [...guesses.slice(0, round), g];
+    setGuesses(next);
+    track("guess_made", { correct: g === dir(c), bets_correct: c.lean === dir(c), score: c.score });
+    if (round + 1 === cases.length) track("guess_finished", tally(next, cases));
+  };
+
+  // Keyboard play: ↑ it rose, ↓ it fell (Enter on the focused button moves on).
+  useEffect(() => {
+    if (!awaiting) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select")) return;
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
+        choose(e.key === "ArrowUp" ? "rise" : "fall");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   if (pool.length < ROUNDS) {
     return <p className="tray mt-10 p-6 text-[16px] text-ink-2">Not enough finished cases to play yet. Check back once more news has happened.</p>;
@@ -70,8 +93,7 @@ export function GuessGame({ pool, leanedRightPct }: { pool: GuessCase[]; leanedR
   }
 
   const done = round >= cases.length;
-  const you = guesses.filter((g, i) => g === dir(cases[i])).length;
-  const bets = guesses.map((_, i) => cases[i]).filter((c) => c.lean === dir(c)).length;
+  const { you, bets } = tally(guesses, cases);
 
   if (done) {
     const verdict =
@@ -170,6 +192,7 @@ export function GuessGame({ pool, leanedRightPct }: { pool: GuessCase[]; leanedR
         {!guess ? (
           <div className="mt-7">
             <p className="text-[17px] font-semibold text-ink">After the news, did {c.ticker} rise or fall?</p>
+            <p className="mt-1 hidden text-[13px] text-ink-3 sm:block">Or press ↑ or ↓ on your keyboard.</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <GuessButton onClick={() => choose("rise")} tone="call">
                 ↑ It rose
@@ -203,12 +226,14 @@ export function GuessGame({ pool, leanedRightPct }: { pool: GuessCase[]; leanedR
       </div>
     </div>
   );
+}
 
-  function choose(g: Guess) {
-    setGuesses((gs) => [...gs.slice(0, round), g]);
-    track("guess_made", { correct: g === dir(c), bets_correct: c.lean === dir(c), score: c.score });
-    if (round + 1 === cases.length) track("guess_finished", { you: you + Number(g === dir(c)), bets: bets + Number(c.lean === dir(c)) });
-  }
+/** Right calls so far: the player's, and those of simply following the bets. */
+function tally(guesses: Guess[], cases: GuessCase[]): { you: number; bets: number } {
+  return {
+    you: guesses.filter((g, i) => g === dir(cases[i])).length,
+    bets: guesses.filter((_, i) => cases[i].lean === dir(cases[i])).length,
+  };
 }
 
 function dir(c: GuessCase): Guess {
