@@ -6,6 +6,8 @@ import { CaseList } from "@/components/cases/CaseList";
 import { Legend } from "@/components/cases/Legend";
 import { WindowsDiagram } from "@/components/landing/WindowsDiagram";
 import { VerdictMark } from "@/components/viz/Marks";
+import { CopyCommand } from "@/components/ui/CopyCommand";
+import { env } from "@/lib/env";
 import { eventName, eventPhrase, kindsLiftFirst, scorecardFinding, scoreWord } from "@/lib/plain";
 import { fmtDate, fmtPct, KIND_LABELS } from "@/lib/format";
 
@@ -167,6 +169,41 @@ export default async function Home() {
         </section>
       ) : null}
 
+      {/* ---------------- Claude ---------------- */}
+      <section aria-labelledby="claude-h" className="mt-28 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-center lg:gap-14">
+        <div>
+          <h2 id="claude-h" className="display text-[34px] text-ink sm:text-[42px]">Ask Claude instead</h2>
+          <p className="prose-plain mt-5">
+            Foreshadow is also an MCP server, so Claude can use it as a tool. Add it with one line, then ask in your own words. Claude
+            looks up the score, the biggest bets, similar past cases and the scorecard, and answers in plain English.
+          </p>
+          <p className="mt-4 text-[15.5px] text-ink-2">
+            Works in Claude Code, Claude Desktop and Cursor.{" "}
+            <Link href="/docs#mcp" className="link">Setup and a live tool tester</Link>
+          </p>
+        </div>
+        <div className="tray grid grid-cols-[minmax(0,1fr)] gap-2 p-2">
+          <div className="card p-4">
+            <p className="text-[13px] font-medium text-ink-3">Add it to Claude Code</p>
+            <div className="mt-2">
+              <CopyCommand command={`claude mcp add --transport http foreshadow ${env.siteUrl.replace(/\/$/, "")}/api/mcp`} />
+            </div>
+          </div>
+          <div className="card p-4">
+            <p className="text-[13px] font-medium text-ink-3">Then ask, for example</p>
+            <ul className="mt-2 grid gap-1.5 text-[15.5px] text-ink">
+              <li>&ldquo;Was there unusual betting before Tesla&apos;s last earnings?&rdquo;</li>
+              <li>&ldquo;Which news this week has the most unusual betting so far?&rdquo;</li>
+              <li>&ldquo;Has unusual betting before FDA news ever been right?&rdquo;</li>
+            </ul>
+            <p className="mt-3 text-[13.5px] text-ink-3">
+              Or pick one of its ready-made prompts: <span className="font-mono text-ink-2">investigate_case</span>,{" "}
+              <span className="font-mono text-ink-2">week_ahead</span>, <span className="font-mono text-ink-2">stock_track_record</span>.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ---------------- Caveats ---------------- */}
       <section aria-labelledby="note-h" className="mt-28">
         <h2 id="note-h" className="display text-[34px] text-ink sm:text-[42px]">Good to know</h2>
@@ -184,8 +221,7 @@ export default async function Home() {
           </Note>
         </div>
         <p className="mt-6 text-[16px] text-ink-2">
-          Want the details? <Link href="/docs" className="link">Read how the score is calculated</Link>, or{" "}
-          <Link href="/docs#mcp" className="link">ask Claude about any case</Link> by adding Foreshadow as a tool.
+          Want the details? <Link href="/docs" className="link">Read how the score is calculated</Link>.
         </p>
       </section>
     </div>
