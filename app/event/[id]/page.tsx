@@ -11,6 +11,7 @@ import { ScoreReceipt } from "@/components/event/ScoreReceipt";
 import { Narration } from "@/components/event/Narration";
 import { AskPanel } from "@/components/event/AskPanel";
 import { ShareButton } from "@/components/event/ShareButton";
+import { WatchButton } from "@/components/shell/WatchButton";
 import { CaseList } from "@/components/cases/CaseList";
 import { KindTag, VerdictMark, WindowMeter } from "@/components/viz/Marks";
 import { Explain } from "@/components/ui/Explain";
@@ -154,7 +155,10 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
             eventDate={s.catalyst.eventDate}
             summary={`${s.catalyst.ticker} ${s.catalyst.title} on ${s.catalyst.eventDate}: score ${s.score}, ${s.direction}, verdict ${s.verdict}.`}
           />
-          <ShareButton id={s.catalyst.id} text={shareText(s)} />
+          <div className="flex flex-wrap gap-2">
+            <ShareButton id={s.catalyst.id} text={shareText(s)} />
+            <WatchButton ticker={s.catalyst.ticker} />
+          </div>
         </div>
       </div>
 

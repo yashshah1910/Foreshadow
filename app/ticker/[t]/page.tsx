@@ -7,6 +7,7 @@ import { CaseList } from "@/components/cases/CaseList";
 import { fmtDate, fmtMarketcap } from "@/lib/format";
 import { KindTag } from "@/components/viz/Marks";
 import { AskPanel } from "@/components/event/AskPanel";
+import { WatchButton } from "@/components/shell/WatchButton";
 
 export async function generateMetadata({ params }: PageProps<"/ticker/[t]">): Promise<Metadata> {
   const { t } = await params;
@@ -40,9 +41,12 @@ export default async function TickerPage({ params }: PageProps<"/ticker/[t]">) {
               {company.marketcap ? `, ${fmtMarketcap(company.marketcap)} market value` : ""}
             </p>
           ) : null}
-          <a href={`/feed.xml?ticker=${ticker}`} className="link mt-4 inline-block text-[15px]">
-            Follow {ticker} by RSS
-          </a>
+          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+            <WatchButton ticker={ticker} />
+            <a href={`/feed.xml?ticker=${ticker}`} className="link text-[15px]">
+              Follow {ticker} by RSS
+            </a>
+          </div>
         </div>
         <div>
           {past.length > 0 ? (

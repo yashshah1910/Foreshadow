@@ -10,6 +10,7 @@ import { KindTag } from "@/components/viz/Marks";
 import { fmtDate, fmtPct } from "@/lib/format";
 import { directionPlain, eventName } from "@/lib/plain";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useWatchlist } from "@/lib/hooks/useWatchlist";
 
 export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }) {
   const router = useRouter();
@@ -41,6 +42,8 @@ export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }
     const t = setInterval(tick, 60_000);
     return () => clearInterval(t);
   }, []);
+  const { list: watched } = useWatchlist();
+  const mine = items.filter((i) => watched.includes(i.catalyst.ticker));
   const open = items.filter((i) => i.windowOpen);
   const upcoming = items.filter((i) => !i.windowOpen);
   const lead = open.filter((i) => i.daysElapsed > 0).sort((a, b) => b.score - a.score)[0] ?? null;
@@ -60,6 +63,21 @@ export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }
         {lastEvent ? <span className="tnum">Updated {lastEvent}</span> : null}
         <a href="/feed.xml" className="link ml-auto text-[14px]">Follow by RSS</a>
       </div>
+      {watched.length > 0 ? (
+        <section aria-labelledby="mine-h" className="mb-10">
+          <h2 id="mine-h" className="mb-3 flex items-baseline gap-3 px-1">
+            <span className="text-[19px] font-semibold text-ink">Your stocks</span>
+            <span className="text-[14px] text-ink-3">watching {watched.join(", ")} on this device</span>
+          </h2>
+          {mine.length > 0 ? (
+            <CaseList rows={mine} mode="live" />
+          ) : (
+            <p className="tray px-6 py-5 text-[15px] text-ink-2">
+              None of your stocks has news in the next two weeks. Foreshadow will list them here once one does.
+            </p>
+          )}
+        </section>
+      ) : null}
       {lead ? (
         <Link
           href={`/event/${encodeURIComponent(lead.catalyst.id)}`}
