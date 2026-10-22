@@ -161,7 +161,9 @@ export default function DocsPage() {
           For past events the close-to-close move over the reaction window is compared to the implied move. Pre-market and
           intraday catalysts use close(T) vs close(T-1); after-hours catalysts use close(T+1) vs close(T). The footprint
           <strong className="text-ink"> matched</strong> when the move is at least 1× the implied move <em>and</em> its sign agrees with the footprint direction;
-          otherwise it <strong className="text-ink">missed</strong>. A &ldquo;mixed&rdquo; direction can never match. The implied move is the earnings expected
+          otherwise it <strong className="text-ink">missed</strong>. A &ldquo;mixed&rdquo; direction can never match. Pages split a miss in two:
+          &ldquo;Right way, small move&rdquo; when the stock went the way the bets leaned but by less than the implied move, and
+          &ldquo;Wrong way&rdquo; when it went against them. The implied move is the earnings expected
           move from UW when present, else the 1-day interpolated implied move the day before; if neither exists a 4% fallback
           is used and labelled as such.
         </p>
@@ -182,8 +184,8 @@ export default function DocsPage() {
           story and the tweet-ready caption on each case page from the score&apos;s measurements and its largest trades; every number in the
           story is checked against that input, and the largest trades are shown beside the story so you can verify. The{" "}
           <strong className="text-ink">Catalyst tagger</strong> maps President&apos;s-schedule and economic-calendar rows to tickers with a confidence. The{" "}
-          <strong className="text-ink">Investigator</strong> (&ldquo;Ask Foreshadow&rdquo;) runs a short tool loop, capped at six calls, over Foreshadow&apos;s
-          three tools plus the Unusual Whales hosted MCP, and names the sources it used. The{" "}
+          <strong className="text-ink">Investigator</strong> (the &ldquo;Ask about this case&rdquo; box) runs a short tool loop, capped at six calls, over Foreshadow&apos;s
+          five tools plus the Unusual Whales hosted MCP, and names the sources it used. The{" "}
           <strong className="text-ink">Stock summary</strong> is one paragraph on whether unusual betting keeps showing up before a stock&apos;s news. Narrations are cached by
           (ticker, event date, score). Without <span className="font-mono text-ink">ANTHROPIC_API_KEY</span> every surface still works and shows the
           deterministic template instead.
@@ -191,7 +193,7 @@ export default function DocsPage() {
       </Section>
 
       <Section id="mcp" title="Add Foreshadow to Claude or Cursor (MCP)">
-        <p>Foreshadow ships a remote MCP server over streamable HTTP. One URL, three tools, no auth.</p>
+        <p>Foreshadow ships a remote MCP server over streamable HTTP. One URL, five tools, no auth.</p>
         <pre className="mt-3 overflow-x-auto well p-4 font-mono text-[13px] text-ink">{`claude mcp add --transport http foreshadow ${base}/api/mcp`}</pre>
         <pre className="mt-2 overflow-x-auto well p-4 font-mono text-[13px] text-ink">{`{
   "mcpServers": {
@@ -216,8 +218,11 @@ export default function DocsPage() {
           <li>GET /api/score?ticker=TSLA&amp;eventDate=2026-10-21</li>
           <li>GET /api/radar?daysAhead=10&amp;minScore=40</li>
           <li>GET /api/history?ticker=ACAD</li>
+          <li>GET /api/scorecard</li>
+          <li>GET /api/similar?ticker=TSLA&amp;eventDate=2026-10-21</li>
           <li>GET /api/narrate?id=&lt;catalyst id&gt;</li>
-          <li>POST /api/ask {"{ question, context }"}</li>
+          <li>POST /api/ask {"{ question, context, history? }"}</li>
+          <li>GET /feed.xml (optionally ?ticker=TSLA)</li>
           <li>GET /api/cron/ingest?mode=radar|daily|backfill (Bearer CRON_SECRET)</li>
         </ul>
         <p className="mt-3">
