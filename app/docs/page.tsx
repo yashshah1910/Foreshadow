@@ -24,7 +24,7 @@ export default async function DocsPage() {
   // The playground starts on the most unusual finished case, so its first run always returns something.
   const [top] = await getLeaderboard({ limit: 1 });
   return (
-    <div className="mx-auto max-w-[760px] px-5 py-12 sm:px-8 lg:py-16">
+    <div className="mx-auto max-w-[760px] px-5 py-12 sm:px-8 lg:py-16 [&_span.font-mono]:[overflow-wrap:anywhere]">
       <h1 className="display text-[44px] text-ink sm:text-[60px]">How it works</h1>
       <div className="prose-plain mt-6 space-y-4">
         <p>
