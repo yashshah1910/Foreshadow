@@ -20,6 +20,8 @@ export default async function Home() {
   const example = exampleSummary ? await getEvent(exampleSummary.catalyst.id) : null;
   const { checked, unusual, unusualRight } = stats.past;
   const upcoming = radar.filter((r) => r.windowOpen).slice(0, 4);
+  // The most unusual betting on news still to come, for the line under the opening buttons.
+  const live = [...radar.filter((r) => r.windowOpen && r.score >= 40)].sort((a, b) => b.score - a.score)[0] ?? null;
 
   return (
     <div className="mx-auto max-w-[1120px] px-5 sm:px-8">
@@ -43,6 +45,21 @@ export default async function Home() {
             <Link href="/leaderboard" className="pressable btn btn-primary">Browse past cases</Link>
             <Link href="/radar" className="pressable btn btn-soft">See what&apos;s coming up</Link>
           </div>
+          {live ? (
+            <Link
+              href={`/event/${encodeURIComponent(live.catalyst.id)}`}
+              className="group mt-6 flex w-fit max-w-full items-center gap-3 rounded-2xl bg-surface-2 px-4 py-2.5 text-[14.5px] leading-snug text-ink-2 hover:text-ink"
+            >
+              <span className="h-2 w-2 shrink-0 rounded-full bg-call motion-safe:animate-pulse" aria-hidden="true" />
+              <span className="min-w-0">
+                <span className="font-semibold text-ink">Live now:</span> <span className="ticker font-semibold text-ink">{live.catalyst.ticker}</span>{" "}
+                {live.catalyst.kind === "earnings" ? "earnings" : "FDA news"} {fmtDate(live.catalyst.eventDate)}, betting{" "}
+                <span className="font-semibold text-ink tnum">{Math.round(live.score)}/100</span> so far,{" "}
+                {live.direction === "bullish" ? "leaning rise" : live.direction === "bearish" ? "leaning fall" : "no clear lean"}
+              </span>
+              <span aria-hidden="true" className="shrink-0 transition-transform group-hover:translate-x-0.5">→</span>
+            </Link>
+          ) : null}
         </div>
 
         {example ? (
