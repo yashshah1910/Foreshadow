@@ -3,6 +3,7 @@ import { getEvent, getLeaderboard, getRadar, getScorecard, getStats } from "@/li
 import { reactionWindowFor } from "@foreshadow/core";
 import { Trace } from "@/components/event/Trace";
 import { CaseList } from "@/components/cases/CaseList";
+import { FindingBars, findingRates } from "@/components/viz/FindingBars";
 import { Legend } from "@/components/cases/Legend";
 import { WindowsDiagram } from "@/components/landing/WindowsDiagram";
 import { VerdictMark } from "@/components/viz/Marks";
@@ -160,6 +161,7 @@ export default async function Home() {
               <div key={k.kind} className="tray p-6">
                 <p className="text-[14px] font-medium text-ink-3">{KIND_LABELS[k.kind] ?? k.kind}</p>
                 <p className="mt-2 text-[19px] font-semibold leading-snug text-ink">{scorecardFinding(k.kind, k.bands)}</p>
+                <FindingBars bands={k.bands} scaleMax={Math.max(10, ...scorecard.kinds.flatMap((x) => findingRates(x.bands)))} />
               </div>
             ))}
           </div>

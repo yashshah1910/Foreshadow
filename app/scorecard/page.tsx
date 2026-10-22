@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getLeaderboard, getScorecard } from "@/lib/data";
 import { CaseList } from "@/components/cases/CaseList";
+import { FindingBars, findingRates } from "@/components/viz/FindingBars";
 import { AskPanel } from "@/components/event/AskPanel";
 import type { Scorecard, ScorecardBand } from "@/lib/data";
 import { KIND_LABELS } from "@/lib/format";
@@ -43,6 +44,7 @@ export default async function ScorecardPage() {
           <div key={k.kind} className="tray p-6">
             <p className="text-[14px] font-medium text-ink-3">{KIND_LABELS[k.kind] ?? k.kind}</p>
             <p className="mt-2 text-[19px] font-semibold leading-snug text-ink">{scorecardFinding(k.kind, k.bands)}</p>
+            <FindingBars bands={k.bands} scaleMax={Math.max(10, ...card.kinds.flatMap((x) => findingRates(x.bands)))} />
           </div>
         ))}
       </section>
