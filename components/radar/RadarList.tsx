@@ -12,7 +12,16 @@ import { directionPlain, eventName } from "@/lib/plain";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
 
-export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }) {
+export function RadarList({
+  items,
+  live,
+  leadHistory = null,
+}: {
+  items: RadarItem[];
+  live: boolean;
+  /** How similar past betting turned out, for the lead case the server saw (shown only while it is still the lead). */
+  leadHistory?: { id: string; text: string } | null;
+}) {
   const router = useRouter();
   const [lastEvent, setLastEvent] = useState<string | null>(null);
 
@@ -100,6 +109,7 @@ export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }
               {lead.score.toFixed(0)} out of 100 after {lead.daysElapsed} of {lead.daysTotal} days, {directionPlain(lead.direction).toLowerCase()}.
               Options are pricing in a move of about ±{fmtPct(lead.impliedMovePct, { sign: false, decimals: 0 })}.
             </span>
+            {leadHistory?.id === lead.catalyst.id ? <span className="mt-2 block text-[14.5px] text-ink-3">{leadHistory.text}</span> : null}
           </span>
           <span className="text-[15px] font-semibold text-ink group-hover:underline group-hover:underline-offset-4">Open the case</span>
         </Link>
