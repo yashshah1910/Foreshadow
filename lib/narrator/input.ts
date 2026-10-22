@@ -21,7 +21,8 @@ export function toNarrationInput(ev: EventDetail): NarrationInput {
     eventTitle: s.catalyst.title,
     kind: s.catalyst.kind,
     session: s.catalyst.session,
-    score: s.score,
+    // Rounded the way the page shows them, so the story never says 70.5 beside a 71.
+    score: Math.round(s.score),
     direction: s.direction,
     band: s.band,
     signals: stored.breakdown.signals.map((x) => ({
@@ -39,8 +40,8 @@ export function toNarrationInput(ev: EventDetail): NarrationInput {
       ? undefined
       : {
           verdict: s.verdict,
-          realizedMovePct: s.realizedMovePct,
-          impliedMovePct: s.impliedMovePct,
+          realizedMovePct: s.realizedMovePct === null ? null : round1(s.realizedMovePct),
+          impliedMovePct: s.impliedMovePct === null ? null : round1(s.impliedMovePct),
           reactionWindow: stored.breakdown.verdict.reactionWindow,
           outcome: NARRATION_OUTCOME[outcomeOf(s)],
         },
@@ -61,11 +62,15 @@ export function toDossierInput(d: Dossier, limit = 8): DossierInput {
       eventDate: e.catalyst.eventDate,
       kind: e.catalyst.kind,
       title: e.catalyst.title,
-      score: e.score,
+      score: Math.round(e.score),
       direction: e.direction,
       verdict: e.verdict,
-      realizedMovePct: e.realizedMovePct,
+      realizedMovePct: e.realizedMovePct === null ? null : round1(e.realizedMovePct),
     })),
     hitRate: { scored: d.hitRate.scored, strong: d.hitRate.strong, matched: d.hitRate.strongMatched },
   };
+}
+
+function round1(n: number): number {
+  return Math.round(n * 10) / 10;
 }
