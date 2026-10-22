@@ -22,6 +22,9 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
           News scheduled in the next two weeks. Once a stock enters the five trading days before its news, Foreshadow starts
           scoring the betting, and the score updates through the day. The dots show how many of the five days have passed.
           As of {fmtDate(today, { year: true, weekday: true })}.
+          {items.some((i) => i.catalyst.kind === "fda") ? null : (
+            <> No FDA decisions with a firm date fall in this window right now, so everything below is earnings.</>
+          )}
         </p>
       </header>
       <RadarList items={items} live={hasSupabase()} />

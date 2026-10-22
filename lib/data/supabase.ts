@@ -145,7 +145,9 @@ export class SupabaseDataSource implements DataSource {
   private summaryOf(r: ScoreRow): EventSummary | null {
     const c = joinedCatalyst(r);
     if (!c) return null;
-    return toSummary(rowToStored(r), c, companyFromCatalyst(c));
+    // The raw calendar row (EPS estimates, expected-move fields, ...) is Unusual Whales data: keep it on the
+    // server. Summaries reach client components, so they carry only the company fields taken from it.
+    return toSummary(rowToStored(r), { ...c, payload: {} }, companyFromCatalyst(c));
   }
 
   async getStats(): Promise<Stats> {
