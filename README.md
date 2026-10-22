@@ -179,7 +179,7 @@ The five tools have REST twins with the same JSON:
 
 | Tool | REST | Returns |
 |---|---|---|
-| `foreshadow_score` | `GET /api/score?ticker=&eventDate=` | The case (`id`, `ticker`, `kind`, `eventDate`, `title`, `score` (whole number), `band`, `direction`, `verdict`, `result` (the three outcomes in words), `impliedMovePct`, `realizedMovePct`, `flags`), its `url`, the five `signals` (weight, z, contribution, window vs baseline), `trades: { count, totalPremium, largest }` and `verdictDetail` |
+| `foreshadow_score` | `GET /api/score?ticker=&eventDate=` | The case (`id`, `ticker`, `kind`, `eventDate`, `title`, `score` (whole number), `band`, `direction`, `verdict`, `result` (the three outcomes in words), `impliedMovePct`, `realizedMovePct`, `flags`), its `url`, the six `signals` (weight, z, contribution, window vs baseline), `trades: { count, totalPremium, largest }` and `verdictDetail` |
 | `foreshadow_radar` | `GET /api/radar?daysAhead=&minScore=` | `today` and `items`: upcoming cases with the same summary fields plus `windowStart`, `windowOpen`, `daysElapsed`, `daysTotal` |
 | `foreshadow_history` | `GET /api/history?ticker=` | `ticker`, `company`, `hitRate` and `events` (case summaries) |
 | `foreshadow_scorecard` | `GET /api/scorecard` | `cases`, `definition` and per kind of news a `finding` plus `bands` (`scores`, `cases`, `rightPct`, `movedMoreThanExpectedPct`, `movedWithLeanPct`) |
@@ -189,19 +189,21 @@ These are Foreshadow's results, not a copy of Unusual Whales data. `trades.large
 each only `{ tradeDate, type, strike, expiry, premium, isSweep }`: no alert ids, timestamps, contract counts or other raw
 fields. Case pages show the ten largest the same way, and `/api/ask` returns only the answer and the names of the sources
 it used. Stored scores keep the same trimmed trades, and the raw cached responses (`footprints`) and catalyst
-calendar rows (`catalysts.payload`) are readable by the service role only.
+calendar rows (`catalysts.payload`) are readable by the service role only; pages get the company name, sector and
+size from those rows, never the rows themselves.
 
 ## Architecture
 
 ```
 app/                     Next.js 16 App Router (Turbopack, Tailwind 4)
   page.tsx               home: what it does, a real case, how it works, the most unusual cases
-  leaderboard/ event/[id]/ ticker/[t]/ radar/ docs/ settings/ login/
+  leaderboard/ event/[id]/ ticker/[t]/ radar/ scorecard/ guess/ docs/ settings/ login/
+  feed.xml calendar.ics  RSS and iCalendar feeds
   globals.css            the design tokens (light only; grouping by tinted trays, no divider lines)
   api/cron/ingest        fetch UW → score → upsert Supabase (Vercel Cron daily; GitHub Actions every 15 min in market hours for the radar)
   api/mcp                remote MCP (mcp-handler, streamable HTTP)
   api/narrate api/ask api/dossier    Claude route handlers
-  api/score api/radar api/history    REST twins of the MCP tools (used by the stdio wrapper)
+  api/score api/radar api/history api/scorecard api/similar    REST twins of the MCP tools (used by the stdio wrapper)
 lib/data/                one DataSource interface, two implementations: Supabase (reads cached for a few minutes) or the JSON fixtures (demo mode)
 lib/ingest.ts            the pipeline shared by the cron route and `pnpm ingest`
 packages/core/           scorer.ts, windows.ts, verdict.ts + tests  (pure, deterministic)
