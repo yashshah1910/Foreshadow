@@ -13,6 +13,8 @@ import { AskPanel } from "@/components/event/AskPanel";
 import { ShareButton } from "@/components/event/ShareButton";
 import { CaseList } from "@/components/cases/CaseList";
 import { KindTag, VerdictMark, WindowMeter } from "@/components/viz/Marks";
+import { Explain } from "@/components/ui/Explain";
+import type { GlossaryKey } from "@/lib/glossary";
 import { caseSummary, directionPlain, eventName, eventPhrase, factsFromStored, scoreWord, verdictPlain } from "@/lib/plain";
 import { fmtDate, fmtPct } from "@/lib/format";
 
@@ -75,22 +77,22 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
       </header>
 
       <dl className="tray mt-10 grid grid-cols-2 gap-2 p-2 md:grid-cols-5">
-        <Fact label="Unusual betting">
+        <Fact label="Unusual betting" explain="score">
           <span className="numeral text-[34px] text-ink">{s.score >= 70 ? <span className="hl">{s.score.toFixed(0)}</span> : s.score.toFixed(0)}</span>
           <span className="text-[15px] text-ink-3"> / 100</span>
           <span className="mt-1 block text-[14px] text-ink-3">{scoreWord(s.score)}</span>
         </Fact>
-        <Fact label="The bets leaned">
+        <Fact label="The bets leaned" explain="lean">
           <span className="text-[19px] font-semibold text-ink">{directionPlain(s.direction)}</span>
         </Fact>
-        <Fact label="Expected move">
+        <Fact label="Expected move" explain="expected">
           <span className="numeral text-[26px] text-ink">±{fmtPct(s.impliedMovePct, { sign: false })}</span>
           <span className="mt-1 block text-[14px] text-ink-3">priced in by options</span>
         </Fact>
-        <Fact label={rw.reactionWindow === "T" ? "Actual move that day" : "Actual move, next day"}>
+        <Fact label={rw.reactionWindow === "T" ? "Actual move that day" : "Actual move, next day"} explain="actual">
           <span className="numeral text-[26px] text-ink">{s.verdict === "pending" ? "—" : fmtPct(s.realizedMovePct)}</span>
         </Fact>
-        <Fact label="Result">
+        <Fact label="Result" explain="result">
           {s.partialWindow ? (
             <span className="flex flex-col gap-2 text-[15px] text-ink-2">
               <WindowMeter elapsed={stored.flags.footprintDaysUsed} total={5} />
@@ -180,10 +182,13 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
   );
 }
 
-function Fact({ label, children }: { label: string; children: React.ReactNode }) {
+function Fact({ label, explain, children }: { label: string; explain?: GlossaryKey; children: React.ReactNode }) {
   return (
     <div className="card px-5 py-4">
-      <dt className="mb-2 text-[14px] font-medium text-ink-3">{label}</dt>
+      <dt className="mb-2 flex items-center text-[14px] font-medium text-ink-3">
+        {label}
+        {explain ? <Explain term={explain} label={label.toLowerCase()} /> : null}
+      </dt>
       <dd>{children}</dd>
     </div>
   );

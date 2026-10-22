@@ -3,6 +3,7 @@ import type { EventSummary, RadarItem } from "@/lib/data";
 import { fmtDate, fmtPct } from "@/lib/format";
 import { eventName } from "@/lib/plain";
 import { TellStrip } from "@/components/viz/TellStrip";
+import { Explain } from "@/components/ui/Explain";
 import { DirectionMark, KindTag, ScoreFigure, VerdictMark, WindowMeter } from "@/components/viz/Marks";
 
 type Row = EventSummary | RadarItem;
@@ -46,10 +47,22 @@ export function CaseList({
     <div className="tray p-2 sm:p-2.5">
       <div className={`hidden gap-6 px-5 pb-2 pt-2 text-[13px] font-medium text-ink-3 ${header ? "lg:grid" : ""} ${COLS}`}>
         <span>Stock and news</span>
-        <span>Unusual betting</span>
-        <span>Betting, 10 days before</span>
-        <span>{live ? "Expected move" : "Expected, then actual"}</span>
-        <span>{live ? "Days in" : "The bets were"}</span>
+        <span className="whitespace-nowrap">
+          Unusual betting
+          <Explain compact term="score" label="the unusual betting score" />
+        </span>
+        <span className="whitespace-nowrap">
+          Last 10 days
+          <Explain compact term="window" label="the last ten days" />
+        </span>
+        <span className="whitespace-nowrap">
+          {live ? "Expected move" : "Expected vs actual"}
+          <Explain compact term="expected" label="the expected move" />
+        </span>
+        <span className="whitespace-nowrap">
+          {live ? "Days in" : "The bets were"}
+          {live ? <Explain compact term="window" label="days in" /> : <Explain compact term="result" label="whether the bets were right" />}
+        </span>
       </div>
       <ol className="grid gap-1.5">
         {rows.map((r) => (
