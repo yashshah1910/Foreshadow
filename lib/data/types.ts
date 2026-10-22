@@ -64,6 +64,12 @@ export interface EventDetail {
   narration: Narration | null;
   /** Other scored events for the same ticker, newest first. */
   related: EventSummary[];
+  /**
+   * Totals over every flagged trade in the window. Set when `footprint` has
+   * been trimmed to the largest trades (pages never need all of them; a busy
+   * stock like TSLA has 9,000+).
+   */
+  alertStats?: { count: number; premium: number };
 }
 
 export interface LeaderboardFilters {

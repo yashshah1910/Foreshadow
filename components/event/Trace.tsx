@@ -54,7 +54,7 @@ export function Trace(p: TraceProps) {
         viewBox={`0 0 ${width} ${m.height}`}
         className="block overflow-visible outline-none"
         role="img"
-        aria-label={`Price and options footprint around the ${p.eventLabel} on ${fmtDateShort(p.eventDate)}. Use the left and right arrow keys to read each session.`}
+        aria-label={`Stock price and options betting around the ${p.eventLabel} on ${fmtDateShort(p.eventDate)}. Use the left and right arrow keys to read each day.`}
         tabIndex={0}
         onMouseLeave={() => setActive(null)}
         onMouseMove={(e) => {
@@ -74,8 +74,8 @@ export function Trace(p: TraceProps) {
         {m.band ? (
           <g>
             <path d={bandPath(m.band.x0, m.band.x1, PAD_T - 10, m.height - X_AXIS + 2)} className="hl-band hl-band-draw" />
-            <text x={m.band.x0 + 8} y={14} className="fill-ink" fontSize="12.5" fontWeight={600}>
-              {m.narrow ? "5 days before" : "The 5 trading days before the news"}
+            <text x={m.bandLabel.x} y={m.bandLabel.y} textAnchor={m.bandLabel.anchor} className="fill-ink" fontSize="12.5" fontWeight={600}>
+              {m.bandLabel.text}
             </text>
           </g>
         ) : null}
@@ -109,7 +109,7 @@ export function Trace(p: TraceProps) {
               fontSize="12.5"
               fontWeight={700}
             >
-              {m.eventOnChart ? "The news" : `News on ${fmtDateShort(p.eventDate)} →`}
+              {m.eventText}
             </text>
           </g>
         ) : null}
@@ -308,13 +308,32 @@ function layout(p: TraceProps, width: number) {
   const eventOnChart = eventIdx >= 0;
   const lastDay = days[days.length - 1];
   const eventX = eventOnChart ? xOf(eventIdx) : lastDay && p.eventDate > lastDay ? PAD_L + plotW - 1 : null;
-  const eventFlip = eventX !== null && eventX > PAD_L + plotW * 0.82;
+  let eventFlip = eventX !== null && eventX > PAD_L + plotW * 0.82;
+  const eventText = eventOnChart ? "The news" : `News on ${fmtDateShort(p.eventDate)} →`;
 
   // Footprint band
   const winIdx = days.map((d, i) => (windowSet.has(d) ? i : -1)).filter((i) => i >= 0);
   const band = winIdx.length
     ? { x0: PAD_L + Math.min(...winIdx) * slot + 1, x1: PAD_L + (Math.max(...winIdx) + 1) * slot - 1 }
     : null;
+
+  // Top labels: keep "5 days before" and "The news" from running into each
+  // other when the news day sits right after the highlighted days.
+  const narrow = width < 640;
+  const bandText = narrow ? "5 days before" : "The 5 trading days before the news";
+  const textW = (t: string) => t.length * 7.1;
+  let bandLabel = { x: (band?.x0 ?? 0) + 8, y: 14, anchor: "start" as "start" | "end", text: bandText };
+  if (band && eventX !== null) {
+    const evW = textW(eventText);
+    const evStart = eventFlip ? eventX - 7 - evW : eventX + 7;
+    if (bandLabel.x + textW(bandText) > evStart - 8) {
+      const roomRight = PAD_L + plotW + PAD_R - (eventX + 7);
+      if (roomRight >= evW) eventFlip = false;
+      bandLabel = eventFlip
+        ? { ...bandLabel, y: 28 }
+        : { x: Math.min(band.x1, eventX) - 8, y: 14, anchor: "end", text: bandText };
+    }
+  }
 
   // Reaction
   let reaction: { y0: number; x1: number; y1: number; bx: number; dir: 1 | -1; label: string } | null = null;
@@ -440,12 +459,14 @@ function layout(p: TraceProps, width: number) {
     eventX,
     eventOnChart,
     eventFlip,
+    eventText,
+    bandLabel,
     band,
     reaction,
     rows,
     peak: peakLabel,
     height,
-    narrow: width < 640,
+    narrow,
     showTick: (i: number) =>
       days[i] === p.eventDate || (i % tickEvery === 0 && (eventIdx < 0 || Math.abs(i - eventIdx) >= Math.max(1, tickEvery))),
     closeOf: (i: number) => (i >= 0 && i < closes.length ? closes[i] : null),
@@ -456,10 +477,17 @@ function layout(p: TraceProps, width: number) {
 function niceTicks(lo: number, hi: number, count: number): number[] {
   const span = hi - lo;
   if (span <= 0) return [lo];
-  const rough = span / count;
-  const pow = 10 ** Math.floor(Math.log10(rough));
-  const step = [1, 2, 2.5, 5, 10].map((k) => k * pow).find((s) => s >= rough) ?? pow;
-  const out: number[] = [];
-  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(Number(v.toFixed(6)));
-  return out;
+  const pow = 10 ** Math.floor(Math.log10(span / count));
+  const ticksFor = (step: number) => {
+    const out: number[] = [];
+    for (let v = Math.ceil(lo / step - 1e-9) * step; v <= hi + 1e-9; v += step) out.push(Number(v.toFixed(6)));
+    return out;
+  };
+  // The roundest step that still labels at least two prices.
+  const steps = [10, 5, 2.5, 2, 1, 0.5].map((k) => k * pow);
+  for (const step of steps) {
+    const out = ticksFor(step);
+    if (out.length >= 2 && out.length <= count + 1) return out;
+  }
+  return ticksFor(steps[steps.length - 1]);
 }

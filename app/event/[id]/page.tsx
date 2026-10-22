@@ -11,7 +11,7 @@ import { AskPanel } from "@/components/event/AskPanel";
 import { ShareButton } from "@/components/event/ShareButton";
 import { CaseList } from "@/components/cases/CaseList";
 import { KindTag, VerdictMark, WindowMeter } from "@/components/viz/Marks";
-import { caseSummary, directionPlain, eventName, factsFromStored, scoreWord, verdictPlain } from "@/lib/plain";
+import { caseSummary, directionPlain, eventName, eventPhrase, factsFromStored, scoreWord, verdictPlain } from "@/lib/plain";
 import { fmtDate, fmtPct } from "@/lib/format";
 
 export async function generateMetadata({ params }: PageProps<"/event/[id]">): Promise<Metadata> {
@@ -55,7 +55,7 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
           <span>
             {s.company?.name ? `${s.company.name}, ` : ""}
             {fmtDate(s.catalyst.eventDate, { year: true, weekday: true })}
-            {session ? `, ${session}` : ""}
+            {session && s.catalyst.kind !== "earnings" ? `, ${session}` : ""}
           </span>
         </p>
         <h1 className="display mt-4 text-[40px] text-ink sm:text-[56px]">
@@ -119,7 +119,7 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
             eventDate={s.catalyst.eventDate}
             reactionDate={s.partialWindow ? null : rw.to}
             signals={stored.breakdown.signals}
-            eventLabel={eventName(s)}
+            eventLabel={eventPhrase(s)}
           />
           </div>
         </div>
@@ -129,7 +129,7 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
       {/* ---------------- Trades + Claude ---------------- */}
       <div className="mt-24 grid gap-14 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-12">
         <div className="grid content-start gap-16">
-          <AlertsPanel alerts={alerts} ticker={s.catalyst.ticker} />
+          <AlertsPanel alerts={alerts} ticker={s.catalyst.ticker} stats={ev.alertStats} />
           <details className="group tray p-6">
             <summary className="flex cursor-pointer list-none flex-wrap items-baseline justify-between gap-3">
               <span className="display text-[24px] text-ink">How the score adds up</span>

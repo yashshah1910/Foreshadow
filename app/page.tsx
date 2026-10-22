@@ -6,7 +6,7 @@ import { CaseList } from "@/components/cases/CaseList";
 import { Legend } from "@/components/cases/Legend";
 import { WindowsDiagram } from "@/components/landing/WindowsDiagram";
 import { VerdictMark } from "@/components/viz/Marks";
-import { eventName, scoreWord } from "@/lib/plain";
+import { eventName, eventPhrase, scoreWord } from "@/lib/plain";
 import { fmtDate, fmtPct } from "@/lib/format";
 
 // Live numbers on the landing: render per request.
@@ -62,7 +62,7 @@ export default async function Home() {
                 signals={example.stored.breakdown.signals}
                 rows={["flow"]}
                 priceHeight={130}
-                eventLabel={eventName(example.summary)}
+                eventLabel={eventPhrase(example.summary)}
               />
             </div>
             <dl className="mt-1.5 grid grid-cols-2 gap-1.5 sm:grid-cols-3">

@@ -3,9 +3,21 @@ import { fmtDateTimeEt, fmtExpiry, fmtInt, fmtMoney, fmtStrike } from "@/lib/for
 import { money } from "@/lib/plain";
 
 /** The individual trades behind the score, biggest first, checkable on Unusual Whales. */
-export function AlertsPanel({ alerts, ticker, limit = 25 }: { alerts: FlowAlert[]; ticker: string; limit?: number }) {
+export function AlertsPanel({
+  alerts,
+  ticker,
+  limit = 25,
+  stats,
+}: {
+  alerts: FlowAlert[];
+  ticker: string;
+  limit?: number;
+  /** Totals over every trade when `alerts` holds only the largest. */
+  stats?: { count: number; premium: number };
+}) {
   const rows = [...alerts].sort((a, b) => b.premium - a.premium).slice(0, limit);
-  const total = alerts.reduce((s, a) => s + a.premium, 0);
+  const count = stats?.count ?? alerts.length;
+  const total = stats?.premium ?? alerts.reduce((s, a) => s + a.premium, 0);
   return (
     <section aria-labelledby="alerts-h">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -15,9 +27,9 @@ export function AlertsPanel({ alerts, ticker, limit = 25 }: { alerts: FlowAlert[
         </a>
       </div>
       <p className="mt-2 max-w-[640px] text-[16px] leading-relaxed text-ink-2">
-        {alerts.length === 0
+        {count === 0
           ? "No large options trades were flagged in these five days."
-          : `${alerts.length} large options trades were flagged in these five days, worth ${money(total)} in total. A call pays off if the stock rises above its price; a put pays off if it falls below.`}
+          : `${count.toLocaleString("en-US")} large options trades were flagged in these five days, worth ${money(total)} in total. A call pays off if the stock rises above its price; a put pays off if it falls below.`}
       </p>
       {rows.length > 0 ? (
         <table className="mt-6 w-full border-separate border-spacing-y-1 text-[15px]">
@@ -54,7 +66,11 @@ export function AlertsPanel({ alerts, ticker, limit = 25 }: { alerts: FlowAlert[
           </tbody>
         </table>
       ) : null}
-      {alerts.length > rows.length ? <p className="mt-3 px-3 text-[14px] text-ink-3">Showing the {rows.length} largest of {alerts.length}.</p> : null}
+      {count > rows.length ? (
+        <p className="mt-3 px-3 text-[14px] text-ink-3">
+          Showing the {rows.length} largest of {count.toLocaleString("en-US")}.
+        </p>
+      ) : null}
     </section>
   );
 }

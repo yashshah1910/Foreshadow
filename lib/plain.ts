@@ -49,6 +49,11 @@ export function eventName(s: EventSummary): string {
   return s.catalyst.title.split(",")[0].trim();
 }
 
+/** The event as it reads inside a sentence: "before TSLA's earnings report". */
+export function eventPhrase(s: EventSummary): string {
+  return s.catalyst.kind === "earnings" ? "earnings report" : eventName(s);
+}
+
 export function kindNoun(kind: string): string {
   return KIND_NOUN[kind] ?? "news";
 }
@@ -75,7 +80,7 @@ export function caseSummary(s: EventSummary, facts: CaseFacts): string {
   const pace = facts.timesNormal && facts.timesNormal >= 1.5 ? `, about ${Math.round(facts.timesNormal)}× ${t}'s normal pace` : "";
   const open = s.partialWindow
     ? `${t} has ${kindNoun(s.catalyst.kind) === "earnings report" ? "an earnings report" : "news"} coming on ${when}. So far this week, traders have put ${money(facts.premium)} into large options bets${pace}, ${side}.`
-    : `In the five trading days before ${t}'s ${eventName(s)} on ${when}, traders put ${money(facts.premium)} into large options bets${pace}, ${side}.`;
+    : `In the five trading days before ${t}'s ${eventPhrase(s)} on ${when}, traders put ${money(facts.premium)} into large options bets${pace}, ${side}.`;
   const how = `Foreshadow rates that ${scoreWord(s.score).toLowerCase()}: ${s.score.toFixed(0)} out of 100.`;
   let end = "";
   if (s.verdict === "matched" || s.verdict === "missed") {
