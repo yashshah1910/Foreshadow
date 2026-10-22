@@ -80,7 +80,7 @@ export function Trace(p: TraceProps) {
             <span aria-hidden="true">{step === null ? "▶" : "■"}</span>
             {step === null ? "Replay the days" : "Stop"}
           </button>
-          <p className={`min-w-0 flex-1 text-ink-2 ${p.compact ? "text-[13.5px] leading-snug" : "text-[14.5px]"}`} aria-live="polite">
+          <p className={`min-w-[14rem] flex-1 text-ink-2 ${p.compact ? "text-[13.5px] leading-snug" : "text-[14.5px]"}`} aria-live="polite">
             {step !== null ? replayCaption(m, p, step) : p.compact ? "Watch the bets build up, day by day." : "Watch the betting build up, one trading day at a time."}
           </p>
         </div>

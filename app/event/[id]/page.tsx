@@ -94,7 +94,7 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
         <Fact label={rw.reactionWindow === "T" ? "Actual move that day" : "Actual move, next day"} explain="actual">
           <span className="numeral text-[26px] text-ink">{s.verdict === "pending" ? "—" : fmtPct(s.realizedMovePct)}</span>
         </Fact>
-        <Fact label="Result" explain="result">
+        <Fact label="Result" explain="result" wide>
           {s.partialWindow ? (
             <span className="flex flex-col gap-2 text-[15px] text-ink-2">
               <WindowMeter elapsed={stored.flags.footprintDaysUsed} total={5} />
@@ -198,9 +198,10 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
   );
 }
 
-function Fact({ label, explain, children }: { label: string; explain?: GlossaryKey; children: React.ReactNode }) {
+function Fact({ label, explain, wide, children }: { label: string; explain?: GlossaryKey; wide?: boolean; children: React.ReactNode }) {
   return (
-    <div className="card px-5 py-4">
+    // `wide`: the fifth card takes the whole last row on phones, where the grid has two columns.
+    <div className={`card px-5 py-4 ${wide ? "col-span-2 md:col-span-1" : ""}`}>
       <dt className="mb-2 flex items-center text-[14px] font-medium text-ink-3">
         {label}
         {explain ? <Explain term={explain} label={label.toLowerCase()} /> : null}
