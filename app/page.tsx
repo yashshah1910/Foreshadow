@@ -16,7 +16,15 @@ import { fmtDate, fmtPct, KIND_LABELS } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [all, radar, stats, scorecard] = await Promise.all([getLeaderboard({ limit: 40 }), getRadar(10), getStats(), getScorecard()]);
+  const [all, radar, stats, scorecard, newest] = await Promise.all([
+    getLeaderboard({ limit: 40 }),
+    getRadar(10),
+    getStats(),
+    getScorecard(),
+    getLeaderboard({ sort: "new", days: 7, limit: 60 }),
+  ]);
+  // Results that came in over the last week, most unusual betting first.
+  const justIn = [...newest].sort((a, b) => b.score - a.score).slice(0, 4);
   const exampleSummary = all.find((s) => s.verdict === "matched" && s.score >= 40) ?? all[0] ?? null;
   const example = exampleSummary ? await getEvent(exampleSummary.catalyst.id) : null;
   const { checked, unusual, unusualRight } = stats.past;
@@ -180,6 +188,19 @@ export default async function Home() {
         <CaseList rows={all.slice(0, 8)} />
         <Legend />
       </section>
+
+      {justIn.length > 0 ? (
+        <section aria-labelledby="new-h" className="mt-28">
+          <div className="mb-3 flex flex-wrap items-end justify-between gap-4">
+            <h2 id="new-h" className="display text-[34px] text-ink sm:text-[42px]">Just in</h2>
+            <Link href="/leaderboard?sort=new" className="pressable btn btn-soft h-10 text-[14.5px]">Newest results</Link>
+          </div>
+          <p className="prose-plain mb-7 max-w-[720px]">
+            News from the past week that has already happened, so the result is in. The most unusual betting is at the top.
+          </p>
+          <CaseList rows={justIn} />
+        </section>
+      ) : null}
 
       {upcoming.length > 0 ? (
         <section aria-labelledby="up-h" className="mt-28">
