@@ -26,6 +26,7 @@ export interface GuessCase {
 type Guess = "rise" | "fall";
 
 const ROUNDS = 5;
+const BEST_KEY = "fs-guess-best";
 
 /** Five random cases from the pool, picked when the player starts. */
 function deal(pool: GuessCase[]): GuessCase[] {
@@ -39,6 +40,8 @@ export function GuessGame({ pool, leanedRightPct }: { pool: GuessCase[]; leanedR
   const [cases, setCases] = useState<GuessCase[]>([]);
   const [guesses, setGuesses] = useState<Guess[]>([]);
   const [round, setRound] = useState(0);
+  // Best score on this device, read and saved when a game ends (storage can be unavailable; then it just isn't shown).
+  const [best, setBest] = useState<{ score: number; isNew: boolean } | null>(null);
   const awaiting = cases.length > 0 && round < cases.length && !guesses[round];
 
   const choose = (g: Guess) => {
@@ -46,7 +49,17 @@ export function GuessGame({ pool, leanedRightPct }: { pool: GuessCase[]; leanedR
     const next = [...guesses.slice(0, round), g];
     setGuesses(next);
     track("guess_made", { correct: g === dir(c), bets_correct: c.lean === dir(c), score: c.score });
-    if (round + 1 === cases.length) track("guess_finished", tally(next, cases));
+    if (round + 1 === cases.length) {
+      const result = tally(next, cases);
+      track("guess_finished", result);
+      try {
+        const before = Number(localStorage.getItem(BEST_KEY)) || 0;
+        if (result.you > before) localStorage.setItem(BEST_KEY, String(result.you));
+        setBest({ score: Math.max(before, result.you), isNew: result.you > before && before > 0 });
+      } catch {
+        setBest(null);
+      }
+    }
   };
 
   // Keyboard play: ↑ it rose, ↓ it fell (Enter on the focused button moves on).
@@ -108,6 +121,11 @@ export function GuessGame({ pool, leanedRightPct }: { pool: GuessCase[]; leanedR
             <Tally label="You called" value={`${you} of ${cases.length}`} />
             <Tally label="Following the bets" value={`${bets} of ${cases.length}`} />
           </dl>
+          {best ? (
+            <p className="mt-3 text-[14.5px] text-ink-2">
+              {best.isNew ? <strong className="font-semibold text-ink">New best on this device.</strong> : `Your best on this device: ${best.score} of ${cases.length}.`}
+            </p>
+          ) : null}
           {leanedRightPct !== null ? (
             <p className="mt-5 text-[15.5px] leading-relaxed text-ink-2">
               Across every finished case with unusual betting, the stock went the way the bets leaned {leanedRightPct}% of the time. A
