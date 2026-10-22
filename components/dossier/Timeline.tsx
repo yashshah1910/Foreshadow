@@ -24,7 +24,7 @@ export function Timeline({ events }: { events: EventSummary[] }) {
   const y = (s: number) => PT + (1 - s / 100) * (H - PT - PB);
   return (
     <div ref={ref} className="w-full">
-      <svg width={width} height={H} viewBox={`0 0 ${width} ${H}`} role="img" aria-label="Score of every catalyst over time" className="block">
+      <svg width={width} height={H} viewBox={`0 0 ${width} ${H}`} role="group" aria-label="Score of every case over time; each dot links to its case" className="block">
         <rect x={PL} y={y(100)} width={width - PL - PR} height={y(70) - y(100)} rx={8} className="hl-band" />
         {[0, 40, 70, 100].map((v) => (
           <g key={v}>

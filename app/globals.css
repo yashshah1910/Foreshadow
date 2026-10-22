@@ -19,6 +19,9 @@
   --ink-3: #626a7b;
   --call: #0e8a7a;
   --put: #d23a52;
+  /* Darker twins for text: 4.5:1 on white and on the tray. */
+  --call-ink: #0b7266;
+  --put-ink: #b8283f;
   --call-soft: rgba(14, 138, 122, 0.12);
   --put-soft: rgba(210, 58, 82, 0.1);
   --hl: #ffe14a;
@@ -37,6 +40,8 @@
   --color-ink-3: var(--ink-3);
   --color-call: var(--call);
   --color-put: var(--put);
+  --color-call-ink: var(--call-ink);
+  --color-put-ink: var(--put-ink);
   --color-call-soft: var(--call-soft);
   --color-put-soft: var(--put-soft);
   --color-hl: var(--hl);

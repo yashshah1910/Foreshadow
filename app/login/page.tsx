@@ -67,7 +67,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           </form>
         </>
       )}
-      {error ? <p className="mt-4 text-[13px] text-put" role="alert">Sign-in failed: {error}</p> : null}
+      {error ? <p className="mt-4 text-[13px] text-put-ink" role="alert">Sign-in failed: {error}</p> : null}
     </Shell>
   );
 }

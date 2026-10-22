@@ -91,25 +91,24 @@ describe("fallbackDossierSummary", () => {
     hitRate: { scored: 3, strong: 2, matched: 2 },
   };
 
-  it("contains the hit rate, the top event's score, direction and verdict", () => {
+  it("states the track record, the top case and its result in plain words", () => {
     const s = fallbackDossierSummary(dossier);
-    expect(s).toContain("XYZ has 3 scored catalysts");
-    expect(s).toContain("2 reached someone-knew territory and 2 of those matched the move");
-    expect(s).toContain("repeat offender");
-    expect(s).toContain("The strongest footprint, 84 and bearish");
-    expect(s).toContain("bearish");
-    expect(s).toContain("matched as the stock fell 18.6%");
-    expect(s).toContain("fell 18.6%");
+    expect(s).toContain("scored the betting before 3 pieces of XYZ news");
+    expect(s).toContain("very unusual 2 times, and 2 of those bets were right");
+    expect(s).toContain("That is a pattern");
+    expect(s).toContain("a score of 84 with bets on a fall");
+    expect(s).toContain("the bets were right: the stock fell 18.6%");
+    expect(s).not.toMatch(/someone-knew|repeat offender|footprint|bearish|bullish|catalyst/);
     expect(verifyNumbers(s, dossier).numbersVerified).toBe(true);
   });
 
   it("classifies weaker records and never throws on empty events", () => {
-    expect(fallbackDossierSummary({ ...dossier, hitRate: { scored: 3, strong: 1, matched: 0 } })).toContain("worth watching");
-    expect(fallbackDossierSummary({ ...dossier, hitRate: { scored: 3, strong: 0, matched: 0 } })).toContain("no sign of a repeat pattern");
+    expect(fallbackDossierSummary({ ...dossier, hitRate: { scored: 3, strong: 1, matched: 0 } })).toContain("Worth watching");
+    expect(fallbackDossierSummary({ ...dossier, hitRate: { scored: 3, strong: 0, matched: 0 } })).toContain("no sign of a pattern");
     const empty = fallbackDossierSummary({ ticker: "ABC", events: [], hitRate: { scored: 0, strong: 0, matched: 0 } });
-    expect(empty).toContain("ABC has no scored catalysts");
+    expect(empty).toContain("ABC has no scored news");
     const single = fallbackDossierSummary({ ...dossier, events: [dossier.events[0]], hitRate: { scored: 1, strong: 1, matched: 1 } });
-    expect(single).toContain("1 scored catalyst in");
+    expect(single).toContain("before 1 piece of XYZ news");
     expect(single).not.toContain("Most recently");
   });
 });

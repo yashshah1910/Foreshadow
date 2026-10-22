@@ -26,7 +26,7 @@ export default async function TickerPage({ params }: PageProps<"/ticker/[t]">) {
 
   return (
     <div className="mx-auto max-w-[1120px] px-5 py-12 sm:px-8 lg:py-16">
-      <header className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:items-end">
+      <header className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:items-end">
         <div className="min-w-0">
           <p className="mb-3 text-[15px] font-medium text-ink-3">Track record</p>
           <h1 className="display text-[44px] text-ink sm:text-[60px]">
@@ -76,12 +76,12 @@ export default async function TickerPage({ params }: PageProps<"/ticker/[t]">) {
 
       {events.length > 0 ? (
       <>
-      <section className="mt-12 grid gap-1.5 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]" aria-label="Track record">
+      <section className="mt-12 grid grid-cols-[minmax(0,1fr)] gap-1.5 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]" aria-label="Track record">
         <div className="tray p-6">
           <p className="mb-3 text-[14px] font-medium text-ink-3">In short</p>
           <DossierSummary ticker={ticker} fallback={fallback} />
         </div>
-        <div className="tray p-6">
+        <div className="tray min-w-0 p-6">
           <p className="mb-4 text-[14.5px] text-ink-2">Every case for {ticker}. Higher dots mean more unusual betting, and a ring means the bets were right.</p>
           <Timeline events={events} />
         </div>

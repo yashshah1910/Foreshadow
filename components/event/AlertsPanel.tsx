@@ -45,7 +45,7 @@ export function AlertsPanel({
             {rows.map((a) => (
               <tr key={a.id} className="align-top odd:bg-surface-2 [&>td:first-child]:rounded-l-xl [&>td:last-child]:rounded-r-xl">
                 <td className="px-3 py-3">
-                  <span className={`inline-flex items-center gap-1 font-semibold ${a.type === "call" ? "text-call" : "text-put"}`}>
+                  <span className={`inline-flex items-center gap-1 font-semibold ${a.type === "call" ? "text-call-ink" : "text-put-ink"}`}>
                     <span aria-hidden="true">{a.type === "call" ? "↑" : "↓"}</span>
                     {a.type === "call" ? "Call" : "Put"}
                   </span>

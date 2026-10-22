@@ -144,41 +144,44 @@ export function fallbackNarration(input: NarrationInput): Narration {
   };
 }
 
-function outcome(e: DossierEvent): string {
-  if (e.verdict === "pending") return "is still pending";
-  if (e.realizedMovePct === null) return e.verdict === "matched" ? "matched the move" : "had no measurable move";
+const LEAN: Record<string, string> = { bullish: "bets on a rise", bearish: "bets on a fall", mixed: "bets split both ways" };
+
+function plainOutcome(e: DossierEvent): string {
+  if (e.verdict === "pending") return "the result isn't in yet";
+  if (e.realizedMovePct === null) return e.verdict === "matched" ? "the bets were right" : "the stock barely moved";
   const move = `the stock ${moveVerb(e.realizedMovePct)} ${formatPct(e.realizedMovePct)}`;
-  return e.verdict === "matched" ? `matched as ${move}` : `missed: ${move}`;
+  return e.verdict === "matched" ? `the bets were right: ${move}` : `the bets were wrong: ${move}`;
 }
 
-/** One deterministic paragraph on whether the ticker is a repeat offender. */
+/** One deterministic paragraph, in plain words, on whether a pattern shows up. */
 export function fallbackDossierSummary(input: DossierInput): string {
   const { ticker, events, hitRate } = input;
   if (events.length === 0 && hitRate.scored === 0) {
-    return `${ticker} has no scored catalysts in Foreshadow yet, so there is nothing to judge.`;
+    return `${ticker} has no scored news on Foreshadow yet, so there is nothing to judge.`;
   }
-  const plural = hitRate.scored === 1 ? "" : "s";
-  let classification: string;
+  const times = (n: number) => (n === 1 ? "once" : `${n} times`);
+  const pieces = hitRate.scored === 1 ? "piece" : "pieces";
+  let pattern: string;
   if (hitRate.strong >= 2 && hitRate.matched * 2 >= hitRate.strong) {
-    classification = "which makes it a repeat offender";
+    pattern = "That is a pattern: very unusual betting keeps showing up before its news, and keeps being right.";
   } else if (hitRate.strong >= 1) {
-    classification = "a pattern worth watching but not yet a repeat offender";
+    pattern = "Worth watching, but too few cases to call it a pattern.";
   } else {
-    classification = "so there is no sign of a repeat pattern";
+    pattern = "So far there is no sign of a pattern.";
   }
   const sentences = [
-    `${ticker} has ${hitRate.scored} scored catalyst${plural} in Foreshadow; ${hitRate.strong} reached someone-knew territory and ${hitRate.matched} of those matched the move, ${classification}.`,
+    `Foreshadow has scored the betting before ${hitRate.scored} ${pieces} of ${ticker} news. It was very unusual ${times(hitRate.strong)}, and ${hitRate.matched} of those bets were right. ${pattern}`,
   ];
   const top = [...events].sort((a, b) => b.score - a.score)[0];
   if (top) {
     sentences.push(
-      `The strongest footprint, ${Math.round(top.score)} and ${top.direction}, came before the ${titleCore(top.title)} on ${shortDate(top.eventDate, true)} and ${outcome(top)}.`,
+      `The most unusual betting, a score of ${Math.round(top.score)} with ${LEAN[top.direction] ?? "mixed bets"}, came before the ${titleCore(top.title)} on ${shortDate(top.eventDate, true)}, and ${plainOutcome(top)}.`,
     );
   }
   const latest = [...events].sort((a, b) => (a.eventDate < b.eventDate ? 1 : -1))[0];
   if (latest && latest !== top) {
     sentences.push(
-      `Most recently, the ${titleCore(latest.title)} on ${shortDate(latest.eventDate, true)} scored ${Math.round(latest.score)} (${latest.direction}) and ${outcome(latest)}.`,
+      `Most recently, the ${titleCore(latest.title)} on ${shortDate(latest.eventDate, true)} scored ${Math.round(latest.score)}, and ${plainOutcome(latest)}.`,
     );
   }
   return sentences.join(" ");

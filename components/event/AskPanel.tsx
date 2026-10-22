@@ -101,7 +101,7 @@ export function AskPanel({ ticker, eventDate, summary }: { ticker: string; event
         </p>
       ) : null}
       {err ? (
-        <p className="pt-4 text-[14.5px] text-put" role="alert">
+        <p className="pt-4 text-[14.5px] text-put-ink" role="alert">
           {err}
         </p>
       ) : null}
@@ -119,7 +119,7 @@ export function AskPanel({ ticker, eventDate, summary }: { ticker: string; event
                     <p className="font-medium text-ink">
                       <span className="text-ink-3">{t.source === "uw-mcp" ? "Unusual Whales: " : "Foreshadow: "}</span>
                       {t.name}
-                      {!t.ok ? <span className="ml-2 text-put">error</span> : null}
+                      {!t.ok ? <span className="ml-2 text-put-ink">error</span> : null}
                     </p>
                     <pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap break-all text-[11px] text-ink-2">{JSON.stringify(t.input)}</pre>
                     <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-all text-[11px] text-ink-3">{t.output.slice(0, 1200)}</pre>

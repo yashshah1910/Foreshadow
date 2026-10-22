@@ -19,7 +19,7 @@ export function bandName(score: number): string {
 
 export function DirectionMark({ direction, short = false }: { direction: Direction; short?: boolean }) {
   const glyph = direction === "bullish" ? "↑" : direction === "bearish" ? "↓" : "↕";
-  const tone = direction === "bullish" ? "text-call" : direction === "bearish" ? "text-put" : "text-ink-3";
+  const tone = direction === "bullish" ? "text-call-ink" : direction === "bearish" ? "text-put-ink" : "text-ink-3";
   return (
     <span className="inline-flex items-center gap-1 text-ink-2">
       <span className={`${tone} font-bold`} aria-hidden="true">{glyph}</span>
