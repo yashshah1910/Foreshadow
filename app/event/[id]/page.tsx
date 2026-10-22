@@ -154,7 +154,7 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
             eventDate={s.catalyst.eventDate}
             summary={`${s.catalyst.ticker} ${s.catalyst.title} on ${s.catalyst.eventDate}: score ${s.score}, ${s.direction}, verdict ${s.verdict}.`}
           />
-          <ShareButton id={s.catalyst.id} />
+          <ShareButton id={s.catalyst.id} text={shareText(s)} />
         </div>
       </div>
 
@@ -202,4 +202,15 @@ function similarSentence(s: EventSummary, sim: Similar): string {
   const share = Math.round((sim.right / n) * 100);
   const lead = s.verdict === "pending" ? "Betting like this has shown up before. Of" : "Of";
   return `${lead} ${n} finished ${kind} case${n === 1 ? "" : "s"} that scored ${sim.lo} to ${sim.hi}${lean}, the bets were right in ${sim.right} (${share}%).`;
+}
+
+/** One plain line for sharing: what happened before the news and whether the bets were right. */
+function shareText(s: EventSummary): string {
+  const when = fmtDate(s.catalyst.eventDate, { year: false });
+  const lean = s.direction === "bullish" ? "leaning toward a rise" : s.direction === "bearish" ? "leaning toward a fall" : "split both ways";
+  const head = `Options betting before $${s.catalyst.ticker}'s ${eventPhrase(s)} (${when}) scored ${s.score.toFixed(0)}/100, ${lean}.`;
+  if (s.verdict === "matched" || s.verdict === "missed") {
+    return `${head} The stock moved ${fmtPct(s.realizedMovePct)}: the bets were ${s.verdict === "matched" ? "right" : "wrong"}.`;
+  }
+  return `${head} The news is still ahead.`;
 }
