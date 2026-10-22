@@ -32,6 +32,15 @@ export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }
     };
   }, [live, router]);
 
+  // When the radar last scored anything, shown relative and refreshed each minute (client-only to avoid hydration drift).
+  const latest = items.reduce<string | null>((m, i) => (i.computedAt && (!m || i.computedAt > m) ? i.computedAt : m), null);
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    const tick = () => setNow(Date.now());
+    tick();
+    const t = setInterval(tick, 60_000);
+    return () => clearInterval(t);
+  }, []);
   const open = items.filter((i) => i.windowOpen);
   const upcoming = items.filter((i) => !i.windowOpen);
   const lead = open.filter((i) => i.daysElapsed > 0).sort((a, b) => b.score - a.score)[0] ?? null;
@@ -47,6 +56,7 @@ export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }
           <span className={`h-2 w-2 rounded-full ${live ? "bg-call motion-safe:animate-pulse" : "bg-ink-3"}`} aria-hidden="true" />
           {live ? "Live: this list updates on its own" : "Sample data: these scores don't change"}
         </span>
+        {latest && now ? <span className="tnum">Last scored {ago(Date.parse(latest), now)}</span> : null}
         {lastEvent ? <span className="tnum">Updated {lastEvent}</span> : null}
         <a href="/feed.xml" className="link ml-auto text-[14px]">Follow by RSS</a>
       </div>
@@ -127,4 +137,13 @@ export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }
       ) : null}
     </div>
   );
+}
+
+function ago(then: number, now: number): string {
+  const min = Math.max(0, Math.round((now - then) / 60_000));
+  if (min < 1) return "just now";
+  if (min < 60) return `${min} minute${min === 1 ? "" : "s"} ago`;
+  const h = Math.round(min / 60);
+  if (h < 48) return `${h} hour${h === 1 ? "" : "s"} ago`;
+  return `${Math.round(h / 24)} days ago`;
 }
