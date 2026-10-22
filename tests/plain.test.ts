@@ -34,3 +34,18 @@ describe("caseSummary", () => {
     expect(text).toContain("the way the bets leaned, but less than expected");
   });
 });
+
+describe("fallbackDossierSummary", () => {
+  it("doesn't call a right-way, smaller-than-expected move wrong", async () => {
+    const { fallbackDossierSummary } = await import("@foreshadow/narrator");
+    const text = fallbackDossierSummary({
+      ticker: "FERG",
+      events: [
+        { eventDate: "2026-08-10", kind: "earnings", title: "Earnings (pre-market)", score: 70.5, direction: "bullish", verdict: "missed", realizedMovePct: 2.8, outcome: "right way, small move" },
+      ],
+      hitRate: { scored: 1, strong: 1, matched: 0 },
+    });
+    expect(text).toContain("the way the bets leaned but less than expected");
+    expect(text).not.toContain("the bets were wrong");
+  });
+});

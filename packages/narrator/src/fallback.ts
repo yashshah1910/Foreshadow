@@ -147,6 +147,8 @@ function plainOutcome(e: DossierEvent): string {
   if (e.verdict === "pending") return "the result isn't in yet";
   if (e.realizedMovePct === null) return e.verdict === "matched" ? "the bets were right" : "the stock barely moved";
   const move = `the stock ${moveVerb(e.realizedMovePct)} ${formatPct(e.realizedMovePct)}`;
+  if (e.outcome === "right way, small move") return `${move}, the way the bets leaned but less than expected`;
+  if (e.outcome === "no clear side") return `the bets didn't lean either way, and ${move}`;
   return e.verdict === "matched" ? `the bets were right: ${move}` : `the bets were wrong: ${move}`;
 }
 

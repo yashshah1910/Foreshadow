@@ -66,6 +66,7 @@ export function toDossierInput(d: Dossier, limit = 8): DossierInput {
       direction: e.direction,
       verdict: e.verdict,
       realizedMovePct: e.realizedMovePct === null ? null : round1(e.realizedMovePct),
+      outcome: NARRATION_OUTCOME[outcomeOf(e)],
     })),
     hitRate: { scored: d.hitRate.scored, strong: d.hitRate.strong, matched: d.hitRate.strongMatched },
   };

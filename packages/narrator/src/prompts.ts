@@ -60,6 +60,7 @@ Write one paragraph of three or four short sentences a curious non-trader can fo
 
 Words to use and avoid:
 - Say "bets on a rise" / "bets on a fall", "very unusual" (70+), "unusual" (40 to 69), "the bets were right" / "wrong".
+- Judge each case from its "outcome": "right", "wrong way" (the bets were wrong), or "right way, small move" (say the stock moved the way the bets leaned but less than expected; never call that wrong).
 - Never use these words: repeat offender, someone-knew, footprint, positioning, bullish, bearish, catalyst, verdict, matched, missed, hit rate, z-score, signal. Translate them instead.
 
 Rules:

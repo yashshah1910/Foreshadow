@@ -102,6 +102,8 @@ export interface DossierEvent {
   direction: string;
   verdict: string;
   realizedMovePct: number | null;
+  /** The site's three outcomes; when set, it decides "right" / "wrong" instead of the verdict. */
+  outcome?: "right" | "right way, small move" | "wrong way" | "no clear side";
 }
 
 export interface DossierInput {
