@@ -12,8 +12,21 @@ Built for Unusual Whales Hackathon #1 with Next.js 16 and Supabase. The scorer i
 (no LLM anywhere near the numbers); Claude writes the plain-English summaries and answers questions. There is also a
 remote MCP server, so Claude can query Foreshadow directly.
 
-The live site covers the last 90 days of FDA decisions and earnings for US companies worth over $2B with listed
-options.
+The live site covers FDA news from the past year and earnings from the last 90 days for US companies worth over $2B
+with listed options, and scores news coming up in the next two weeks every 15 minutes.
+
+### A two-minute tour
+
+1. **[Home](https://foreshadow-six.vercel.app)**: a real case at the top. Press **Replay the days** to watch the betting
+   build day by day before the news.
+2. **[A case](https://foreshadow-six.vercel.app/event/fda%3ATENX%3A2026-08-10%3Atop-line-results-tnx-103)**: every large trade
+   behind the score, the score's arithmetic, a summary by Claude, and **Ask about this case**.
+3. **[Scorecard](https://foreshadow-six.vercel.app/scorecard)**: does unusual betting actually know something? Foreshadow
+   grades itself against ordinary betting, and only claims a lift that passes a significance check.
+4. **[Guess the move](https://foreshadow-six.vercel.app/guess)**: five real cases with the result hidden. Can you read the
+   bets better than the bets themselves?
+5. **[Use it from Claude](https://foreshadow-six.vercel.app/docs#mcp)**: add the MCP server with one line, or run any of
+   the five tools right on the page.
 
 | Page | What it shows |
 | --- | --- |
