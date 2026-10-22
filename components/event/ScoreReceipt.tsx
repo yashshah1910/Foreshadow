@@ -14,24 +14,31 @@ const DETAIL: Record<string, (s: Signal) => string> = {
   darkPool: (s) => `${fmtMoney(s.footprintValue)}/day in prints ≥ $1M vs ${fmtMoney(s.baselineMean)} · ${s.detail.printsOver1M} prints`,
 };
 
+const PLAIN: Record<string, string> = {
+  flowIntensity: "How much was bet",
+  directionalPremium: "How one-sided the bets were",
+  openInterest: "New contracts opened",
+  volumeUnusualness: "Options volume vs. normal",
+  skewShift: "Change in the cost of protection",
+  darkPool: "Big off-exchange stock trades",
+};
+
 /** The arithmetic, written out like a receipt so anyone can re-add it. */
 export function ScoreReceipt({ signals, score }: { signals: Signal[]; score: number }) {
   return (
-    <section aria-labelledby="receipt-h" className="sheet">
-      <header className="flex flex-wrap items-baseline justify-between gap-2 border-b hairline px-5 py-4">
-        <h2 id="receipt-h" className="display text-[20px]">How the score adds up</h2>
-        <code className="font-mono text-[11.5px] text-ink-3">Σ weight × min(max(z, 0) / 4, 1) × 100</code>
-      </header>
+    <section aria-label="Score breakdown" className="border-t hairline">
+      <p className="py-4 text-[14.5px] leading-relaxed text-ink-2">
+        Each measurement is compared with this stock&apos;s normal 60 days. The further above normal, the more points it
+        earns, up to its maximum. The points add up to the score. For the formula, see{" "}
+        <a href="/docs#score" className="underline underline-offset-2 hover:text-ink">How it works</a>.
+      </p>
       <ol>
         {signals.map((s) => {
           const fill = Math.round(s.clipped * 100);
           return (
-            <li key={s.key} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1.5 border-b hairline px-5 py-3.5">
+            <li key={s.key} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1.5 border-b hairline py-3.5">
               <div className="min-w-0">
-                <p className="flex items-baseline gap-2 text-[13.5px] text-ink">
-                  {s.label}
-                  <span className="font-mono text-[11px] text-ink-3">z {s.z.toFixed(2)}</span>
-                </p>
+                <p className="text-[14.5px] text-ink">{PLAIN[s.key] ?? s.label}</p>
                 <p className="mt-0.5 text-[12.5px] leading-snug text-ink-2 tnum">{DETAIL[s.key]?.(s)}</p>
               </div>
               <p className="text-right font-mono tnum">
@@ -45,7 +52,7 @@ export function ScoreReceipt({ signals, score }: { signals: Signal[]; score: num
           );
         })}
       </ol>
-      <footer className="flex items-baseline justify-between px-5 py-4">
+      <footer className="flex items-baseline justify-between py-4">
         <span className="label text-ink">Total</span>
         <span className="font-mono text-[18px] font-semibold text-ink tnum">{score.toFixed(1)}</span>
       </footer>

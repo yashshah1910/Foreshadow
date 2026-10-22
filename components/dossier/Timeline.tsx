@@ -34,8 +34,8 @@ export function Timeline({ events }: { events: EventSummary[] }) {
             </text>
           </g>
         ))}
-        <text x={width - PR - 4} y={y(100) + 13} textAnchor="end" className="fill-ink-2 font-mono" fontSize="10.5" letterSpacing="0.06em">
-          SOMEONE KNEW
+        <text x={width - PR - 4} y={y(100) + 13} textAnchor="end" className="fill-ink-2" fontSize="12">
+          very unusual
         </text>
         {sorted.length ? (
           <>

@@ -1,11 +1,11 @@
 export default function Loading() {
   return (
-    <div className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 lg:py-14" aria-busy="true">
-      <div className="h-3 w-48 rounded bg-surface-3" />
-      <div className="mt-4 h-14 w-[28rem] max-w-full rounded bg-surface-3" />
-      <div className="sheet mt-10">
+    <div className="mx-auto max-w-[1080px] px-5 py-12 sm:px-8 lg:py-16" aria-busy="true">
+      <div className="h-12 w-64 rounded bg-surface-2" />
+      <div className="mt-5 h-5 w-[32rem] max-w-full rounded bg-surface-2" />
+      <div className="mt-12 border-t hairline">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="h-[66px] border-b hairline last:border-b-0" />
+          <div key={i} className="h-[68px] border-b hairline" />
         ))}
       </div>
     </div>

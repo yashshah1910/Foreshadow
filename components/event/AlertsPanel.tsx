@@ -1,69 +1,55 @@
 import type { FlowAlert } from "@foreshadow/core";
 import { fmtDateTimeEt, fmtExpiry, fmtInt, fmtMoney, fmtStrike } from "@/lib/format";
+import { money } from "@/lib/plain";
 
-/** Exhibit B: every alert in the window, largest premium first, verifiable on UW. */
-export function AlertsPanel({ alerts, ticker, limit = 40 }: { alerts: FlowAlert[]; ticker: string; limit?: number }) {
+/** The individual trades behind the score, biggest first, checkable on Unusual Whales. */
+export function AlertsPanel({ alerts, ticker, limit = 25 }: { alerts: FlowAlert[]; ticker: string; limit?: number }) {
   const rows = [...alerts].sort((a, b) => b.premium - a.premium).slice(0, limit);
   const total = alerts.reduce((s, a) => s + a.premium, 0);
-  const puts = alerts.filter((a) => a.type === "put").reduce((s, a) => s + a.premium, 0);
-  const sweeps = alerts.filter((a) => a.isSweep).length;
   return (
-    <section aria-labelledby="alerts-h" className="sheet flex flex-col">
-      <header className="border-b hairline px-5 py-4">
-        <div className="flex items-baseline justify-between gap-3">
-          <div>
-            <p className="label mb-1">Exhibit B</p>
-            <h2 id="alerts-h" className="display text-[20px]">The receipts</h2>
-          </div>
-          <a
-            href={`https://unusualwhales.com/stock/${ticker}`}
-            target="_blank"
-            rel="noreferrer"
-            className="pressable text-[12.5px] font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink"
-          >
-            Verify on UW ↗
-          </a>
-        </div>
-        <dl className="mt-3 grid grid-cols-3 gap-3 text-[12px]">
-          <div>
-            <dt className="text-ink-3">Alerts</dt>
-            <dd className="font-mono text-[14px] text-ink tnum">{alerts.length}</dd>
-          </div>
-          <div>
-            <dt className="text-ink-3">Premium</dt>
-            <dd className="font-mono text-[14px] text-ink tnum">{fmtMoney(total)}</dd>
-          </div>
-          <div>
-            <dt className="text-ink-3">Puts · sweeps</dt>
-            <dd className="font-mono text-[14px] text-ink tnum">{total ? Math.round((puts / total) * 100) : 0}% · {sweeps}</dd>
-          </div>
-        </dl>
-      </header>
-      {rows.length === 0 ? (
-        <p className="px-5 py-10 text-center text-[13px] text-ink-3">No flow alerts in this window.</p>
-      ) : (
-        <ol className="max-h-[560px] overflow-y-auto">
-          {rows.map((a) => (
-            <li key={a.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-3 border-b hairline px-5 py-3 last:border-b-0">
-              <span className="mt-[3px] flex items-center gap-1.5 font-mono text-[11px] font-semibold text-ink">
-                <span className={`h-2.5 w-2.5 rounded-[2px] ${a.type === "call" ? "bg-call" : "bg-put"}`} aria-hidden="true" />
-                {a.type === "call" ? "CALL" : "PUT"}
-              </span>
-              <span className="min-w-0">
-                <span className="flex flex-wrap items-baseline gap-x-2 font-mono text-[13px] text-ink">
-                  <span className="font-semibold">{fmtStrike(a.strike)}</span>
-                  <span className="text-ink-2">{fmtExpiry(a.expiry)}</span>
-                  {a.isSweep ? <span className="rounded-[3px] border border-line-strong px-1 text-[10px] uppercase tracking-wider text-ink-2">sweep</span> : null}
-                </span>
-                <span className="mt-1 block text-[11.5px] leading-snug text-ink-3 tnum">
-                  {fmtDateTimeEt(a.executedAt)} · {fmtInt(a.size)} contracts · {a.side === "ask" ? "ask side" : a.side === "bid" ? "bid side" : "mid"}
-                </span>
-              </span>
-              <span className="font-mono text-[13.5px] font-semibold text-ink tnum">{fmtMoney(a.premium)}</span>
-            </li>
-          ))}
-        </ol>
-      )}
+    <section aria-labelledby="alerts-h" className="border-t hairline pt-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="alerts-h" className="display text-[24px] text-ink">The trades behind it</h2>
+        <a href={`https://unusualwhales.com/stock/${ticker}`} target="_blank" rel="noreferrer" className="text-[14px] text-ink-2 underline underline-offset-2 hover:text-ink">
+          Check them on Unusual Whales ↗
+        </a>
+      </div>
+      <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
+        {alerts.length === 0
+          ? "No large options trades were flagged in these five days."
+          : `${alerts.length} large options trades were flagged in these five days, worth ${money(total)} in total. A call pays off if the stock rises above its price; a put pays off if it falls below.`}
+      </p>
+      {rows.length > 0 ? (
+        <table className="mt-5 w-full text-[14px]">
+          <thead>
+            <tr className="border-b hairline text-left text-[13px] text-ink-3">
+              <th className="pb-2 font-normal">Bet</th>
+              <th className="pb-2 font-normal">Price · expires</th>
+              <th className="hidden pb-2 font-normal sm:table-cell">When</th>
+              <th className="pb-2 text-right font-normal">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((a) => (
+              <tr key={a.id} className="border-b hairline align-top">
+                <td className="py-2.5 pr-3">
+                  <span className={a.type === "call" ? "text-call" : "text-put"}>{a.type === "call" ? "↑ Call" : "↓ Put"}</span>
+                </td>
+                <td className="py-2.5 pr-3 font-mono text-[13.5px] text-ink tnum">
+                  {fmtStrike(a.strike)} · {fmtExpiry(a.expiry)}
+                  <span className="block font-sans text-[12.5px] text-ink-3 sm:hidden">{fmtDateTimeEt(a.executedAt)}</span>
+                </td>
+                <td className="hidden py-2.5 pr-3 text-ink-2 tnum sm:table-cell">
+                  {fmtDateTimeEt(a.executedAt)}
+                  <span className="block text-[12.5px] text-ink-3">{fmtInt(a.size)} contracts{a.isSweep ? " · bought fast across exchanges" : ""}</span>
+                </td>
+                <td className="py-2.5 text-right font-mono text-ink tnum">{fmtMoney(a.premium)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : null}
+      {alerts.length > rows.length ? <p className="mt-3 text-[13px] text-ink-3">Showing the {rows.length} largest of {alerts.length}.</p> : null}
     </section>
   );
 }

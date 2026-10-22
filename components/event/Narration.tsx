@@ -29,16 +29,14 @@ export function Narration({ catalystId, score, initial }: { catalystId: string; 
   }, [catalystId, score, initial]);
 
   return (
-    <section aria-labelledby="story-h" className="sheet">
-      <header className="flex items-baseline justify-between border-b hairline px-5 py-4">
-        <h2 id="story-h" className="display text-[20px]">The story</h2>
-        {state.status === "ready" ? (
-          <span className="font-mono text-[11px] text-ink-3">
-            {state.source === "fallback" ? "written from the breakdown" : `written by ${state.narration.model}`}
-          </span>
+    <section aria-labelledby="story-h" className="border-t hairline pt-6">
+      <header className="flex items-baseline justify-between gap-3">
+        <h2 id="story-h" className="display text-[22px] text-ink">Summary for sharing</h2>
+        {state.status === "ready" && state.source !== "fallback" ? (
+          <span className="text-[12.5px] text-ink-3">written by Claude</span>
         ) : null}
       </header>
-      <div className="px-5 py-5">
+      <div className="pt-4">
         {state.status === "loading" ? (
           <div className="space-y-3" aria-busy="true">
             <div className="h-4 w-11/12 rounded bg-surface-3" />
@@ -46,13 +44,13 @@ export function Narration({ catalystId, score, initial }: { catalystId: string; 
             <div className="h-4 w-7/12 rounded bg-surface-3" />
           </div>
         ) : state.status === "offline" ? (
-          <p className="text-[14px] text-ink-2">The narrator is offline ({state.reason}). The trace and the receipt below tell the full story.</p>
+          <p className="text-[14px] text-ink-2">The summary isn&apos;t available right now. Everything above still tells the full story.</p>
         ) : (
           <div className="fade-in">
-            <p className="text-[16.5px] leading-[1.65] text-ink">{state.narration.story}</p>
-            <div className="mt-5 rounded-md border hairline bg-surface-2 p-4">
+            <p className="text-[15.5px] leading-[1.65] text-ink-2">{state.narration.story}</p>
+            <div className="mt-5 rounded border hairline bg-surface-2 p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="label">Caption</p>
+                <p className="label">Short version</p>
                 <button
                   type="button"
                   onClick={async () => {
@@ -66,17 +64,17 @@ export function Narration({ catalystId, score, initial }: { catalystId: string; 
                   }}
                   className="pressable rounded-[5px] border hairline bg-surface px-2.5 py-1 text-[12px] text-ink-2 hover:text-ink"
                 >
-                  {copied ? "Copied" : "Copy caption"}
+                  {copied ? "Copied" : "Copy"}
                 </button>
               </div>
               <p className="mt-2 text-[14px] leading-relaxed text-ink">{state.narration.caption}</p>
             </div>
             <p className="mt-3 text-[12px] text-ink-3">
               {state.source === "fallback"
-                ? "Template text from the breakdown. Add ANTHROPIC_API_KEY for the narrated version."
+                ? "Written automatically from the numbers on this page."
                 : state.narration.numbersVerified
-                  ? "Every number in this story appears in the rows on this page."
-                  : "Some numbers could not be matched to the rows. Trust the receipt below."}
+                  ? "Every number here was checked against the data on this page."
+                  : "Some numbers here couldn't be checked against the data; trust the tables instead."}
             </p>
           </div>
         )}

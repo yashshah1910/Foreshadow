@@ -28,18 +28,16 @@ export default async function LeaderboardPage({ searchParams }: PageProps<"/lead
   ]);
 
   return (
-    <div className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 lg:py-14">
-      <header className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-end">
-        <div>
-          <p className="label mb-3">Leaderboard · as of {fmtDate(today, { year: true })}</p>
-          <h1 className="display text-[44px] sm:text-[60px]">Where someone knew.</h1>
-        </div>
-        <p className="text-[14.5px] leading-relaxed text-ink-2">
-          The top past catalysts by Foreshadow score, and whether the footprint matched the move. Index and ETF tickers
-          never rank; tickers with under 20 sessions of history are left out.
+    <div className="mx-auto max-w-[1080px] px-5 py-12 sm:px-8 lg:py-16">
+      <header className="mb-10 max-w-[760px]">
+        <h1 className="display text-[40px] text-ink sm:text-[52px]">Past cases</h1>
+        <p className="prose-plain mt-4">
+          News from the last few months, ranked by how unusual the options betting was in the five days before it, with
+          what the stock did next. Funds and stocks with too little trading history are left out. Updated{" "}
+          {fmtDate(today, { year: true })}.
         </p>
       </header>
-      <div className="mb-3">
+      <div className="mb-4">
         <Suspense>
           <Filters initial={f} total={rows.length} />
         </Suspense>

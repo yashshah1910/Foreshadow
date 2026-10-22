@@ -28,9 +28,9 @@ export function DossierSummary({ ticker, fallback }: { ticker: string; fallback:
           <div className="h-4 w-8/12 rounded bg-surface-3" />
         </div>
       ) : (
-        <p className="fade-in text-[16px] leading-[1.65] text-ink-2">{text}</p>
+        <p className="fade-in text-[15.5px] leading-[1.65] text-ink-2">{text}</p>
       )}
-      <p className="mt-3 font-mono text-[11px] text-ink-3">{model && model !== "template" ? `summary by ${model}` : text ? "summary written from the scores" : ""}</p>
+      <p className="mt-3 text-[12.5px] text-ink-3">{model && model !== "template" ? "Written by Claude from the scores." : ""}</p>
     </div>
   );
 }

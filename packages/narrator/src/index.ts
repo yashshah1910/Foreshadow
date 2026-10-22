@@ -1,7 +1,7 @@
 export { DEFAULT_MODEL, getClient, getModel, isNarratorConfigured, resetClientCache } from "./client";
 export type { NarratorClient } from "./client";
 export { NarratorError, NarratorUnavailableError } from "./errors";
-export { NARRATION_MAX_TOKENS, narrateEvent, narrationCacheKey } from "./narrator";
+export { NARRATION_MAX_TOKENS, NARRATION_VERSION, narrateEvent, narrationCacheKey } from "./narrator";
 export { CAPTION_MAX_LENGTH, fallbackDossierSummary, fallbackNarration, formatMoney, formatPct } from "./fallback";
 export { TAGGER_CHUNK_SIZE, TAGGER_MAX_TOKENS, tagCatalysts } from "./tagger";
 export { DOSSIER_MAX_TOKENS, summarizeDossier } from "./dossier";

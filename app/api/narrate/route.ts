@@ -1,4 +1,4 @@
-import { fallbackNarration, isNarratorConfigured, narrateEvent } from "@foreshadow/narrator";
+import { NARRATION_VERSION, fallbackNarration, isNarratorConfigured, narrateEvent } from "@foreshadow/narrator";
 import { getDataSource } from "@/lib/data";
 import { toNarrationInput } from "@/lib/narrator/input";
 
@@ -14,8 +14,12 @@ export async function GET(request: Request) {
   const ev = await ds.getEvent(id);
   if (!ev) return Response.json({ error: "event not found" }, { status: 404 });
 
+  // Cached write-ups carry the prompt version in their model tag; older ones are rewritten.
+  const tag = `@v${NARRATION_VERSION}`;
   const cached = ev.narration ?? (await ds.getNarration(id, ev.summary.score));
-  if (cached) return Response.json({ narration: cached, source: "cached" });
+  if (cached && cached.model.endsWith(tag)) {
+    return Response.json({ narration: { ...cached, model: cached.model.slice(0, -tag.length) }, source: "cached" });
+  }
 
   const input = toNarrationInput(ev);
   if (!isNarratorConfigured()) {
@@ -26,7 +30,7 @@ export async function GET(request: Request) {
   try {
     const n = await narrateEvent(input);
     const narration = { story: n.story, caption: n.caption, model: n.model, numbersVerified: n.numbersVerified, createdAt: new Date().toISOString() };
-    if (n.numbersVerified) await ds.saveNarration(id, ev.summary.score, narration);
+    if (n.numbersVerified) await ds.saveNarration(id, ev.summary.score, { ...narration, model: `${n.model}${tag}` });
     return Response.json({ narration, source: "claude" });
   } catch (err) {
     console.error("[narrate]", err);

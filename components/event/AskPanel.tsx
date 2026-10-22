@@ -47,13 +47,13 @@ export function AskPanel({ ticker, eventDate, summary }: { ticker: string; event
   }
 
   return (
-    <section aria-labelledby="ask-h" className="sheet">
-      <header className="border-b hairline px-5 py-4">
-        <h2 id="ask-h" className="display text-[20px]">Ask Foreshadow</h2>
-        <p className="mt-1 text-[12.5px] text-ink-3">Claude with Foreshadow&apos;s tools and the Unusual Whales MCP. Every tool call is shown.</p>
+    <section aria-labelledby="ask-h" className="border-t hairline pt-6">
+      <header>
+        <h2 id="ask-h" className="display text-[22px] text-ink">Ask a question</h2>
+        <p className="mt-1 text-[14px] text-ink-3">Claude answers using Foreshadow&apos;s data and Unusual Whales, and shows what it looked up.</p>
       </header>
       <form
-        className="px-5 py-4"
+        className="pt-4"
         onSubmit={(e) => {
           e.preventDefault();
           void ask(q);
@@ -96,22 +96,22 @@ export function AskPanel({ ticker, eventDate, summary }: { ticker: string; event
         </div>
       </form>
       {busy ? (
-        <p className="border-t hairline px-5 py-4 text-[13px] text-ink-3" aria-live="polite">
-          Running the investigator, up to six tool calls…
+        <p className="pt-4 text-[13.5px] text-ink-3" aria-live="polite">
+          Looking things up…
         </p>
       ) : null}
       {err ? (
-        <p className="border-t hairline px-5 py-4 text-[13px] text-ink-2" role="alert">
+        <p className="pt-4 text-[13.5px] text-ink-2" role="alert">
           {err}
         </p>
       ) : null}
       {res ? (
-        <div className="fade-in border-t hairline px-5 py-4">
+        <div className="fade-in pt-5">
           <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-ink">{res.answer}</p>
           {res.toolCalls.length > 0 ? (
             <details className="mt-3 text-[12px]">
               <summary className="cursor-pointer text-ink-3 hover:text-ink-2">
-                {res.toolCalls.length} tool call{res.toolCalls.length === 1 ? "" : "s"} · {res.model}
+                What Claude looked up ({res.toolCalls.length})
               </summary>
               <ol className="mt-2 space-y-2">
                 {res.toolCalls.map((t, i) => (

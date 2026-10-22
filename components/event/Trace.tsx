@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { DailyMetrics, OhlcBar, SignalBreakdown } from "@foreshadow/core";
 import { useMeasure } from "@/lib/hooks/useMeasure";
 import { bandPath } from "@/components/viz/Highlight";
+import { money } from "@/lib/plain";
 import { fmtDateShort, fmtInt, fmtMoney } from "@/lib/format";
 
 export type TraceRowKey = "flow" | "oi" | "volume" | "skew" | "darkPool";
@@ -28,11 +29,11 @@ const ROW_GAP = 16;
 const X_AXIS = 24;
 
 const ROW_SPEC: Record<TraceRowKey, { label: string; height: number; signals: SignalBreakdown["key"][] }> = {
-  flow: { label: "Flow-alert premium", height: 86, signals: ["flowIntensity", "directionalPremium"] },
-  oi: { label: "New open interest", height: 42, signals: ["openInterest"] },
-  volume: { label: "Option volume percentile", height: 34, signals: ["volumeUnusualness"] },
-  skew: { label: "25Δ put–call skew", height: 34, signals: ["skewShift"] },
-  darkPool: { label: "Dark pool ≥ $1M", height: 34, signals: ["darkPool"] },
+  flow: { label: "Money in large options bets", height: 92, signals: ["flowIntensity", "directionalPremium"] },
+  oi: { label: "New contracts opened", height: 42, signals: ["openInterest"] },
+  volume: { label: "Options volume vs. normal", height: 34, signals: ["volumeUnusualness"] },
+  skew: { label: "Cost of protection (puts vs. calls)", height: 34, signals: ["skewShift"] },
+  darkPool: { label: "Big off-exchange stock trades", height: 34, signals: ["darkPool"] },
 };
 
 /**
@@ -73,8 +74,8 @@ export function Trace(p: TraceProps) {
         {m.band ? (
           <g>
             <path d={bandPath(m.band.x0, m.band.x1, PAD_T - 10, m.height - X_AXIS + 2)} className="hl-band hl-band-draw" />
-            <text x={m.band.x0 + 8} y={14} className="fill-ink-2 font-mono" fontSize="10.5" letterSpacing="0.08em">
-              {m.narrow ? "FOOTPRINT" : `FOOTPRINT · T-${p.windowDays.length} → T-1`}
+            <text x={m.band.x0 + 8} y={14} className="fill-ink-2" fontSize="12">
+              {m.narrow ? "5 days before" : "The 5 trading days before the news"}
             </text>
           </g>
         ) : null}
@@ -105,12 +106,11 @@ export function Trace(p: TraceProps) {
               x={m.eventX + (m.eventFlip ? -7 : 7)}
               y={14}
               textAnchor={m.eventFlip ? "end" : "start"}
-              className="fill-ink font-mono"
-              fontSize="10.5"
+              className="fill-ink"
+              fontSize="12"
               fontWeight={600}
-              letterSpacing="0.08em"
             >
-              {m.eventOnChart ? "EVENT" : `EVENT ${fmtDateShort(p.eventDate).toUpperCase()} →`}
+              {m.eventOnChart ? "The news" : `News on ${fmtDateShort(p.eventDate)} →`}
             </text>
           </g>
         ) : null}
@@ -143,18 +143,18 @@ export function Trace(p: TraceProps) {
         {/* ---------------- Signal rows ---------------- */}
         {m.rows.map((row) => (
           <g key={row.key}>
-            <text x={PAD_L} y={row.top + 13} className="fill-ink" fontSize="12" fontWeight={500}>
+            <text x={PAD_L} y={row.top + 13} className="fill-ink" fontSize="13" fontWeight={500}>
               {ROW_SPEC[row.key].label}
               {row.key === "flow" && !m.narrow ? (
                 <tspan className="fill-ink-3" fontSize="11">
-                  {"  calls ▲  puts ▼"}
+                  {"  rise ↑ / fall ↓"}
                 </tspan>
               ) : null}
             </text>
             {row.contribution ? (
               <text x={PAD_L + m.plotW + PAD_R - 2} y={row.top + 13} textAnchor="end" className="fill-ink font-mono" fontSize="11.5" fontWeight={600}>
-                {`+${row.contribution.value.toFixed(1)}`}
-                <tspan className="fill-ink-3" fontWeight={400}>{` / ${row.contribution.max}`}</tspan>
+                {`${row.contribution.value.toFixed(0)}`}
+                <tspan className="fill-ink-3" fontWeight={400}>{` of ${row.contribution.max} pts`}</tspan>
               </text>
             ) : null}
             <line x1={PAD_L} x2={PAD_L + m.plotW} y1={row.base} y2={row.base} className="stroke-line-strong" />
@@ -168,7 +168,7 @@ export function Trace(p: TraceProps) {
             {row.path ? <path d={row.path} className="stroke-ink-2" fill="none" strokeWidth="1.75" strokeLinejoin="round" /> : null}
             {row.afterX !== null && row.key === "flow" && PAD_L + m.plotW - row.afterX > 190 ? (
               <text x={row.afterX + 8} y={row.base + 4} className="fill-ink-3" fontSize="11">
-                not scored after the event
+                after the news (not counted)
               </text>
             ) : null}
           </g>
@@ -238,22 +238,20 @@ function TraceTooltip(props: {
     >
       <div className="mb-2 flex items-center justify-between">
         <span className="font-mono font-semibold text-ink">{fmtDateShort(day)}</span>
-        {isEvent ? <span className="label text-ink">event</span> : inWindow ? <span className="hl label">footprint</span> : <span className="label">baseline</span>}
+        {isEvent ? <span className="label text-ink">news day</span> : inWindow ? <span className="label text-ink">counted</span> : <span className="label">normal period</span>}
       </div>
       <TipRow label="Close" value={close !== null ? `$${close.toFixed(2)}` : "—"} />
       {metrics ? (
         <>
-          <TipRow label="Call premium" value={fmtMoney(metrics.callPremium)} swatch="call" />
-          <TipRow label="Put premium" value={fmtMoney(metrics.putPremium)} swatch="put" />
-          <TipRow label="Net ask-side" value={`${metrics.netPremium >= 0 ? "+" : "−"}${fmtMoney(Math.abs(metrics.netPremium))}`} />
-          <TipRow label="Alerts · sweeps" value={`${metrics.alertCount} · ${Math.round(metrics.sweepShare * 100)}%`} />
-          <TipRow label="New OI (abs)" value={fmtInt(metrics.oiAbs)} />
-          {metrics.volumePercentile !== null ? <TipRow label="Volume pctile" value={String(metrics.volumePercentile)} /> : null}
-          {metrics.skew !== null ? <TipRow label="25Δ skew" value={`${(metrics.skew * 100).toFixed(1)} pts`} /> : null}
-          <TipRow label="Dark pool ≥ $1M" value={metrics.darkPoolNotional > 0 ? fmtMoney(metrics.darkPoolNotional) : "—"} />
+          <TipRow label="Bets on a rise" value={fmtMoney(metrics.callPremium)} swatch="call" />
+          <TipRow label="Bets on a fall" value={fmtMoney(metrics.putPremium)} swatch="put" />
+          <TipRow label="Large bets" value={String(metrics.alertCount)} />
+          <TipRow label="New contracts" value={fmtInt(metrics.oiAbs)} />
+          {metrics.volumePercentile !== null ? <TipRow label="Volume vs. normal" value={`${metrics.volumePercentile}th pct`} /> : null}
+          <TipRow label="Big off-exchange trades" value={metrics.darkPoolNotional > 0 ? fmtMoney(metrics.darkPoolNotional) : "—"} />
         </>
       ) : (
-        <p className="mt-1 text-ink-3">{isEvent ? "The news lands. Nothing after this point is scored." : "Not scored: after the event."}</p>
+        <p className="mt-1 text-ink-3">{isEvent ? "The news came out. Nothing from here on counts toward the score." : "After the news, so not counted."}</p>
       )}
     </div>
   );
@@ -326,7 +324,7 @@ function layout(p: TraceProps, width: number) {
       const to = closes[ri];
       const pct = ((to - from) / from) * 100;
       const short = `${pct >= 0 ? "+" : "−"}${Math.abs(pct).toFixed(1)}%`;
-      const label = width < 640 ? short : `${short} on the news`;
+      const label = width < 640 ? short : `${short} that day`;
       const textW = label.length * 7.4 + 12;
       const gap = Math.min(14, slot * 0.45);
       const roomRight = PAD_L + plotW + PAD_R - (xOf(ri) + gap + 8);
@@ -386,7 +384,7 @@ function layout(p: TraceProps, width: number) {
           peak = {
             x: flip ? x - 6 : x + barW + 6,
             y: isCall ? mid - ch + 9 : mid + ph - 1,
-            text: `${fmtMoney(v, { decimals: 1 })} ${isCall ? "calls" : "puts"}`,
+            text: `${money(v)} on a ${isCall ? "rise" : "fall"}`,
             anchor: flip ? "end" : "start",
           };
         }

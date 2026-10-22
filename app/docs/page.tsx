@@ -3,7 +3,7 @@ import Link from "next/link";
 import { env } from "@/lib/env";
 
 export const metadata: Metadata = {
-  title: "Docs",
+  title: "How it works",
   description: "How the Foreshadow Score works, what it reads from Unusual Whales, how verdicts are decided, and how to add Foreshadow to Claude via MCP.",
 };
 
@@ -19,27 +19,59 @@ const SIGNALS: [string, string, string, string][] = [
 export default function DocsPage() {
   const base = env.siteUrl.replace(/\/$/, "");
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <p className="label mb-2">Docs</p>
-      <h1 className="display text-[44px] sm:text-[56px]">How Foreshadow works</h1>
-      <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
-        Informed money leaves a footprint in options before news. Foreshadow turns that into a repeatable, scored,
-        searchable system: one deterministic number per (ticker, event), a direction, and for past events a verdict.
-        No model touches the arithmetic; Claude only writes the words.
-      </p>
+    <div className="mx-auto max-w-[760px] px-5 py-12 sm:px-8 lg:py-16">
+      <h1 className="display text-[40px] text-ink sm:text-[52px]">How it works</h1>
+      <div className="prose-plain mt-6 space-y-4">
+        <p>
+          Companies often have news on a known date: the FDA ruling on a drug, a quarterly earnings report. In the days
+          before, some traders buy <strong>options</strong>, contracts that pay off if the stock moves a lot. A{" "}
+          <strong>call</strong> pays if the stock rises; a <strong>put</strong> pays if it falls.
+        </p>
+        <p>
+          Foreshadow looks at the five trading days before each piece of news and asks: was the betting unusual for this
+          stock? It compares those five days with the same stock&apos;s previous 60, gives the betting a score from 0 to
+          100, and notes which way the bets leaned. After the news, it checks whether the stock moved further than
+          options traders expected, in the direction the bets pointed. If so, the bets were right.
+        </p>
+        <p>
+          The data comes from Unusual Whales. The scoring is plain arithmetic, so anyone can repeat it. Claude, an AI
+          model, only writes the short summaries and answers questions. It never sets a score.
+        </p>
+      </div>
 
-      <nav className="mt-6 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-ink-2" aria-label="Sections">
+      <h2 className="display mt-14 text-[28px] text-ink">Words you&apos;ll see</h2>
+      <dl className="mt-5 divide-y divide-line border-y hairline text-[15.5px]">
+        {[
+          ["Unusual betting (score)", "0 to 100. How far the options activity in the five days before the news was above this stock's normal level. 40 and up is unusual; 70 and up is very unusual."],
+          ["Bets on a rise / a fall", "Which way the money leaned. Mostly calls bought at the asking price means bets on a rise; mostly puts means bets on a fall."],
+          ["Expected move", "How big a move options prices implied for the news, in either direction."],
+          ["Actual move", "How much the stock really moved: from the close before the news to the close after it."],
+          ["Bets were right / wrong", "Right means the stock moved at least as much as expected, and in the direction the bets leaned. Otherwise, wrong."],
+          ["Large options trade", "A single trade or burst of trades that Unusual Whales flagged for its size."],
+        ].map(([term, def]) => (
+          <div key={term} className="grid gap-1 py-4 sm:grid-cols-[13rem_minmax(0,1fr)] sm:gap-6">
+            <dt className="font-medium text-ink">{term}</dt>
+            <dd className="leading-relaxed text-ink-2">{def}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <h2 className="display mt-14 text-[28px] text-ink">The details</h2>
+      <p className="mt-3 text-[15.5px] leading-relaxed text-ink-2">
+        For people who want the exact method, data sources and API.
+      </p>
+      <nav className="mt-5 flex flex-wrap gap-x-4 gap-y-1 text-[14.5px] text-ink-2" aria-label="Sections">
         {[
           ["#score", "The score"],
-          ["#windows", "Windows"],
-          ["#signals", "Signals"],
-          ["#verdict", "Verdict"],
-          ["#noise", "Noise controls"],
+          ["#windows", "Time windows"],
+          ["#signals", "What's measured"],
+          ["#verdict", "Right or wrong"],
+          ["#noise", "Avoiding false alarms"],
           ["#claude", "Where Claude fits"],
-          ["#mcp", "MCP"],
-          ["#api", "REST API"],
-          ["#byok", "Bring your own key"],
-          ["#run", "Run it locally"],
+          ["#mcp", "Use it from Claude"],
+          ["#api", "API"],
+          ["#byok", "Your own key"],
+          ["#run", "Run it yourself"],
         ].map(([href, label]) => (
           <a key={href} href={href} className="underline decoration-line-strong underline-offset-4 hover:text-ink">{label}</a>
         ))}
@@ -204,9 +236,9 @@ pnpm ingest --mode backfill --days 90 --loop`}</pre>
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="mt-10 scroll-mt-20">
-      <h2 className="display text-[26px]">{title}</h2>
-      <div className="mt-3 text-[14px] leading-relaxed text-ink-2">{children}</div>
+    <section id={id} className="mt-12 scroll-mt-8 border-t hairline pt-8">
+      <h2 className="display text-[24px] text-ink">{title}</h2>
+      <div className="mt-3 text-[15px] leading-relaxed text-ink-2">{children}</div>
     </section>
   );
 }

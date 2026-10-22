@@ -11,11 +11,7 @@ export async function AuthMenu() {
     email = null;
   }
   return (
-    <Link
-      href={email ? "/settings" : "/login"}
-      title={email ?? undefined}
-      className="pressable hidden h-8 items-center rounded-md bg-ink px-3 text-[13px] font-medium text-surface sm:inline-flex"
-    >
+    <Link href={email ? "/settings" : "/login"} title={email ?? undefined} className="hidden px-2 text-[14px] text-ink-2 hover:text-ink sm:inline">
       {email ? "Settings" : "Sign in"}
     </Link>
   );
