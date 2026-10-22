@@ -1,5 +1,5 @@
 import { getRadar, getTickerDossier, getToday } from "@/lib/data";
-import type { EventSummary } from "@/lib/data";
+import type { EventSummary, QueuedCatalyst } from "@/lib/data";
 import { env } from "@/lib/env";
 import { directionPlain, eventName, scoreWord } from "@/lib/plain";
 import { fmtPct } from "@/lib/format";
@@ -14,12 +14,12 @@ const MIN_SCORE = 40;
 
 export async function GET(request: Request) {
   const base = (env.siteUrl.startsWith("http") ? env.siteUrl : `https://${env.siteUrl}`).replace(/\/$/, "");
-  const tickers = (new URL(request.url).searchParams.get("tickers") ?? "")
+  const requested = (new URL(request.url).searchParams.get("tickers") ?? "")
     .toUpperCase()
     .split(",")
     .map((t) => t.trim().replace(/[^A-Z0-9.]/g, "").slice(0, 10))
-    .filter(Boolean)
-    .slice(0, 25);
+    .filter(Boolean);
+  const tickers = [...new Set(requested)].slice(0, 25);
   const today = await getToday();
   const dossiers = tickers.length ? await Promise.all(tickers.map((t) => getTickerDossier(t).catch(() => null))) : [];
   const events: EventSummary[] = tickers.length
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
   const queued = dossiers.flatMap((d) =>
     [...(d?.queued ?? []), ...(d?.next ?? [])]
       .filter((q) => q.eventDate >= today)
-      .map((q) => queuedEvent(d!.ticker, q.kind, q.eventDate, q.title, base)),
+      .map((q) => queuedEvent(d!.ticker, q, base)),
   );
 
   const name = tickers.length ? `Foreshadow: ${tickers.join(", ")}` : "Foreshadow: unusual betting before the news";
@@ -77,10 +77,12 @@ function vevent(e: EventSummary, base: string): string[] {
   ];
 }
 
-function queuedEvent(ticker: string, kind: string, date: string, title: string, base: string): string[] {
+function queuedEvent(ticker: string, q: QueuedCatalyst, base: string): string[] {
+  const { eventDate: date, title } = q;
   return [
     "BEGIN:VEVENT",
-    `UID:${text(`${kind}:${ticker}:${date}`)}@foreshadow`,
+    // The catalyst id when known, so the event keeps its UID once it is scored.
+    `UID:${text(q.id ?? `${q.kind}:${ticker}:${date}`)}@foreshadow`,
     `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z")}`,
     `DTSTART;VALUE=DATE:${date.replaceAll("-", "")}`,
     `DTEND;VALUE=DATE:${nextDay(date)}`,

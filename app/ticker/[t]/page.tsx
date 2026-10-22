@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTickerDossier, getToday } from "@/lib/data";
 import { Timeline } from "@/components/dossier/Timeline";
@@ -22,8 +23,13 @@ export default async function TickerPage({ params }: PageProps<"/ticker/[t]">) {
   const { ticker, company, events, hitRate } = dossier;
   const past = events.filter((e) => !e.partialWindow && e.catalyst.eventDate <= today);
   const upcoming = events.filter((e) => e.partialWindow || e.catalyst.eventDate > today);
+  // The soonest upcoming news, scored or not: scored ones are already in their five-day window.
+  const nextNews = [
+    ...upcoming.map((e) => ({ kind: e.catalyst.kind, eventDate: e.catalyst.eventDate, title: e.catalyst.title, id: e.catalyst.id, scored: true })),
+    ...(dossier.next ?? []).map((q) => ({ ...q, scored: false })),
+  ].sort((a, b) => a.eventDate.localeCompare(b.eventDate))[0];
   const fallback =
-    past.length === 0
+    hitRate.scored === 0
       ? `${ticker} has no finished catalysts scored yet.`
       : `Before ${hitRate.scored} past news events for ${ticker}, the betting was very unusual ${hitRate.strong} times, and those bets were right ${hitRate.strongMatched} times.`;
 
@@ -53,14 +59,23 @@ export default async function TickerPage({ params }: PageProps<"/ticker/[t]">) {
           </div>
         </div>
         <div>
-          {dossier.next?.[0] ? (
+          {nextNews ? (
             <p className="mb-4 rounded-2xl bg-surface-2 px-4 py-3 text-[15.5px] text-ink-2">
-              <strong className="font-semibold text-ink">Next news:</strong> {dossier.next[0].kind === "earnings" ? "earnings" : dossier.next[0].title},{" "}
-              {fmtDate(dossier.next[0].eventDate, { weekday: true })}. Foreshadow starts scoring the betting on{" "}
-              {fmtDate(addTradingDays(dossier.next[0].eventDate, -5), { weekday: true })}.
+              <strong className="font-semibold text-ink">Next news:</strong> {nextNews.kind === "earnings" ? "earnings" : nextNews.title},{" "}
+              {fmtDate(nextNews.eventDate, { weekday: true })}.{" "}
+              {nextNews.scored ? (
+                <>
+                  Foreshadow is scoring the betting now.{" "}
+                  <Link href={`/event/${encodeURIComponent(nextNews.id!)}`} className="link">
+                    See it so far
+                  </Link>
+                </>
+              ) : (
+                <>Foreshadow starts scoring the betting on {fmtDate(addTradingDays(nextNews.eventDate, -5), { weekday: true })}.</>
+              )}
             </p>
           ) : null}
-          {past.length > 0 ? (
+          {hitRate.scored > 0 ? (
             <p className="prose-plain">
               Before <strong>{hitRate.scored}</strong> past news event{hitRate.scored === 1 ? "" : "s"},{" "}
               {hitRate.strong === 0 ? (

@@ -38,9 +38,10 @@ const TOOLS: Tool[] = [
     path: "/api/radar",
     fields: [{ key: "daysAhead", label: "Days ahead", placeholder: "10" }],
     summarise: (j) => {
-      const items = (j.items as { ticker: string; score: number }[] | undefined) ?? [];
+      // Only news whose five-day window has opened has a score yet.
+      const items = ((j.items as { ticker: string; score: number; windowOpen?: boolean }[] | undefined) ?? []).filter((i) => i.windowOpen);
       return items.length
-        ? `${items.length} upcoming. Most unusual so far: ${items.slice(0, 3).map((i) => `${i.ticker} (${num(i.score)})`).join(", ")}.`
+        ? `${items.length} with betting scored so far. Most unusual: ${items.slice(0, 3).map((i) => `${i.ticker} (${num(i.score)})`).join(", ")}.`
         : "Nothing scored in that window yet.";
     },
   },
@@ -74,6 +75,12 @@ const TOOLS: Tool[] = [
   },
 ];
 
+/** The radar takes 1 to 30 days; anything else falls back to the default, as the server does. */
+function daysAhead(v: string | undefined): number {
+  const n = Number(v);
+  return Number.isInteger(n) && n >= 1 && n <= 30 ? n : 10;
+}
+
 function num(v: unknown): string {
   return typeof v === "number" ? (Number.isInteger(v) ? v.toLocaleString("en-US") : v.toFixed(0)) : String(v ?? "?");
 }
@@ -97,7 +104,7 @@ export function ToolPlayground({ ticker, eventDate }: { ticker: string; eventDat
   const [busy, setBusy] = useState(false);
   const tool = TOOLS.find((t) => t.name === active)!;
   const args = Object.fromEntries(
-    tool.fields.map((f) => [f.key, f.key === "daysAhead" ? Number(values[f.key] || 10) : (values[f.key] ?? "").trim().toUpperCase()]),
+    tool.fields.map((f) => [f.key, f.key === "daysAhead" ? daysAhead(values[f.key]) : (values[f.key] ?? "").trim().toUpperCase()]),
   );
   if ("eventDate" in args) args.eventDate = (values.eventDate ?? "").trim();
 

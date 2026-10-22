@@ -334,7 +334,7 @@ export class SupabaseDataSource implements DataSource {
     const scored = new Set(events.map((e) => e.catalyst.id));
     const next = ((upcoming.data ?? []) as { id: string; kind: CatalystKind; event_date: string; title: string }[])
       .filter((r) => !scored.has(r.id))
-      .map((r) => ({ kind: r.kind, eventDate: r.event_date, title: r.title }));
+      .map((r) => ({ id: r.id, kind: r.kind, eventDate: r.event_date, title: r.title }));
     return { ticker: t, company, events, hitRate: hitRate(events), ...(next.length ? { next } : {}) };
   }
 
@@ -342,12 +342,12 @@ export class SupabaseDataSource implements DataSource {
   private async queuedDossier(t: string): Promise<Dossier | null> {
     const { data, error } = await this.db
       .from("catalysts")
-      .select("kind, event_date, title, payload")
+      .select("id, kind, event_date, title, payload")
       .eq("ticker", t)
       .order("event_date", { ascending: false })
       .limit(20);
     if (error) throw error;
-    const rows = (data ?? []) as { kind: CatalystKind; event_date: string; title: string; payload: Record<string, unknown> | null }[];
+    const rows = (data ?? []) as { id: string; kind: CatalystKind; event_date: string; title: string; payload: Record<string, unknown> | null }[];
     if (rows.length === 0) return null;
     const p = rows.find((r) => typeof r.payload?.full_name === "string")?.payload ?? null;
     const cap = Number(p?.marketcap ?? p?.market_cap);
@@ -359,7 +359,7 @@ export class SupabaseDataSource implements DataSource {
       company,
       events: [],
       hitRate: hitRate([]),
-      queued: rows.map((r) => ({ kind: r.kind, eventDate: r.event_date, title: r.title })),
+      queued: rows.map((r) => ({ id: r.id, kind: r.kind, eventDate: r.event_date, title: r.title })),
     };
   }
 

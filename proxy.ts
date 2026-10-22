@@ -7,7 +7,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Everything except static assets, images and the MCP/cron endpoints.
-    "/((?!_next/static|_next/image|favicon.ico|api/mcp|api/cron|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt)$).*)",
+    // Everything except static assets, images, the MCP/cron endpoints and the PostHog proxy.
+    "/((?!_next/static|_next/image|favicon.ico|api/mcp|api/cron|ingest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt)$).*)",
   ],
 };

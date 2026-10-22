@@ -103,6 +103,8 @@ export interface HitRate {
 
 /** Scheduled news on file for a ticker that hasn't been scored yet. */
 export interface QueuedCatalyst {
+  /** The catalyst id, when the source has it. */
+  id?: string;
   kind: CatalystKind;
   eventDate: IsoDate;
   title: string;
