@@ -19,12 +19,15 @@ export function CaseList({
   mode = "past",
   empty,
   showYear = false,
+  header = true,
 }: {
   rows: Row[];
   animate?: boolean;
   mode?: "past" | "live";
   empty?: React.ReactNode;
   showYear?: boolean;
+  /** Column labels above the rows; turn off for the second and later groups on a page. */
+  header?: boolean;
 }) {
   if (rows.length === 0) {
     return (
@@ -41,7 +44,7 @@ export function CaseList({
   const live = mode === "live";
   return (
     <div className="tray p-2 sm:p-2.5">
-      <div className={`hidden gap-6 px-5 pb-2 pt-2 text-[13px] font-medium text-ink-3 lg:grid ${COLS}`}>
+      <div className={`hidden gap-6 px-5 pb-2 pt-2 text-[13px] font-medium text-ink-3 ${header ? "lg:grid" : ""} ${COLS}`}>
         <span>Stock and news</span>
         <span>Unusual betting</span>
         <span>Betting, 10 days before</span>

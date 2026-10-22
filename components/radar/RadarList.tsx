@@ -7,7 +7,8 @@ import type { RadarItem } from "@/lib/data";
 import { CaseList } from "@/components/cases/CaseList";
 import { Legend } from "@/components/cases/Legend";
 import { KindTag } from "@/components/viz/Marks";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, fmtPct } from "@/lib/format";
+import { directionPlain, eventName } from "@/lib/plain";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }) {
@@ -33,6 +34,11 @@ export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }
 
   const open = items.filter((i) => i.windowOpen);
   const upcoming = items.filter((i) => !i.windowOpen);
+  const lead = open.filter((i) => i.daysElapsed > 0).sort((a, b) => b.score - a.score)[0] ?? null;
+  // A calendar: one group per news day, soonest first, most unusual first within the day.
+  const byDay = [...open.reduce((m, r) => m.set(r.catalyst.eventDate, [...(m.get(r.catalyst.eventDate) ?? []), r]), new Map<string, RadarItem[]>())]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([day, rows]) => [day, rows.sort((a, b) => b.score - a.score)] as const);
 
   return (
     <div>
@@ -43,10 +49,29 @@ export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }
         </span>
         {lastEvent ? <span className="tnum">Updated {lastEvent}</span> : null}
       </div>
-      <CaseList
-        rows={open}
-        mode="live"
-        empty={
+      {lead ? (
+        <Link
+          href={`/event/${encodeURIComponent(lead.catalyst.id)}`}
+          className="tray group mb-10 flex flex-wrap items-center gap-x-6 gap-y-3 p-6 transition-colors hover:bg-surface-3"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block text-[14px] font-medium text-ink-3">Most unusual betting so far</span>
+            <span className="mt-1.5 block text-[22px] font-semibold leading-snug text-ink">
+              <span className="ticker">{lead.catalyst.ticker}</span> {eventName(lead)}, {fmtDate(lead.catalyst.eventDate, { weekday: true })}
+            </span>
+            <span className="mt-1 block text-[15.5px] text-ink-2">
+              {lead.score.toFixed(0)} out of 100 after {lead.daysElapsed} of {lead.daysTotal} days, {directionPlain(lead.direction).toLowerCase()}.
+              Options are pricing in a move of about ±{fmtPct(lead.impliedMovePct, { sign: false, decimals: 0 })}.
+            </span>
+          </span>
+          <span className="text-[15px] font-semibold text-ink group-hover:underline group-hover:underline-offset-4">Open the case</span>
+        </Link>
+      ) : null}
+      {byDay.length === 0 ? (
+        <CaseList
+          rows={[]}
+          mode="live"
+          empty={
           <>
             <p className="text-[16px] font-medium text-ink">Nothing is inside its five-day window right now.</p>
             <p className="mt-1 text-[15px] text-ink-3">
@@ -54,8 +79,23 @@ export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }
               <Link href="/leaderboard" className="link">browse past cases</Link>.
             </p>
           </>
-        }
-      />
+          }
+        />
+      ) : (
+        <div className="grid gap-10">
+          {byDay.map(([day, rows], i) => (
+            <section key={day} aria-label={`News on ${fmtDate(day, { weekday: true })}`}>
+              <h2 className="mb-3 flex items-baseline gap-3 px-1">
+                <span className="text-[19px] font-semibold text-ink">{fmtDate(day, { weekday: true })}</span>
+                <span className="text-[14.5px] text-ink-3">
+                  {rows.length} {rows.length === 1 ? "company" : "companies"}
+                </span>
+              </h2>
+              <CaseList rows={rows} mode="live" header={i === 0} />
+            </section>
+          ))}
+        </div>
+      )}
       {open.length ? <Legend live /> : null}
 
       {upcoming.length > 0 ? (
