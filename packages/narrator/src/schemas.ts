@@ -62,3 +62,5 @@ export const RadarArgsSchema = z.object({
   minScore: z.number().optional(),
 });
 export const HistoryArgsSchema = z.object({ ticker: z.string() });
+export const ScorecardArgsSchema = z.object({});
+export const SimilarArgsSchema = z.object({ ticker: z.string(), eventDate: z.string() });

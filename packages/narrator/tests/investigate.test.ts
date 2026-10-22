@@ -19,6 +19,8 @@ function makeTools(): { tools: ForeshadowTools; scoreCalls: unknown[] } {
     foreshadow_history: async () => {
       throw new Error("database offline");
     },
+    foreshadow_scorecard: async () => ({ cases: 0, kinds: [] }),
+    foreshadow_similar: async () => ({ similarCases: 0 }),
   };
   return { tools, scoreCalls };
 }
@@ -182,7 +184,7 @@ describe("investigate (with the Unusual Whales MCP server)", () => {
       { type: "url", url: "https://mcp.unusualwhales.com/mcp", name: "unusual-whales", authorization_token: "uw-token" },
     ]);
     expect(params.tools?.[0]).toEqual({ type: "mcp_toolset", mcp_server_name: "unusual-whales" });
-    expect(params.tools).toHaveLength(4);
+    expect(params.tools).toHaveLength(6);
     expect(params.tool_choice).toEqual({ type: "auto" });
     expect(scoreCalls).toHaveLength(1);
     expect(result.toolCalls).toEqual([

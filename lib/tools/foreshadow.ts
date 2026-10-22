@@ -1,5 +1,5 @@
 /**
- * The three Foreshadow tools, shared by the remote MCP server, the REST
+ * The Foreshadow tools, shared by the remote MCP server, the REST
  * endpoints the stdio wrapper proxies to, and the in-app investigator.
  * Pure reads over the data layer; no UW calls. They return Foreshadow's
  * results (score, lean, measurements, verdict, totals and a few of the largest
@@ -8,6 +8,8 @@
 
 import { API_SAMPLE_SIZE, getDataSource, sampleTrades, tradeTotals } from "@/lib/data";
 import type { EventSummary } from "@/lib/data";
+import { scorecardFinding } from "@/lib/plain";
+import { similarCases } from "@/lib/similar";
 
 function summarize(s: EventSummary) {
   return {
@@ -92,8 +94,55 @@ export async function foreshadowHistory(args: { ticker: string }) {
   };
 }
 
+export async function foreshadowScorecard() {
+  const card = await getDataSource().getScorecard();
+  return {
+    cases: card.cases,
+    definition:
+      "The bets were right when the stock moved at least as much as options priced in, in the direction the bets leaned. The 0-19 band is ordinary betting, the yardstick.",
+    kinds: card.kinds.map((k) => ({
+      kind: k.kind,
+      cases: k.cases,
+      finding: scorecardFinding(k.kind, k.bands),
+      bands: k.bands.map((b) => ({
+        scores: b.label,
+        cases: b.cases,
+        rightPct: b.cases ? Math.round((b.right / b.cases) * 100) : null,
+        movedMoreThanExpectedPct: b.cases ? Math.round((b.movedMore / b.cases) * 100) : null,
+        movedWithLeanPct: b.leaned ? Math.round((b.leanedRight / b.leaned) * 100) : null,
+      })),
+    })),
+  };
+}
+
+export async function foreshadowSimilar(args: { ticker: string; eventDate: string }) {
+  const ds = getDataSource();
+  const ticker = args.ticker.trim().toUpperCase();
+  const dossier = await ds.getTickerDossier(ticker);
+  const target =
+    dossier?.events.find((e) => e.catalyst.eventDate === args.eventDate) ??
+    [...(dossier?.events ?? [])].sort(
+      (a, b) =>
+        Math.abs(Date.parse(a.catalyst.eventDate) - Date.parse(args.eventDate)) -
+        Math.abs(Date.parse(b.catalyst.eventDate) - Date.parse(args.eventDate)),
+    )[0];
+  if (!target) return { error: `No scored catalysts for ${ticker}` };
+  const pool = await ds.getLeaderboard({ kind: target.catalyst.kind, limit: 400 });
+  const sim = similarCases(target, pool);
+  return {
+    case: summarize(target),
+    matchedOn: { kind: target.catalyst.kind, lean: target.direction, scoreRange: [sim.lo, sim.hi] },
+    similarCases: sim.cases.length,
+    betsRight: sim.right,
+    rightPct: sim.cases.length ? Math.round((sim.right / sim.cases.length) * 100) : null,
+    closest: sim.cases.slice(0, 8).map(summarize),
+  };
+}
+
 export const foreshadowTools = {
   foreshadow_score: foreshadowScore,
   foreshadow_radar: foreshadowRadar,
   foreshadow_history: foreshadowHistory,
+  foreshadow_scorecard: foreshadowScorecard,
+  foreshadow_similar: foreshadowSimilar,
 };

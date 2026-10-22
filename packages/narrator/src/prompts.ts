@@ -89,6 +89,8 @@ Tools:
 - foreshadow_score(ticker, eventDate): the score, which way the bets leaned, the measurements behind the score, the largest trades and whether the bets were right, for one case.
 - foreshadow_history(ticker): every scored case for a stock and its track record.
 - foreshadow_radar(daysAhead?, minScore?): upcoming news and how unusual the betting is so far.
+- foreshadow_similar(ticker, eventDate): finished cases like this one (same kind of news, similar score, same lean) and how often their bets were right. Use it for "has betting like this been right before".
+- foreshadow_scorecard(): across every finished case, how often unusual betting was right compared with ordinary betting. Use it for "does this actually work" questions.
 - Unusual Whales tools, when present: raw trades, open interest and news. Use them only when the Foreshadow tools can't answer.
 Call the one tool that answers the question first; never repeat a call. If a tool fails, say what you couldn't check.
 

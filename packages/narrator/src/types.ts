@@ -117,6 +117,8 @@ export interface ForeshadowTools {
   foreshadow_score(args: { ticker: string; eventDate: string }): Promise<unknown>;
   foreshadow_radar(args: { daysAhead?: number; minScore?: number }): Promise<unknown>;
   foreshadow_history(args: { ticker: string }): Promise<unknown>;
+  foreshadow_scorecard(args: Record<string, never>): Promise<unknown>;
+  foreshadow_similar(args: { ticker: string; eventDate: string }): Promise<unknown>;
 }
 
 export interface InvestigateContext {
