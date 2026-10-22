@@ -65,7 +65,9 @@ interface ScoreRow {
   implied_move_pct: number | string | null;
   partial_window: boolean;
   flags: StoredScore["flags"];
-  breakdown: StoredScore["breakdown"];
+  /** Absent on list rows, which select only `breakdown_daily`. */
+  breakdown?: StoredScore["breakdown"];
+  breakdown_daily?: StoredScore["breakdown"]["daily"];
   computed_at: string;
   catalysts?: CatalystRow | CatalystRow[] | null;
 }
@@ -97,6 +99,14 @@ export function rowToCatalyst(r: CatalystRow): Catalyst {
   };
 }
 
+/**
+ * Columns for list queries: everything a case row shows, with only the
+ * breakdown's daily numbers. Full breakdowns are about 6KB a row and a
+ * list fetches up to 400 rows.
+ */
+const LIST_COLUMNS =
+  "catalyst_id, ticker, event_date, score, direction, verdict, realized_move_pct, implied_move_pct, partial_window, flags, computed_at, breakdown_daily:breakdown->daily, catalysts!inner(*)";
+
 export function rowToStored(r: ScoreRow): StoredScore {
   return {
     catalystId: r.catalyst_id,
@@ -109,8 +119,11 @@ export function rowToStored(r: ScoreRow): StoredScore {
     impliedMovePct: num(r.implied_move_pct),
     partialWindow: r.partial_window,
     flags: r.flags,
+    // List rows carry only the daily numbers (for the sparkline); the case query carries everything.
     // Rows written before the scorer stripped raw fields still carry UW ids; never pass them on.
-    breakdown: { ...r.breakdown, topAlerts: (r.breakdown.topAlerts ?? []).map(toTradeExample) },
+    breakdown: r.breakdown
+      ? { ...r.breakdown, topAlerts: (r.breakdown.topAlerts ?? []).map(toTradeExample) }
+      : ({ daily: r.breakdown_daily ?? [] } as unknown as StoredScore["breakdown"]),
     computedAt: r.computed_at,
   };
 }
@@ -216,7 +229,7 @@ export class SupabaseDataSource implements DataSource {
     const since = isoDaysAgo(today, filters.days ?? 90);
     let q = this.db
       .from("scores")
-      .select("*, catalysts!inner(*)")
+      .select(LIST_COLUMNS)
       .eq("partial_window", false)
       .gte("event_date", since)
       .lte("event_date", today)
@@ -226,7 +239,7 @@ export class SupabaseDataSource implements DataSource {
     if (filters.kind && filters.kind !== "all") q = q.eq("catalysts.kind", filters.kind);
     const { data, error } = await q;
     if (error) throw error;
-    const rows = ((data ?? []) as ScoreRow[]).map((r) => this.summaryOf(r)).filter((s): s is EventSummary => s !== null);
+    const rows = ((data ?? []) as unknown as ScoreRow[]).map((r) => this.summaryOf(r)).filter((s): s is EventSummary => s !== null);
     return applyLeaderboardFilters(rows, filters, today);
   }
 
@@ -263,7 +276,7 @@ export class SupabaseDataSource implements DataSource {
       this.getNarration(id, stored.score),
       this.db
         .from("scores")
-        .select("*, catalysts!inner(*)")
+        .select(LIST_COLUMNS)
         .eq("ticker", catalyst.ticker)
         .neq("catalyst_id", id)
         .order("event_date", { ascending: false })
@@ -273,7 +286,7 @@ export class SupabaseDataSource implements DataSource {
       .map((r) => r.payload)
       .sort((a, b) => a.date.localeCompare(b.date));
     const chartBars = ((bars.data ?? []) as { trade_date: string; payload: OhlcBar }[]).map((r) => r.payload);
-    const relatedRows = ((related.data ?? []) as ScoreRow[]).map((r) => this.summaryOf(r)).filter((s): s is EventSummary => s !== null);
+    const relatedRows = ((related.data ?? []) as unknown as ScoreRow[]).map((r) => this.summaryOf(r)).filter((s): s is EventSummary => s !== null);
     return {
       summary: toSummary(stored, catalyst, companyFromCatalyst(catalyst)),
       stored,
@@ -289,12 +302,12 @@ export class SupabaseDataSource implements DataSource {
     const t = ticker.toUpperCase();
     const { data, error } = await this.db
       .from("scores")
-      .select("*, catalysts!inner(*)")
+      .select(LIST_COLUMNS)
       .eq("ticker", t)
       .order("event_date", { ascending: false })
       .limit(60);
     if (error) throw error;
-    const events = ((data ?? []) as ScoreRow[]).map((r) => this.summaryOf(r)).filter((s): s is EventSummary => s !== null);
+    const events = ((data ?? []) as unknown as ScoreRow[]).map((r) => this.summaryOf(r)).filter((s): s is EventSummary => s !== null);
     if (events.length === 0) return this.queuedDossier(t);
     const company = events.map((e) => e.company).find((c): c is Company => c !== null) ?? null;
     return { ticker: t, company, events, hitRate: hitRate(events) };
@@ -331,14 +344,14 @@ export class SupabaseDataSource implements DataSource {
     const last = horizon[horizon.length - 1];
     const { data, error } = await this.db
       .from("scores")
-      .select("*, catalysts!inner(*)")
+      .select(LIST_COLUMNS)
       .eq("partial_window", true)
       .gt("event_date", today)
       .lte("event_date", last)
       .order("score", { ascending: false })
       .limit(300);
     if (error) throw error;
-    const items = ((data ?? []) as ScoreRow[])
+    const items = ((data ?? []) as unknown as ScoreRow[])
       .map((r) => this.summaryOf(r))
       .filter((s): s is EventSummary => s !== null)
       .map((s) => toRadarItem(s, today))
