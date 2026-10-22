@@ -21,6 +21,8 @@ export interface UwClientOptions {
   fetch?: FetchLike;
   /** Token-bucket capacity and refill rate. Defaults to 120 (UW's documented default). */
   requestsPerMinute?: number;
+  /** Max requests in flight at once. UW plans cap this (3 on the hackathon key). Defaults to 3. */
+  maxConcurrent?: number;
   /** Receives one line per HTTP request. */
   logger?: (line: string) => void;
   /** Retries for 429 / 5xx / network errors. Defaults to 3. */
@@ -32,6 +34,26 @@ export interface UwClientOptions {
 
 export const DEFAULT_BASE_URL = "https://api.unusualwhales.com";
 export const DEFAULT_REQUESTS_PER_MINUTE = 120;
+export const DEFAULT_MAX_CONCURRENT = 3;
+
+/** Counting semaphore: at most `limit` holders at once, FIFO. */
+class Semaphore {
+  private active = 0;
+  private readonly waiters: (() => void)[] = [];
+  constructor(private readonly limit: number) {}
+  async acquire(): Promise<void> {
+    if (this.active < this.limit) {
+      this.active++;
+      return;
+    }
+    await new Promise<void>((resolve) => this.waiters.push(resolve));
+  }
+  release(): void {
+    const next = this.waiters.shift();
+    if (next) next();
+    else this.active--;
+  }
+}
 /** Required by UW's skill.md on every request. */
 export const UW_CLIENT_API_ID = "100001";
 const DEFAULT_MAX_RETRIES = 3;
@@ -45,6 +67,7 @@ export class UwHttp {
   private readonly headers: Record<string, string>;
   private readonly fetchFn: FetchLike;
   private readonly limiter: TokenBucket;
+  private readonly inFlight: Semaphore;
   private readonly logger?: (line: string) => void;
   private readonly sleep: (ms: number) => Promise<void>;
   private readonly now: () => number;
@@ -70,6 +93,7 @@ export class UwHttp {
     this.sleep = opts.sleep ?? defaultSleep;
     this.now = opts.now ?? (() => Date.now());
     this.maxRetries = opts.maxRetries ?? DEFAULT_MAX_RETRIES;
+    this.inFlight = new Semaphore(Math.max(1, opts.maxConcurrent ?? DEFAULT_MAX_CONCURRENT));
     this.limiter = new TokenBucket(opts.requestsPerMinute ?? DEFAULT_REQUESTS_PER_MINUTE, {
       now: this.now,
       sleep: this.sleep,
@@ -106,11 +130,15 @@ export class UwHttp {
     const label = url.slice(this.baseUrl.length);
     for (let attempt = 0; ; attempt++) {
       await this.limiter.acquire();
+      await this.inFlight.acquire();
       const started = this.now();
       let res: Response;
+      let body: unknown;
       try {
         res = await this.fetchFn(url, { method: "GET", headers: this.headers });
+        body = await readBody(res);
       } catch (err) {
+        this.inFlight.release();
         this.log(`GET ${label} -> network error: ${describe(err)}`);
         if (attempt >= this.maxRetries) {
           throw new UwApiError({ status: 0, path, message: `Network error: ${describe(err)}` });
@@ -118,15 +146,17 @@ export class UwHttp {
         await this.sleep(backoffMs(attempt));
         continue;
       }
+      this.inFlight.release();
       this.recordUsage(res.headers);
       this.log(`GET ${label} -> ${res.status} (${this.now() - started}ms)`);
-      const body = await readBody(res);
       if (res.ok) return unwrap(body) as T;
 
       const err = toError(res.status, body, path, res.headers.get("x-request-id") ?? undefined);
       const retryable = res.status === 429 || res.status >= 500;
       if (!retryable || attempt >= this.maxRetries) throw err;
-      if (res.status === 429) {
+      if (res.status === 429 && err.code === "concurrent_limit_exceeded") {
+        await this.sleep(250 + backoffMs(attempt));
+      } else if (res.status === 429) {
         await this.sleep(numOpt(res.headers.get("x-uw-req-per-minute-reset")) ?? DEFAULT_429_WAIT_MS);
       } else {
         await this.sleep(backoffMs(attempt));

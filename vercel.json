@@ -1,8 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
   "regions": ["iad1"],
   "crons": [
-    { "path": "/api/cron/ingest?mode=radar", "schedule": "*/15 13-21 * * 1-5" },
+    { "path": "/api/cron/ingest?mode=radar", "schedule": "0 15 * * 1-5" },
     { "path": "/api/cron/ingest?mode=daily", "schedule": "30 22 * * 1-5" }
   ]
 }

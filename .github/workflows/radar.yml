@@ -1,0 +1,31 @@
+# Refreshes Live Radar every 15 minutes during US market hours.
+# Vercel Hobby only allows daily crons (see vercel.json), so GitHub Actions
+# calls the same endpoint. Needs the repository secret CRON_SECRET (same value
+# as on Vercel) and optionally the variable FORESHADOW_URL.
+name: radar-refresh
+
+on:
+  schedule:
+    - cron: "*/15 13-21 * * 1-5"
+  workflow_dispatch: {}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Call the radar ingest
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          FORESHADOW_URL: ${{ vars.FORESHADOW_URL || 'https://foreshadow-six.vercel.app' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET is not set; skipping."
+            exit 0
+          fi
+          code=$(curl -s -o response.json -w "%{http_code}" --max-time 320 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$FORESHADOW_URL/api/cron/ingest?mode=radar")
+          echo "HTTP $code"
+          head -c 2000 response.json; echo
+          test "$code" = "200"

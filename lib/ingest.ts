@@ -47,8 +47,35 @@ export interface IngestOptions {
   /** Run the Claude catalyst tagger over POTUS + economic rows (default: all modes but backfill). */
   tagMacro?: boolean;
   log?: (msg: string) => void;
+  /** Earnings below this market cap are skipped (default $2B). */
+  minEarningsMarketCap?: number;
+  /** Skip catalysts whose ticker has no listed options (default true). */
+  requireOptions?: boolean;
+  /** Count what would be scored, then stop: no UW footprint calls, no writes. */
+  dryRun?: boolean;
+  /** Events scored in parallel (default 1). */
+  concurrency?: number;
   /** Called after each upsert, e.g. to dispatch alerts. */
   onScored?: (change: { prev: StoredScore | null; next: StoredScore; catalyst: Catalyst }) => Promise<void>;
+}
+
+export const DEFAULT_MIN_EARNINGS_MARKET_CAP = 2_000_000_000;
+
+/**
+ * The scoring universe. Every FDA event with listed options, and earnings for
+ * companies above the market-cap floor with listed options. Congress, insider
+ * and macro catalysts pass through (their volume is already small).
+ */
+export function inUniverse(c: Catalyst, opts: { minEarningsMarketCap: number; requireOptions: boolean }): boolean {
+  const p = c.payload ?? {};
+  const hasOptions = p.has_options;
+  if (opts.requireOptions && hasOptions === false) return false;
+  if (c.kind === "earnings") {
+    if (opts.requireOptions && hasOptions !== true) return false;
+    const cap = typeof p.marketcap === "number" ? p.marketcap : Number(p.marketcap);
+    return Number.isFinite(cap) && cap >= opts.minEarningsMarketCap;
+  }
+  return true;
 }
 
 export interface IngestReport {
@@ -98,22 +125,29 @@ export async function runIngest(db: SupabaseClient, uw: UwClient, opts: IngestOp
     to = today;
   }
 
-  const { data: run } = await db
-    .from("ingest_runs")
-    .insert({ mode, status: "running" })
-    .select("id")
-    .single();
+  const { data: run } = opts.dryRun
+    ? { data: null }
+    : await db.from("ingest_runs").insert({ mode, status: "running" }).select("id").single();
   const runId = (run as { id: number } | null)?.id ?? null;
+  const universe = {
+    minEarningsMarketCap: opts.minEarningsMarketCap ?? DEFAULT_MIN_EARNINGS_MARKET_CAP,
+    requireOptions: opts.requireOptions ?? true,
+  };
 
   const cache = new SupabaseCache(db);
   let catalysts: Catalyst[] = [];
   let scored = 0;
   let candidates: Catalyst[] = [];
   try {
-    catalysts = await fetchCatalysts(uw, { from, to, kinds });
-    log(`fetched ${catalysts.length} catalysts (${kinds.join(", ")}) ${from} → ${to}`);
-    await upsertCatalysts(db, catalysts);
-    if (opts.tagMacro ?? mode !== "backfill") {
+    const fetched = await fetchCatalysts(uw, { from, to, kinds });
+    catalysts = fetched.filter((c) => inUniverse(c, universe));
+    const byKind = (xs: Catalyst[]) =>
+      Object.entries(xs.reduce<Record<string, number>>((m, c) => ((m[c.kind] = (m[c.kind] ?? 0) + 1), m), {}))
+        .map(([k, n]) => `${k} ${n}`)
+        .join(", ");
+    log(`fetched ${fetched.length} catalysts ${from} → ${to}; ${catalysts.length} in universe (${byKind(catalysts)})`);
+    if (!opts.dryRun) await upsertCatalysts(db, catalysts);
+    if (!opts.dryRun && (opts.tagMacro ?? mode !== "backfill")) {
       try {
         await tagMacroCatalysts(db, uw, { today, log });
       } catch (err) {
@@ -126,9 +160,16 @@ export async function runIngest(db: SupabaseClient, uw: UwClient, opts: IngestOp
 
     const existing = await loadExistingScores(db, catalysts.map((c) => c.id));
     candidates = pickCandidates(catalysts, existing, mode, today).slice(0, maxEvents);
-    log(`${candidates.length} to score (max ${maxEvents})`);
+    const tickers = new Set(candidates.map((c) => c.ticker));
+    log(`${candidates.length} to score (max ${maxEvents}) across ${tickers.size} tickers`);
+    if (opts.dryRun) {
+      log(`dry run: about ${tickers.size * 145 + candidates.length * 4} UW requests if every ticker is uncached`);
+      return { runId, mode, from, to, catalystsSeen: catalysts.length, candidates: candidates.length, scored: 0, requests: uw.usage.dailyCount, warnings, errors, durationMs: Date.now() - started };
+    }
 
-    for (const catalyst of candidates) {
+    const queue = [...candidates];
+    const workers = Array.from({ length: Math.max(1, opts.concurrency ?? 1) }, async () => {
+      for (let catalyst = queue.shift(); catalyst; catalyst = queue.shift()) {
       try {
         const others = catalysts.filter(
           (c) => c.id !== catalyst.id && c.ticker === catalyst.ticker && footprintWindow(catalyst.eventDate).includes(c.eventDate),
@@ -145,7 +186,9 @@ export async function runIngest(db: SupabaseClient, uw: UwClient, opts: IngestOp
         errors.push(msg);
         log(`error ${msg}`);
       }
-    }
+      }
+    });
+    await Promise.all(workers);
   } catch (err) {
     errors.push(err instanceof Error ? err.message : String(err));
   }

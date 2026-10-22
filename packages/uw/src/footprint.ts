@@ -49,7 +49,8 @@ export type FootprintClient = Pick<
   | "getRiskReversalSkew"
   | "getOhlcDaily"
   | "getInterpolatedIv"
->;
+> &
+  Partial<Pick<UwClient, "getDarkPoolRange">>;
 
 export interface LoadFootprintOptions {
   /** Expiry for the skew series; defaults to the monthly expiry after the last date. */
@@ -137,6 +138,42 @@ async function loadFlowAlerts(
       for (const [d, rows] of fetched) result.set(d, rows);
     }),
   );
+  return result;
+}
+
+/**
+ * Dark pool prints for the missing dates as range calls, one per run of
+ * consecutive missing trading days, bucketed by ET trade date. Every
+ * requested date is cached, empty or not.
+ */
+async function loadDarkPoolRanges(
+  client: Required<Pick<FootprintClient, "getDarkPoolRange">>,
+  cache: FootprintCache,
+  ticker: string,
+  dates: IsoDate[],
+  today: IsoDate,
+  minPremium: number | undefined,
+  warnings: string[],
+): Promise<Map<IsoDate, DarkPoolPrint[]>> {
+  const result = await cache.getMany<DarkPoolPrint[]>(ticker, dates, "darkpool");
+  const missing = dates.filter((d) => !result.has(d));
+  for (const run of contiguousRuns(missing)) {
+    const fetched = new Map<IsoDate, DarkPoolPrint[]>();
+    const firstOk = await findFirstAccessible(run.length, async (lo, hi) => {
+      const slice = run.slice(lo, hi);
+      const prints = await client.getDarkPoolRange({
+        ticker,
+        newerThan: slice[0],
+        olderThan: addCalendarDays(slice[slice.length - 1], 1),
+        minPremium,
+      });
+      for (const d of slice) fetched.set(d, []);
+      for (const p of prints) fetched.get(p.tradeDate)?.push(p);
+    });
+    if (firstOk > 0) warnings.push(historicWarning("darkpool", ticker, run, firstOk));
+    await cache.setMany(entries(ticker, "darkpool", fetched, today));
+    for (const [d, rows] of fetched) result.set(d, rows);
+  }
   return result;
 }
 
@@ -243,7 +280,7 @@ async function loadSkew(
  * missing date, options-volume history and skew once per ticker. Dates
  * before the plan's lookback come back empty with a warning instead of
  * failing the load. Typical cost for a cold 65-day window: ~1-3 flow-alert
- * pages + 65 OI + 65 dark pool + 2 = ~135 requests; a warm cache costs 0.
+ * pages + 65 OI + ~1-20 dark pool range pages + 2 = ~70-90 requests; a warm cache costs 0.
  */
 export async function loadDailyFootprints(
   client: FootprintClient,
@@ -264,15 +301,25 @@ export async function loadDailyFootprints(
   const [alerts, oi, darkPool, volumeHistory, skew] = await Promise.all([
     loadFlowAlerts(client, cache, symbol, fetchable, today, opts.minFlowPremium, warnings),
     loadPerDate<OiChange>(cache, symbol, fetchable, "oi-change", today, (d) => client.getOiChange(symbol, d), warnings),
-    loadPerDate<DarkPoolPrint>(
-      cache,
-      symbol,
-      fetchable,
-      "darkpool",
-      today,
-      (d) => client.getDarkPool(symbol, d, { minPremium: opts.minDarkPoolNotional }),
-      warnings,
-    ),
+    client.getDarkPoolRange
+      ? loadDarkPoolRanges(
+          { getDarkPoolRange: client.getDarkPoolRange.bind(client) },
+          cache,
+          symbol,
+          fetchable,
+          today,
+          opts.minDarkPoolNotional,
+          warnings,
+        )
+      : loadPerDate<DarkPoolPrint>(
+          cache,
+          symbol,
+          fetchable,
+          "darkpool",
+          today,
+          (d) => client.getDarkPool(symbol, d, { minPremium: opts.minDarkPoolNotional }),
+          warnings,
+        ),
     loadVolumeHistory(client, cache, symbol, fetchable, today, warnings),
     loadSkew(client, cache, symbol, fetchable, skewExpiry, today, warnings),
   ]);

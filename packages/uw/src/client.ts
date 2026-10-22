@@ -51,7 +51,7 @@ import type {
   SkewPoint,
   Unusualness,
 } from "./types";
-import { isDefined, isRecord, strOpt } from "./util";
+import { etTradeDate, isDefined, isRecord, strOpt } from "./util";
 
 export const FLOW_PAGE_SIZE = 200;
 export const MAX_FLOW_PAGES = 50;
@@ -59,6 +59,7 @@ export const OI_PAGE_SIZE = 500;
 export const MAX_OI_PAGES = 10;
 export const DARK_POOL_PAGE_SIZE = 500;
 export const MAX_DARK_POOL_PAGES = 10;
+export const MAX_DARK_POOL_RANGE_PAGES = 60;
 export const DEFAULT_DARK_POOL_MIN_PREMIUM = 1_000_000;
 export const MAX_OHLC_LIMIT = 2500;
 export const MAX_OPTIONS_VOLUME_LIMIT = 500;
@@ -132,6 +133,37 @@ export class UwClient extends UwHttp {
       if (rows.length < OI_PAGE_SIZE) break;
     }
     return out;
+  }
+
+  /**
+   * `GET /api/darkpool/{ticker}` over a time range (`newer_than` / `older_than`),
+   * paging backwards with the `older_than` cursor. With the $1M server-side
+   * floor a quiet ticker's whole window is one request; liquid names page
+   * through ~3 sessions per call. Far cheaper than one call per day.
+   */
+  async getDarkPoolRange(params: { ticker: string; newerThan: string; olderThan: string; minPremium?: number }): Promise<DarkPoolPrint[]> {
+    const minPremium = params.minPremium ?? DEFAULT_DARK_POOL_MIN_PREMIUM;
+    const byId = new Map<string, DarkPoolPrint>();
+    let olderThan = params.olderThan;
+    for (let page = 0; page < MAX_DARK_POOL_RANGE_PAGES; page++) {
+      const rows = await this.requestList<RawDarkPoolTrade>(`/api/darkpool/${encode(params.ticker)}`, {
+        newer_than: params.newerThan,
+        older_than: olderThan,
+        min_premium: minPremium,
+        limit: DARK_POOL_PAGE_SIZE,
+      });
+      let oldest: string | undefined;
+      for (const row of rows) {
+        const ts = strOpt(row.executed_at);
+        if (!ts) continue;
+        if (oldest === undefined || ts < oldest) oldest = ts;
+        const print = mapDarkPoolRow(row, params.ticker, etTradeDate(ts));
+        if (print) byId.set(print.id, print);
+      }
+      if (rows.length < DARK_POOL_PAGE_SIZE || oldest === undefined || oldest === olderThan) break;
+      olderThan = oldest;
+    }
+    return [...byId.values()].sort((a, b) => a.executedAt.localeCompare(b.executedAt));
   }
 
   /**

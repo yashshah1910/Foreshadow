@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { UwAccessError, UwApiError, UwAuthError, UwRateLimitError } from "../src/errors";
 import { stableHash } from "../src/util";
+import { UwClient } from "../src/client";
 import { DARK_POOL_ROW, FLOW_ALERT_ROW, OI_CHANGE_ROW, dataRoute, makeClient } from "./helpers";
 
 describe("UwClient request core", () => {
@@ -328,5 +329,36 @@ describe("volatility endpoints", () => {
     expect(calls[0].url.pathname).toBe("/api/stock/NVDA/historical-risk-reversal-skew");
     expect([q.get("expiry"), q.get("delta"), q.get("timeframe"), q.get("date")]).toEqual(["2026-11-20", "25", "1Y", "2026-10-21"]);
     expect(skew).toEqual([{ date: "2026-10-21", delta: 25, skew: -0.021, expiry: "2026-11-20" }]);
+  });
+});
+
+describe("concurrency cap", () => {
+  it("never has more than maxConcurrent requests in flight", async () => {
+    let inFlight = 0;
+    let peak = 0;
+    const fetchFn = async () => {
+      inFlight++;
+      peak = Math.max(peak, inFlight);
+      await new Promise((r) => setTimeout(r, 5));
+      inFlight--;
+      return new Response(JSON.stringify({ data: [] }), { status: 200, headers: { "content-type": "application/json" } });
+    };
+    const client = new UwClient({ apiKey: "k", fetch: fetchFn, requestsPerMinute: 100000, maxConcurrent: 3 });
+    await Promise.all(Array.from({ length: 12 }, (_, i) => client.requestList(`/api/x/${i}`)));
+    expect(peak).toBe(3);
+  });
+});
+
+describe("getDarkPoolRange", () => {
+  it("pages backwards with older_than and buckets prints by ET trade date", async () => {
+    const page1 = Array.from({ length: 500 }, (_, i) => ({ executed_at: `2026-10-21T15:${String(i % 60).padStart(2, "0")}:00Z`, price: "10", size: 200000, premium: "2000000", tracking_id: 1000 + i }));
+    const page2 = [{ executed_at: "2026-10-20T14:00:00Z", price: "10", size: 150000, premium: "1500000", tracking_id: 1 }];
+    let n = 0;
+    const { client, calls } = makeClient(() => ({ body: { data: n++ === 0 ? page1 : page2 } }));
+    const prints = await client.getDarkPoolRange({ ticker: "aapl", newerThan: "2026-10-20", olderThan: "2026-10-22" });
+    expect(calls).toHaveLength(2);
+    expect(calls[0].url.searchParams.get("newer_than")).toBe("2026-10-20");
+    expect(calls[1].url.searchParams.get("older_than")).toBe("2026-10-21T15:00:00Z");
+    expect(new Set(prints.map((p) => p.tradeDate))).toEqual(new Set(["2026-10-20", "2026-10-21"]));
   });
 });

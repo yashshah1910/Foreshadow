@@ -117,7 +117,7 @@ Try: *"did anyone know about VXRA before Sep 18?"*
 app/                     Next.js 16 App Router (Turbopack, Tailwind 4)
   page.tsx               landing: the hero Event Card is the hero
   leaderboard/ event/[id]/ ticker/[t]/ radar/ docs/ settings/ login/
-  api/cron/ingest        Vercel Cron: fetch UW → score → upsert Supabase (radar every 15 min, daily at close)
+  api/cron/ingest        fetch UW → score → upsert Supabase (Vercel Cron daily; GitHub Actions every 15 min in market hours for the radar)
   api/mcp                remote MCP (mcp-handler, streamable HTTP)
   api/narrate api/ask api/dossier    Claude route handlers
   api/score api/radar api/history    REST twins of the MCP tools (used by the stdio wrapper)
