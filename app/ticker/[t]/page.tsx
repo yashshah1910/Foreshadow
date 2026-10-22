@@ -39,6 +39,9 @@ export default async function TickerPage({ params }: PageProps<"/ticker/[t]">) {
               {company.marketcap ? `, ${fmtMarketcap(company.marketcap)} market value` : ""}
             </p>
           ) : null}
+          <a href={`/feed.xml?ticker=${ticker}`} className="link mt-4 inline-block text-[15px]">
+            Follow {ticker} by RSS
+          </a>
         </div>
         <div>
           {past.length > 0 ? (
