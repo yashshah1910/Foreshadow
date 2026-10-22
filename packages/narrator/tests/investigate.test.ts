@@ -34,11 +34,11 @@ describe("investigate (Foreshadow tools only)", () => {
     });
     const result = await investigate(
       { question: "How did XYZ score?", context: { ticker: "XYZ", eventDate: "2025-10-14" }, tools },
-      { client, model: "claude-opus-5-5" },
+      { client, model: "claude-sonnet-5-5" },
     );
     expect(scoreCalls).toEqual([{ ticker: "XYZ", eventDate: "2025-10-14" }]);
     expect(result.stopped).toBe("end_turn");
-    expect(result.model).toBe("claude-opus-5-5");
+    expect(result.model).toBe("claude-sonnet-5-5");
     expect(result.answer).toContain("XYZ scored 84.3");
     expect(result.toolCalls).toEqual([
       {

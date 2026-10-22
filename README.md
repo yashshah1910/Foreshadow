@@ -46,8 +46,8 @@ Tests (core scorer, UW client, narrator — 123 tests): `pnpm test`. Typecheck: 
 
 | Variable | Needed for |
 | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Accounts, BYOK, watchlists, alerts, Realtime. Empty → demo mode from fixtures. |
-| `SUPABASE_SERVICE_ROLE_KEY` | The cron ingest, narration cache, reading footprints server-side. |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Accounts, BYOK, watchlists, alerts, Realtime. Empty → demo mode from fixtures. |
+| `SUPABASE_SECRET_KEY` | The cron ingest, narration cache, reading footprints server-side. |
 | `UW_API_KEY` | Fresh scoring and Live Radar. Signed-in users can bring their own key instead (Settings → stored in Vault). |
 | `ANTHROPIC_API_KEY` | The Narrator story, Dossier summary, the Ask panel and the catalyst tagger. **Without it every surface still works**; the story slot shows the deterministic template. |
 | `CRON_SECRET` | Protects `/api/cron/ingest` (Vercel Cron sends it as a Bearer token). |
@@ -100,7 +100,7 @@ Claude never computes a number. `packages/narrator/` wraps the Messages API for 
    user's own key). Tool calls are shown inline.
 4. **Dossier summary** — one paragraph on whether a ticker is a repeat offender.
 
-Narrations are cached by (ticker, event date, score). Model: `claude-opus-5-5` (override with `NARRATOR_MODEL`).
+Narrations are cached by (ticker, event date, score). Model: `claude-sonnet-5-5` (override with `NARRATOR_MODEL`).
 
 ## MCP
 

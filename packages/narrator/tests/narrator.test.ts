@@ -25,13 +25,13 @@ describe("narrateEvent", () => {
     expect(result).toEqual({
       story: CLEAN_STORY,
       caption: CLEAN_CAPTION,
-      model: "claude-opus-5-5",
+      model: "claude-sonnet-5-5",
       numbersVerified: true,
       unverifiedNumbers: [],
     });
     expect(calls).toHaveLength(1);
     const params = calls[0].params as ParseParams;
-    expect(params.model).toBe("claude-opus-5-5");
+    expect(params.model).toBe("claude-sonnet-5-5");
     expect(params.max_tokens).toBe(2048);
     expect(params.output_config?.effort).toBe("low");
     expect(params.output_config?.format?.type).toBe("json_schema");

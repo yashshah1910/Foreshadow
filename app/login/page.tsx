@@ -19,7 +19,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         <h1 className="display text-[34px]">Sign-in needs Supabase</h1>
         <p className="mt-3 text-[14px] text-ink-2">
           This deployment runs in demo mode. Set <code className="font-mono text-ink">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
-          <code className="font-mono text-ink">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> to enable accounts, bring-your-own-key,
+          <code className="font-mono text-ink">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code> to enable accounts, bring-your-own-key,
           watchlists and alerts.
         </p>
         <Link href="/leaderboard" className="mt-6 inline-block text-[13px] text-ink-2 underline underline-offset-4">Back to the leaderboard</Link>

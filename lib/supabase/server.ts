@@ -31,7 +31,7 @@ let serviceClient: SupabaseClient | null = null;
 export function createSupabaseServiceClient(): SupabaseClient {
   const url = env.supabaseUrl;
   const key = env.supabaseServiceKey;
-  if (!url || !key) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured");
+  if (!url || !key) throw new Error("SUPABASE_SECRET_KEY is not configured");
   if (!serviceClient) {
     serviceClient = createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },

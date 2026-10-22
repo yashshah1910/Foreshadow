@@ -25,7 +25,7 @@ export const env = {
     );
   },
   get supabaseServiceKey() {
-    return pick("SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY");
+    return pick("SUPABASE_SECRET_KEY", "SUPABASE_SERVICE_ROLE_KEY");
   },
   get uwApiKey() {
     return pick("UW_API_KEY");

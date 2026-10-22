@@ -28,9 +28,9 @@ for (let i = 2; i < process.argv.length; i++) {
 }
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
-const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const service = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 const uwKey = process.env.UW_API_KEY;
-if (!url || !service) throw new Error("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");
+if (!url || !service) throw new Error("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY are required in .env");
 if (!uwKey) throw new Error("UW_API_KEY is required");
 
 const db = createClient(url, service, { auth: { persistSession: false } });

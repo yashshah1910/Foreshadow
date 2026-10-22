@@ -32,7 +32,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
           <p>To turn on accounts, bring-your-own-key, watchlists, alerts and Live Radar updates:</p>
           <ol className="list-decimal space-y-1 pl-5">
             <li>Create a free Supabase project and run <code className="font-mono text-ink">pnpm supabase db push</code> (or <code className="font-mono text-ink">db reset</code> locally).</li>
-            <li>Set <code className="font-mono text-ink">NEXT_PUBLIC_SUPABASE_URL</code>, <code className="font-mono text-ink">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> and <code className="font-mono text-ink">SUPABASE_SERVICE_ROLE_KEY</code>.</li>
+            <li>Set <code className="font-mono text-ink">NEXT_PUBLIC_SUPABASE_URL</code>, <code className="font-mono text-ink">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code> and <code className="font-mono text-ink">SUPABASE_SECRET_KEY</code>.</li>
             <li>Add <code className="font-mono text-ink">UW_API_KEY</code> (or sign in and add yours) and <code className="font-mono text-ink">CRON_SECRET</code>, then hit <code className="font-mono text-ink">/api/cron/ingest</code>.</li>
           </ol>
           <McpSnippet />

@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     return Response.json({ error: "CRON_SECRET is not set" }, { status: 401 });
   }
   if (!hasSupabase() || !env.supabaseServiceKey) {
-    return Response.json({ error: "Supabase (with SUPABASE_SERVICE_ROLE_KEY) is required for ingest; this deployment is in demo mode." }, { status: 503 });
+    return Response.json({ error: "Supabase (with SUPABASE_SECRET_KEY) is required for ingest; this deployment is in demo mode." }, { status: 503 });
   }
   if (!env.uwApiKey) {
     return Response.json({ error: "UW_API_KEY is required for ingest." }, { status: 503 });
