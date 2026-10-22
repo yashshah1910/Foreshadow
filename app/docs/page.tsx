@@ -39,6 +39,25 @@ export default function DocsPage() {
         </p>
       </div>
 
+      <h2 className="display mt-20 text-[34px] text-ink">Find your way around</h2>
+      <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+        {[
+          ["/leaderboard", "Past cases", "Every finished case from the last 90 days, ranked by how unusual the betting was, and whether it was right."],
+          ["/radar", "Coming up", "A calendar of news in the next two weeks, scored day by day as the betting builds."],
+          ["/scorecard", "Scorecard", "How often unusual betting has actually been right, against ordinary betting."],
+          ["/ticker/TSLA", "Stock pages", "One stock's whole track record. Use the search box at the top to find any company."],
+          ["#mcp", "Ask Claude", "Add Foreshadow to Claude or Cursor as a tool, or ask on any case page."],
+          ["/feed.xml", "RSS feed", "Get new unusual cases in a feed reader or a Discord channel."],
+        ].map(([href, title, body]) => (
+          <li key={href}>
+            <a href={href} className="tray group block h-full rounded-[18px] p-5 transition-colors hover:bg-surface-3">
+              <span className="block text-[17px] font-semibold text-ink group-hover:underline group-hover:underline-offset-4">{title}</span>
+              <span className="mt-1.5 block text-[15px] leading-relaxed text-ink-2">{body}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+
       <h2 className="display mt-20 text-[34px] text-ink">Words you&apos;ll see</h2>
       <dl className="tray mt-6 grid gap-1.5 p-2 text-[16px]">
         {[
