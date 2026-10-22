@@ -61,7 +61,7 @@ export default async function ScorecardPage() {
           ))}
         </div>
         <p className="mt-3 px-1 text-[14px] text-ink-3">
-          Bars share one scale, 0 to {scaleMax}%. Rows with fewer than {MIN_CASES} cases are faded: too few to read much into.
+          Bars share one scale, 0 to {scaleMax}%. Rows marked &ldquo;few cases&rdquo; have under {MIN_CASES}: too few to read much into.
         </p>
       </section>
 
@@ -100,7 +100,7 @@ function BandRow({ band, scaleMax }: { band: ScorecardBand; scaleMax: number }) 
     ? `${band.label}: the bets were right in ${band.right} of ${band.cases} cases (${p.toFixed(0)}%)`
     : `${band.label}: no finished cases yet`;
   return (
-    <li title={tip} className={`card grid grid-cols-[8.5rem_minmax(0,1fr)] items-center gap-4 px-4 py-3.5 sm:grid-cols-[10rem_minmax(0,1fr)] ${thin ? "opacity-55" : ""}`}>
+    <li title={tip} className="card grid grid-cols-[8.5rem_minmax(0,1fr)] items-center gap-4 px-4 py-3.5 sm:grid-cols-[10rem_minmax(0,1fr)]">
       <span className="min-w-0">
         <span className="block text-[15px] font-medium text-ink">{BAND_WORD[band.min]}</span>
         <span className="block text-[13px] text-ink-3">score {band.label}</span>
@@ -109,10 +109,11 @@ function BandRow({ band, scaleMax }: { band: ScorecardBand; scaleMax: number }) 
         {band.cases ? (
           <>
             <span className="block h-2.5 rounded-full bg-surface-2" aria-hidden="true">
-              <span className={`block h-full rounded-full ${band.min >= 40 ? "bg-ink" : "bg-ink-3"}`} style={{ width: `${width}%` }} />
+              <span className={`block h-full rounded-full ${thin ? "bg-surface-3" : band.min >= 40 ? "bg-ink" : "bg-ink-3"}`} style={{ width: `${width}%` }} />
             </span>
             <span className="mt-1.5 block text-[14px] text-ink-2 tnum">
               <span className="font-semibold text-ink">{p.toFixed(0)}% right</span>, {band.right} of {band.cases} cases
+              {thin ? <span className="ml-2 rounded-full bg-surface-2 px-2 py-0.5 text-[12px] font-medium text-ink-2">few cases</span> : null}
             </span>
           </>
         ) : (
