@@ -9,6 +9,7 @@ import {
   footprintWindow,
   partialFootprintWindow,
   todayIso,
+  toTradeExample,
   upcomingTradingDays,
   type Catalyst,
   type CatalystKind,
@@ -108,7 +109,8 @@ export function rowToStored(r: ScoreRow): StoredScore {
     impliedMovePct: num(r.implied_move_pct),
     partialWindow: r.partial_window,
     flags: r.flags,
-    breakdown: r.breakdown,
+    // Rows written before the scorer stripped raw fields still carry UW ids; never pass them on.
+    breakdown: { ...r.breakdown, topAlerts: (r.breakdown.topAlerts ?? []).map(toTradeExample) },
     computedAt: r.computed_at,
   };
 }

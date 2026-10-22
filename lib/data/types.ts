@@ -8,6 +8,7 @@ import type {
   ScoreBandName,
   ScoreFlags,
   StoredScore,
+  TradeExample,
   Verdict,
 } from "@foreshadow/core";
 import type { DataMode } from "@/lib/env";
@@ -80,15 +81,7 @@ export interface TradeTotals {
 }
 
 /** One flagged trade shown as an example of the betting behind a score. */
-export interface SampleTrade {
-  tradeDate: IsoDate;
-  type: "call" | "put";
-  strike: number;
-  expiry: IsoDate;
-  /** Total amount paid, USD. */
-  premium: number;
-  isSweep: boolean;
-}
+export type SampleTrade = TradeExample;
 
 export interface LeaderboardFilters {
   kind?: CatalystKind | "all";
