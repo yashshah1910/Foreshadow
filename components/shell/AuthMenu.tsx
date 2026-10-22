@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function AuthMenu() {
   let email: string | null = null;
-  try {
+  // Anonymous visitors carry no Supabase auth cookie: skip the round-trip to Auth.
+  const hasSession = (await cookies()).getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
+  if (hasSession) try {
     const supabase = await createSupabaseServerClient();
     const { data } = await supabase.auth.getUser();
     email = data.user?.email ?? null;
