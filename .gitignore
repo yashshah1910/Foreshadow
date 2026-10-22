@@ -50,3 +50,6 @@ packages/*/dist/
 
 # local backfill logs
 .backfill/
+
+# Personal notes, not for the repo
+docs/discord-post.md
