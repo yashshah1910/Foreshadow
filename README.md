@@ -22,7 +22,7 @@ options.
 | **Scorecard** `/scorecard` | Foreshadow grading itself in public: across every finished case, how often the bets were right by kind of news and score band, against ordinary betting as the yardstick. A lift is only claimed when it clears a significance check at that sample size. |
 | **RSS** `/feed.xml` | Upcoming news once its betting turns unusual, plus recent unusual cases, for any feed reader or a Discord RSS bot. |
 | **How it works** `/docs` | The method in plain words, then the exact formula, data sources, API and MCP setup. |
-| **MCP** `/api/mcp` | Remote MCP (streamable HTTP): `foreshadow_score`, `foreshadow_radar`, `foreshadow_history`. Plus `packages/mcp-stdio` for stdio-only clients. |
+| **MCP** `/api/mcp` | Remote MCP (streamable HTTP): `foreshadow_score`, `foreshadow_radar`, `foreshadow_history`, `foreshadow_scorecard`, `foreshadow_similar`. Plus `packages/mcp-stdio` for stdio-only clients. |
 | **Accounts** `/settings` | Supabase Auth (magic link + Google). Bring your own UW key, stored in Supabase Vault. Watchlists. Discord-webhook or email alerts when a Coming-up score crosses your threshold. |
 
 ## Run it locally
@@ -108,8 +108,8 @@ Claude never computes a number. `packages/narrator/` wraps the Messages API for 
    JSON output contract. Every number in the story is checked against the input rows; if one can't be verified the
    call is retried once, then the template is shown. The rows render beside the story so a reader can check.
 2. **Catalyst tagger**: maps President's-schedule and economic-calendar rows to tickers and sectors with a confidence.
-3. **Ask about this case**: a short tool loop (at most 4 calls) over `foreshadow_score`, `foreshadow_radar`,
-   `foreshadow_history` **and the Unusual Whales hosted MCP** (`https://api.unusualwhales.com/api/mcp`, with the
+3. **Ask about this case** (and "Ask about TSLA" on stock pages): a short tool loop (at most 4 calls) over the five
+   Foreshadow tools **and the Unusual Whales hosted MCP** (`https://api.unusualwhales.com/api/mcp`, with the
    user's own key, falling back to Foreshadow's tools when that server is unreachable). Answers are under 120
    plain-English words. Questions outside the case, the stock or Foreshadow get one fixed sentence and no tool calls.
 4. **Stock summary**: one paragraph on whether unusual betting keeps showing up before a stock's news.
@@ -127,13 +127,15 @@ claude mcp add --transport http foreshadow https://<your-host>/api/mcp
 or for stdio-only clients `FORESHADOW_URL=https://<your-host> npx foreshadow-mcp` (see `packages/mcp-stdio`).
 Try: *"was there unusual options betting before Tesla's Oct 21 earnings?"*
 
-The three tools have REST twins with the same JSON:
+The five tools have REST twins with the same JSON:
 
 | Tool | REST | Returns |
 |---|---|---|
 | `foreshadow_score` | `GET /api/score?ticker=&eventDate=` | The case (`id`, `ticker`, `kind`, `eventDate`, `title`, `score`, `band`, `direction`, `verdict`, `impliedMovePct`, `realizedMovePct`, `flags`), its `url`, the five `signals` (weight, z, contribution, window vs baseline), `trades: { count, totalPremium, largest }` and `verdictDetail` |
 | `foreshadow_radar` | `GET /api/radar?daysAhead=&minScore=` | `today` and `items`: upcoming cases with the same summary fields plus `windowStart`, `windowOpen`, `daysElapsed`, `daysTotal` |
 | `foreshadow_history` | `GET /api/history?ticker=` | `ticker`, `company`, `hitRate` and `events` (case summaries) |
+| `foreshadow_scorecard` | `GET /api/scorecard` | `cases`, `definition` and per kind of news a `finding` plus `bands` (`scores`, `cases`, `rightPct`, `movedMoreThanExpectedPct`, `movedWithLeanPct`) |
+| `foreshadow_similar` | `GET /api/similar?ticker=&eventDate=` | The `case`, what it was `matchedOn` (kind, lean, score range), `similarCases`, `betsRight`, `rightPct` and the `closest` case summaries |
 
 These are Foreshadow's results, not a copy of Unusual Whales data. `trades.largest` holds at most five example trades,
 each only `{ tradeDate, type, strike, expiry, premium, isSweep }`: no alert ids, timestamps, contract counts or other raw

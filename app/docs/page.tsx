@@ -202,6 +202,8 @@ export default function DocsPage() {
           <li><span className="font-mono text-ink">foreshadow_score</span> (ticker, eventDate) → score, direction, verdict, measurements, the trade count and total, and the 5 largest trades as examples.</li>
           <li><span className="font-mono text-ink">foreshadow_radar</span> (daysAhead = 10, minScore) → ranked upcoming catalysts.</li>
           <li><span className="font-mono text-ink">foreshadow_history</span> (ticker) → every scored catalyst and the hit rate.</li>
+          <li><span className="font-mono text-ink">foreshadow_scorecard</span> () → how often unusual betting was right, by kind of news and score band, against ordinary betting.</li>
+          <li><span className="font-mono text-ink">foreshadow_similar</span> (ticker, eventDate) → finished cases like this one and how often their bets were right.</li>
         </ul>
         <p className="mt-3">
           For stdio-only clients: <span className="font-mono text-ink">FORESHADOW_URL={base} npx foreshadow-mcp</span> (package in{" "}
