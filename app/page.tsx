@@ -6,7 +6,7 @@ import { CaseList } from "@/components/cases/CaseList";
 import { Legend } from "@/components/cases/Legend";
 import { WindowsDiagram } from "@/components/landing/WindowsDiagram";
 import { VerdictMark } from "@/components/viz/Marks";
-import { eventName, eventPhrase, scorecardFinding, scoreWord } from "@/lib/plain";
+import { eventName, eventPhrase, kindsLiftFirst, scorecardFinding, scoreWord } from "@/lib/plain";
 import { fmtDate, fmtPct, KIND_LABELS } from "@/lib/format";
 
 // Live numbers on the landing: render per request.
@@ -128,7 +128,7 @@ export default async function Home() {
             often unusual betting turned out right compared with ordinary betting.
           </p>
           <div className="grid gap-2 md:grid-cols-2">
-            {scorecard.kinds.map((k) => (
+            {kindsLiftFirst(scorecard.kinds).map((k) => (
               <div key={k.kind} className="tray p-6">
                 <p className="text-[14px] font-medium text-ink-3">{KIND_LABELS[k.kind] ?? k.kind}</p>
                 <p className="mt-2 text-[19px] font-semibold leading-snug text-ink">{scorecardFinding(k.kind, k.bands)}</p>

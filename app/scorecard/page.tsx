@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getScorecard } from "@/lib/data";
 import type { Scorecard, ScorecardBand } from "@/lib/data";
 import { KIND_LABELS } from "@/lib/format";
-import { SCORECARD_MIN_CASES as MIN_CASES, scorecardFinding } from "@/lib/plain";
+import { kindsLiftFirst, SCORECARD_MIN_CASES as MIN_CASES, scorecardFinding } from "@/lib/plain";
 
 export const metadata: Metadata = {
   title: "Scorecard",
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const BAND_WORD: Record<number, string> = { 0: "Ordinary", 20: "A little unusual", 40: "Unusual", 70: "Very unusual" };
 
 export default async function ScorecardPage() {
-  const card = await getScorecard();
+  const card = await getScorecard().then((c) => ({ ...c, kinds: kindsLiftFirst(c.kinds) }));
   const maxPct = Math.max(...card.kinds.flatMap((k) => k.bands.filter((b) => b.cases >= 3).map((b) => pct(b.right, b.cases))), 0);
   const scaleMax = Math.max(30, Math.ceil(maxPct / 10) * 10);
 

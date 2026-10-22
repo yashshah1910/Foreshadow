@@ -134,3 +134,9 @@ export function scorecardFinding(kind: string, bands: ScorecardBand[]): string {
   }
   return `Before ${noun}, unusual betting hasn't clearly beaten ordinary betting so far: ${up.toFixed(0)}% right against ${op.toFixed(0)}%.${early}`;
 }
+
+/** Kinds of news ordered so a finding that shows a lift comes first, then by case count. */
+export function kindsLiftFirst<K extends { kind: string; cases: number; bands: ScorecardBand[] }>(kinds: K[]): K[] {
+  const lift = (k: K) => Number(/as often as|more often than/.test(scorecardFinding(k.kind, k.bands)));
+  return [...kinds].sort((a, b) => lift(b) - lift(a) || b.cases - a.cases);
+}
