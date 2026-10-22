@@ -101,7 +101,12 @@ export default async function ScorecardPage() {
         <NumbersTable card={card} />
       </section>
 
-      <section className="mt-16 grid gap-2 md:grid-cols-3">
+      <p className="mt-16 text-[16px] text-ink-2">
+        Think you can read the bets better? <Link href="/guess" className="link">Play Guess the move</Link>: five real cases, the
+        result hidden.
+      </p>
+
+      <section className="mt-6 grid gap-2 md:grid-cols-3">
         <Note title="Why ordinary betting is the yardstick">
           The &ldquo;ordinary&rdquo; row shows how often bets turn out right when nothing unusual happened. Unusual betting only
           means something if it beats that.

@@ -129,7 +129,10 @@ export default async function Home() {
         <section aria-labelledby="proof-h" className="mt-28">
           <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
             <h2 id="proof-h" className="display text-[34px] text-ink sm:text-[42px]">Does it know something?</h2>
-            <Link href="/scorecard" className="pressable btn btn-soft h-10 text-[14.5px]">See the scorecard</Link>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/guess" className="pressable btn btn-soft h-10 text-[14.5px]">Test yourself: guess the move</Link>
+              <Link href="/scorecard" className="pressable btn btn-soft h-10 text-[14.5px]">See the scorecard</Link>
+            </div>
           </div>
           <p className="prose-plain mb-7 max-w-[720px]">
             Foreshadow grades itself in public. Across {scorecard.cases.toLocaleString("en-US")} finished cases, here is how
