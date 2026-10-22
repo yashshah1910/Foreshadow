@@ -32,16 +32,27 @@ export async function GET(request: Request) {
   const lookbackDays = Number(sp.get("days")) || undefined;
 
   const db = createSupabaseServiceClient();
-  // Hard stop for UW calls well inside maxDuration (300s), so the run always reports back.
-  const uw = new UwClient({ apiKey: env.uwApiKey, deadlineAt: Date.now() + 230_000, logger: (m) => console.log("[uw]", m) });
+  // Vercel keeps only a few hundred log lines per request, so log UW failures, not every 200.
+  let uwLines = 0;
+  const uw = new UwClient({
+    apiKey: env.uwApiKey,
+    // UW calls fail fast after this, well inside maxDuration (300s).
+    deadlineAt: Date.now() + 200_000,
+    logger: (m) => {
+      if (!/ -> 2\d\d /.test(m) && uwLines++ < 40) console.log("[uw]", m);
+    },
+  });
   const logs: string[] = [];
   const report = await runIngest(db, uw, {
     mode,
     maxEvents,
     lookbackDays,
-    // Leave headroom under maxDuration for in-flight events to finish.
+    // Stop starting events at 150s, and return at 230s whatever is still loading.
     budgetMs: 150_000,
-    concurrency: 3,
+    deadlineMs: 230_000,
+    // UW throughput is the limit (2 req/s, shared with any other job on the key),
+    // so finish one event at a time rather than leaving three half-loaded.
+    concurrency: 1,
     log: (m) => {
       logs.push(m);
       console.log("[ingest]", m);
