@@ -28,6 +28,13 @@ type Guess = "rise" | "fall";
 const ROUNDS = 5;
 const BEST_KEY = "fs-guess-best";
 
+type Mode = "all" | "fda" | "earnings";
+const MODES: [Mode, string][] = [
+  ["all", "All cases"],
+  ["fda", "FDA news only"],
+  ["earnings", "Earnings only"],
+];
+
 /** Five random cases from the pool, picked when the player starts. */
 function deal(pool: GuessCase[]): GuessCase[] {
   const left = [...pool];
@@ -40,6 +47,7 @@ export function GuessGame({ pool, leanedRightPct }: { pool: GuessCase[]; leanedR
   const [cases, setCases] = useState<GuessCase[]>([]);
   const [guesses, setGuesses] = useState<Guess[]>([]);
   const [round, setRound] = useState(0);
+  const [mode, setMode] = useState<Mode>("all");
   // Best score on this device, read and saved when a game ends (storage can be unavailable; then it just isn't shown).
   const [best, setBest] = useState<{ score: number; isNew: boolean } | null>(null);
   const awaiting = cases.length > 0 && round < cases.length && !guesses[round];
@@ -80,11 +88,12 @@ export function GuessGame({ pool, leanedRightPct }: { pool: GuessCase[]; leanedR
     return <p className="tray mt-10 p-6 text-[16px] text-ink-2">Not enough finished cases to play yet. Check back once more news has happened.</p>;
   }
 
+  const inMode = (m: Mode) => (m === "all" ? pool : pool.filter((c) => c.kind === m));
   const start = () => {
-    setCases(deal(pool));
+    setCases(deal(inMode(mode)));
     setGuesses([]);
     setRound(0);
-    track("guess_started");
+    track("guess_started", { mode });
   };
 
   if (cases.length === 0) {
@@ -97,7 +106,26 @@ export function GuessGame({ pool, leanedRightPct }: { pool: GuessCase[]; leanedR
             <li>2. Guess whether the stock rose or fell after the news.</li>
             <li>3. After five cases, see how your calls compare with simply following the bets.</li>
           </ol>
-          <button type="button" onClick={start} className="pressable btn btn-primary mt-6 h-11 px-5 text-[15px]">
+          <div className="mt-6 flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Which cases">
+            {MODES.map(([m, label]) => {
+              const enough = inMode(m).length >= ROUNDS;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === m}
+                  disabled={!enough}
+                  onClick={() => setMode(m)}
+                  className={`pressable rounded-full px-3.5 py-1.5 text-[14px] disabled:opacity-40 ${mode === m ? "bg-ink text-surface" : "bg-surface-2 text-ink-2 hover:text-ink"}`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-[13.5px] text-ink-3">So far on the scorecard, unusual betting has stood out more before FDA news than before earnings. See if you notice it too.</p>
+          <button type="button" onClick={start} className="pressable btn btn-primary mt-5 h-11 px-5 text-[15px]">
             Deal five cases
           </button>
         </div>
