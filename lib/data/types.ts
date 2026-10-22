@@ -115,6 +115,8 @@ export interface Dossier {
   hitRate: HitRate;
   /** Set when the ticker has catalysts on file but none scored yet. */
   queued?: QueuedCatalyst[];
+  /** Upcoming news on file that isn't scored yet (its five-day window hasn't opened), soonest first. */
+  next?: QueuedCatalyst[];
 }
 
 export interface RadarItem extends EventSummary {

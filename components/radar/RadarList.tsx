@@ -61,13 +61,21 @@ export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }
         </span>
         {latest && now ? <span className="tnum">Last scored {ago(Date.parse(latest), now)}</span> : null}
         {lastEvent ? <span className="tnum">Updated {lastEvent}</span> : null}
-        <a href="/feed.xml" className="link ml-auto text-[14px]">Follow by RSS</a>
+        <span className="ml-auto flex flex-wrap gap-x-4 gap-y-1">
+          <a href="/calendar.ics" className="link text-[14px]" title="Subscribe in Google, Apple or Outlook calendar">
+            Add to calendar
+          </a>
+          <a href="/feed.xml" className="link text-[14px]">Follow by RSS</a>
+        </span>
       </div>
       {watched.length > 0 ? (
         <section aria-labelledby="mine-h" className="mb-10">
           <h2 id="mine-h" className="mb-3 flex items-baseline gap-3 px-1">
             <span className="text-[19px] font-semibold text-ink">Your stocks</span>
             <span className="text-[14px] text-ink-3">watching {watched.join(", ")} on this device</span>
+            <a href={`/calendar.ics?tickers=${watched.join(",")}`} className="link ml-auto text-[14px]">
+              Put their news in your calendar
+            </a>
           </h2>
           {mine.length > 0 ? (
             <CaseList rows={mine} mode="live" />

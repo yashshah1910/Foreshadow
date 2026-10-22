@@ -323,17 +323,19 @@ export class SupabaseDataSource implements DataSource {
 
   async getTickerDossier(ticker: string): Promise<Dossier | null> {
     const t = ticker.toUpperCase();
-    const { data, error } = await this.db
-      .from("scores")
-      .select(LIST_COLUMNS)
-      .eq("ticker", t)
-      .order("event_date", { ascending: false })
-      .limit(60);
+    const [{ data, error }, upcoming] = await Promise.all([
+      this.db.from("scores").select(LIST_COLUMNS).eq("ticker", t).order("event_date", { ascending: false }).limit(60),
+      this.db.from("catalysts").select("id, kind, event_date, title").eq("ticker", t).gte("event_date", todayIso()).order("event_date").limit(8),
+    ]);
     if (error) throw error;
     const events = ((data ?? []) as unknown as ScoreRow[]).map((r) => this.summaryOf(r)).filter((s): s is EventSummary => s !== null);
     if (events.length === 0) return this.queuedDossier(t);
     const company = events.map((e) => e.company).find((c): c is Company => c !== null) ?? null;
-    return { ticker: t, company, events, hitRate: hitRate(events) };
+    const scored = new Set(events.map((e) => e.catalyst.id));
+    const next = ((upcoming.data ?? []) as { id: string; kind: CatalystKind; event_date: string; title: string }[])
+      .filter((r) => !scored.has(r.id))
+      .map((r) => ({ kind: r.kind, eventDate: r.event_date, title: r.title }));
+    return { ticker: t, company, events, hitRate: hitRate(events), ...(next.length ? { next } : {}) };
   }
 
   /** A ticker whose news is on file but not scored yet (e.g. mid-backfill): a page, not a 404. */

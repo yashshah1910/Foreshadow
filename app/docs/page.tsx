@@ -247,6 +247,7 @@ export default async function DocsPage() {
           <li>GET /api/narrate?id=&lt;catalyst id&gt;</li>
           <li>POST /api/ask {"{ question, context, history? }"}</li>
           <li>GET /feed.xml (optionally ?ticker=TSLA)</li>
+          <li>GET /calendar.ics (optionally ?tickers=AAPL,TSLA): upcoming news as a calendar you can subscribe to</li>
           <li>GET /api/cron/ingest?mode=radar|daily|backfill (Bearer CRON_SECRET)</li>
         </ul>
         <p className="mt-3">
