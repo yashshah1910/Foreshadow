@@ -56,6 +56,13 @@
 }
 
 @layer base {
+  /* In the base layer so a component can replace it (e.g. a field whose wrapper shows the ring). */
+  :focus-visible {
+    outline: 2px solid var(--pen);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
   html {
     background-color: var(--bg);
   }
@@ -75,11 +82,7 @@
   color: var(--hl-ink);
 }
 
-:focus-visible {
-  outline: 2px solid var(--pen);
-  outline-offset: 2px;
-  border-radius: 6px;
-}
+
 
 @layer components {
   /* Type ---------------------------------------------------------------------- */
