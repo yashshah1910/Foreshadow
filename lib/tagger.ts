@@ -36,7 +36,10 @@ export async function tagMacroCatalysts(
   if (rows.length === 0) return [];
   const tagged = await tagCatalysts(rows);
   const byId = new Map(rows.map((r) => [r.id, r]));
-  const out: Catalyst[] = [];
+  // Keyed by catalyst id: two calendar rows with the same text and day (or a
+  // ticker listed twice) map to one id, and Postgres rejects an upsert that
+  // touches a row twice. The most confident tag wins.
+  const byCatalyst = new Map<string, Catalyst>();
   for (const t of tagged) {
     const row = byId.get(t.id);
     if (!row) continue;
@@ -45,8 +48,11 @@ export async function tagMacroCatalysts(
       const ticker = tk.ticker.toUpperCase();
       const eventDate = onOrAfterTradingDay(row.date);
       const slug = row.text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 40);
-      out.push({
-        id: `${row.source}:${ticker}:${eventDate}:${slug}`,
+      const id = `${row.source}:${ticker}:${eventDate}:${slug}`;
+      const prev = byCatalyst.get(id);
+      if (prev && Number(prev.payload?.confidence) >= tk.confidence) continue;
+      byCatalyst.set(id, {
+        id,
         ticker,
         kind: row.source === "potus" ? "potus" : "economic",
         eventDate,
@@ -57,6 +63,7 @@ export async function tagMacroCatalysts(
       });
     }
   }
+  const out = [...byCatalyst.values()];
   if (out.length) {
     const { error } = await db.from("catalysts").upsert(
       out.map((c) => ({ id: c.id, ticker: c.ticker, kind: c.kind, event_date: c.eventDate, session: c.session, title: c.title, source: c.source, payload: c.payload })),
