@@ -181,7 +181,7 @@ export default async function Home() {
             looks up the score, the biggest bets, similar past cases and the scorecard, and answers in plain English.
           </p>
           <p className="mt-4 text-[15.5px] text-ink-2">
-            Works in Claude Code, Claude Desktop and Cursor.{" "}
+            In Claude on the web or Desktop, add it under Settings → Connectors. It also works in Cursor.{" "}
             <Link href="/docs#mcp" className="link">Setup and a live tool tester</Link>
           </p>
         </div>

@@ -138,7 +138,10 @@ summaries fall back to the deterministic template when a visitor goes over.
 claude mcp add --transport http foreshadow https://<your-host>/api/mcp
 ```
 
-or for stdio-only clients `FORESHADOW_URL=https://<your-host> npx foreshadow-mcp` (see `packages/mcp-stdio`).
+In Claude on the web or Claude Desktop: Settings → Connectors → Add custom connector, and paste the same URL. In Cursor,
+add `{ "mcpServers": { "foreshadow": { "url": "https://<your-host>/api/mcp" } } }` to `.cursor/mcp.json`. For clients that
+only run local stdio servers, `pnpm --filter foreshadow-mcp build`, then run
+`FORESHADOW_URL=https://<your-host> node packages/mcp-stdio/dist/index.js` (see `packages/mcp-stdio`).
 Try: *"was there unusual options betting before Tesla's Oct 21 earnings?"*
 
 All five tools are marked read-only. The server also offers three prompts, which Claude shows as slash commands:
@@ -177,7 +180,7 @@ lib/ingest.ts            the pipeline shared by the cron route and `pnpm ingest`
 packages/core/           scorer.ts, windows.ts, verdict.ts + tests  (pure, deterministic)
 packages/uw/             typed client for the UW endpoints, rate limiter, Supabase-backed cache, footprint loader + tests
 packages/narrator/       Claude Messages API: story, tagger, investigator loop, dossier + tests
-packages/mcp-stdio/      npx wrapper that proxies to the REST endpoints
+packages/mcp-stdio/      stdio wrapper that proxies to the REST endpoints
 supabase/                migrations (schema + RLS + Vault functions), seed.sql, fixtures/
 scripts/                 generate-seed.ts (synthetic demo data), ingest.ts (local backfill), depth-check.ts
 vercel.json              cron schedules

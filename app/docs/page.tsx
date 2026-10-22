@@ -199,10 +199,18 @@ export default async function DocsPage() {
 
       <Section id="mcp" title="Add Foreshadow to Claude or Cursor (MCP)">
         <p>Foreshadow ships a remote MCP server over streamable HTTP. One URL, five tools, no auth.</p>
-        <pre className="mt-3 overflow-x-auto well p-4 font-mono text-[13px] text-ink">{`claude mcp add --transport http foreshadow ${base}/api/mcp`}</pre>
-        <pre className="mt-2 overflow-x-auto well p-4 font-mono text-[13px] text-ink">{`{
+        <p className="mt-4 font-medium text-ink">Claude Code</p>
+        <pre className="mt-1.5 overflow-x-auto well p-4 font-mono text-[13px] text-ink">{`claude mcp add --transport http foreshadow ${base}/api/mcp`}</pre>
+        <p className="mt-4 font-medium text-ink">Claude on the web or Claude Desktop</p>
+        <p className="mt-1">
+          Settings → Connectors → Add custom connector. Name it Foreshadow and paste{" "}
+          <span className="font-mono text-ink">{`${base}/api/mcp`}</span>.
+        </p>
+        <p className="mt-4 font-medium text-ink">Cursor</p>
+        <pre className="mt-1.5 overflow-x-auto well p-4 font-mono text-[13px] text-ink">{`// .cursor/mcp.json
+{
   "mcpServers": {
-    "foreshadow": { "type": "url", "url": "${base}/api/mcp" }
+    "foreshadow": { "url": "${base}/api/mcp" }
   }
 }`}</pre>
         <ul className="mt-3 list-disc space-y-1 pl-5">
@@ -221,8 +229,11 @@ export default async function DocsPage() {
         <p className="mt-1">Each tool has a REST twin that returns the same thing. Run one to see exactly what Claude gets.</p>
         <ToolPlayground ticker={top?.catalyst.ticker ?? "TSLA"} eventDate={top?.catalyst.eventDate ?? "2026-10-21"} />
         <p className="mt-3">
-          For stdio-only clients: <span className="font-mono text-ink">FORESHADOW_URL={base} npx foreshadow-mcp</span> (package in{" "}
-          <span className="font-mono">packages/mcp-stdio</span>). Try it in Claude Desktop: &ldquo;was there unusual options betting before Tesla&apos;s Oct 21 earnings?&rdquo;
+          For clients that only run local (stdio) servers, build the small proxy in{" "}
+          <span className="font-mono">packages/mcp-stdio</span> with <span className="font-mono text-ink">pnpm --filter foreshadow-mcp build</span>{" "}
+          and run <span className="font-mono text-ink">node packages/mcp-stdio/dist/index.js</span> with{" "}
+          <span className="font-mono text-ink">FORESHADOW_URL={base}</span>. Then ask: &ldquo;was there unusual options betting before
+          Tesla&apos;s Oct 21 earnings?&rdquo;
         </p>
       </Section>
 

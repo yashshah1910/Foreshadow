@@ -4,7 +4,8 @@
  * streamable HTTP. It proxies the five tools to a Foreshadow deployment's
  * REST endpoints, and offers the same three prompts as /api/mcp.
  *
- *   FORESHADOW_URL=https://foreshadow-six.vercel.app npx foreshadow-mcp
+ *   pnpm --filter foreshadow-mcp build
+ *   FORESHADOW_URL=https://foreshadow-six.vercel.app node packages/mcp-stdio/dist/index.js
  */
 
 import { McpServer } from "@modelcontextprotocol/server";
