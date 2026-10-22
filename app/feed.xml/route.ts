@@ -1,7 +1,7 @@
 import { getLeaderboard, getRadar, getTickerDossier } from "@/lib/data";
 import type { EventSummary } from "@/lib/data";
 import { env } from "@/lib/env";
-import { directionPlain, eventName, scoreWord } from "@/lib/plain";
+import { directionPlain, eventName, OUTCOME_PLAIN, outcomeOf, scoreWord } from "@/lib/plain";
 import { fmtDate, fmtPct } from "@/lib/format";
 
 /** RSS 2.0 feed of unusual betting: upcoming news once it turns unusual, and recent finished cases. */
@@ -49,7 +49,7 @@ function item(s: EventSummary, base: string): string {
   const lean = directionPlain(s.direction).toLowerCase();
   const result =
     s.verdict === "matched" || s.verdict === "missed"
-      ? `The stock moved ${fmtPct(s.realizedMovePct)} against an expected ±${fmtPct(s.impliedMovePct, { sign: false })}, so the bets were ${s.verdict === "matched" ? "right" : "wrong"}.`
+      ? `The stock moved ${fmtPct(s.realizedMovePct)} against an expected ±${fmtPct(s.impliedMovePct, { sign: false })}: ${OUTCOME_PLAIN[outcomeOf(s)]}.`
       : `The news is still ahead. Options are pricing in a move of about ±${fmtPct(s.impliedMovePct, { sign: false })}.`;
   const title = `${s.catalyst.ticker}: ${eventName(s)}, ${when}. Betting scored ${s.score.toFixed(0)} (${scoreWord(s.score).toLowerCase()})`;
   const body = `In the days before ${s.catalyst.ticker}'s news on ${when}, options betting scored ${s.score.toFixed(0)} out of 100, mostly ${lean}. ${result}`;

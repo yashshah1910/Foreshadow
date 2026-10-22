@@ -27,6 +27,41 @@ export function verdictPlain(v: Verdict): string {
   return v === "matched" ? "Bets were right" : v === "missed" ? "Bets were wrong" : v === "pending" ? "News still to come" : "No price data";
 }
 
+/**
+ * The result of a case in three honest states instead of right/wrong:
+ * "right" (bigger move than expected, in the bets' direction), "rightWay"
+ * (the bets' direction, but a smaller move than expected), "wrongWay"
+ * (against the bets). The stored verdict is unchanged; this only reads it
+ * together with the lean and the actual move.
+ */
+export type Outcome = "right" | "rightWay" | "wrongWay" | "noLean" | "pending" | "none";
+
+export function outcomeOf(s: { verdict: Verdict; direction: Direction; realizedMovePct: number | null }): Outcome {
+  if (s.verdict === "pending") return "pending";
+  if (s.verdict === "insufficient" || s.realizedMovePct === null) return "none";
+  if (s.verdict === "matched") return "right";
+  if (s.direction === "mixed") return "noLean";
+  return (s.direction === "bullish") === (s.realizedMovePct > 0) ? "rightWay" : "wrongWay";
+}
+
+export const OUTCOME_SHORT: Record<Outcome, string> = {
+  right: "Right",
+  rightWay: "Right way, small move",
+  wrongWay: "Wrong way",
+  noLean: "No clear side",
+  pending: "Waiting",
+  none: "No data",
+};
+
+export const OUTCOME_PLAIN: Record<Outcome, string> = {
+  right: "the stock beat the expected move, the way the bets leaned",
+  rightWay: "the stock moved the way the bets leaned, but less than expected",
+  wrongWay: "the stock moved against the bets",
+  noLean: "the bets didn't lean either way",
+  pending: "the news is still to come",
+  none: "no price data",
+};
+
 export function verdictShort(v: Verdict): string {
   return v === "matched" ? "Right" : v === "missed" ? "Wrong" : v === "pending" ? "Waiting" : "No data";
 }
@@ -86,7 +121,16 @@ export function caseSummary(s: EventSummary, facts: CaseFacts): string {
   if (s.verdict === "matched" || s.verdict === "missed") {
     const moved = s.realizedMovePct ?? 0;
     const dir = moved >= 0 ? "rose" : "fell";
-    end = ` Options were pricing in a move of about ${fmtPct(s.impliedMovePct, { sign: false })}. The stock ${dir} ${fmtPct(Math.abs(moved), { sign: false })}, so the bets were ${s.verdict === "matched" ? "right" : "wrong"}.`;
+    const o = outcomeOf(s);
+    const result =
+      o === "right"
+        ? "so the bets were right"
+        : o === "rightWay"
+          ? "the way the bets leaned, but less than expected, so it doesn't count as right"
+          : o === "wrongWay"
+            ? "against the bets, so they were wrong"
+            : "and the bets didn't lean either way";
+    end = ` Options were pricing in a move of about ${fmtPct(s.impliedMovePct, { sign: false })}. The stock ${dir} ${fmtPct(Math.abs(moved), { sign: false })}, ${result}.`;
   } else if (s.verdict === "pending") {
     end = " The news hasn't happened yet, so we can't say whether the bets were right.";
   }

@@ -1,5 +1,5 @@
 import type { Direction, Verdict } from "@foreshadow/core";
-import { directionPlain, verdictShort } from "@/lib/plain";
+import { directionPlain, OUTCOME_PLAIN, OUTCOME_SHORT, outcomeOf } from "@/lib/plain";
 import { KIND_LABELS } from "@/lib/format";
 
 /** The 0–100 score. 70+ gets the one highlighter on the page. */
@@ -24,16 +24,30 @@ export function DirectionMark({ direction, short = false }: { direction: Directi
   );
 }
 
-/** Right / wrong / waiting as a small pill. Direction colours stay reserved for calls and puts. */
-export function VerdictMark({ verdict, size = "md" }: { verdict: Verdict; size?: "md" | "lg" }) {
+/**
+ * The result as a small pill: Right, Right way (small move), Wrong way,
+ * or Waiting. Direction colours stay reserved for calls and puts.
+ */
+export function VerdictMark({
+  verdict,
+  direction = "mixed",
+  realizedMovePct = null,
+  size = "md",
+}: {
+  verdict: Verdict;
+  direction?: Direction;
+  realizedMovePct?: number | null;
+  size?: "md" | "lg";
+}) {
+  const o = outcomeOf({ verdict, direction, realizedMovePct });
   const tone =
-    verdict === "matched" ? "bg-ink text-surface" : verdict === "missed" ? "bg-surface-3 text-ink-2" : "bg-surface-2 text-ink-3";
-  const mark = verdict === "matched" ? "✓" : verdict === "missed" ? "✗" : "…";
+    o === "right" ? "bg-ink text-surface" : o === "rightWay" ? "bg-surface-3 text-ink" : o === "wrongWay" ? "bg-surface-2 text-ink-2" : "bg-surface-2 text-ink-3";
+  const mark = o === "right" ? "✓" : o === "rightWay" ? "≈" : o === "wrongWay" ? "✗" : o === "pending" ? "…" : "–";
   const pad = size === "lg" ? "h-9 px-4 text-[16px]" : "h-7 px-3 text-[13.5px]";
   return (
-    <span className={`inline-flex w-fit items-center gap-1.5 rounded-full font-semibold ${pad} ${tone}`}>
+    <span className={`inline-flex w-fit items-center gap-1.5 whitespace-nowrap rounded-full font-semibold ${pad} ${tone}`} title={OUTCOME_PLAIN[o]}>
       <span aria-hidden="true">{mark}</span>
-      {verdictShort(verdict)}
+      {o === "rightWay" ? "Right way" : OUTCOME_SHORT[o]}
     </span>
   );
 }

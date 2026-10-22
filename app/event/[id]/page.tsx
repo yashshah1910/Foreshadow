@@ -17,7 +17,7 @@ import { CaseList } from "@/components/cases/CaseList";
 import { KindTag, VerdictMark, WindowMeter } from "@/components/viz/Marks";
 import { Explain } from "@/components/ui/Explain";
 import type { GlossaryKey } from "@/lib/glossary";
-import { caseSummary, directionPlain, eventName, eventPhrase, factsFromStored, scoreWord, verdictPlain } from "@/lib/plain";
+import { caseSummary, directionPlain, eventName, eventPhrase, factsFromStored, OUTCOME_PLAIN, outcomeOf, scoreWord } from "@/lib/plain";
 import { fmtDate, fmtPct } from "@/lib/format";
 
 export async function generateMetadata({ params }: PageProps<"/event/[id]">): Promise<Metadata> {
@@ -102,8 +102,8 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
             </span>
           ) : (
             <span className="flex flex-col gap-2">
-              <VerdictMark verdict={s.verdict} size="lg" />
-              <span className="text-[14px] text-ink-3">{verdictPlain(s.verdict).toLowerCase()}</span>
+              <VerdictMark verdict={s.verdict} direction={s.direction} realizedMovePct={s.realizedMovePct} size="lg" />
+              <span className="text-[14px] text-ink-3">{OUTCOME_PLAIN[outcomeOf(s)]}</span>
             </span>
           )}
         </Fact>
@@ -220,7 +220,9 @@ function shareText(s: EventSummary): string {
   const lean = s.direction === "bullish" ? "leaning toward a rise" : s.direction === "bearish" ? "leaning toward a fall" : "split both ways";
   const head = `Options betting before $${s.catalyst.ticker}'s ${eventPhrase(s)} (${when}) scored ${s.score.toFixed(0)}/100, ${lean}.`;
   if (s.verdict === "matched" || s.verdict === "missed") {
-    return `${head} The stock moved ${fmtPct(s.realizedMovePct)}: the bets were ${s.verdict === "matched" ? "right" : "wrong"}.`;
+    const o = outcomeOf(s);
+    const tail = o === "right" ? "the bets were right" : o === "rightWay" ? "their way, but less than expected" : o === "wrongWay" ? "against the bets" : "no clear side";
+    return `${head} The stock moved ${fmtPct(s.realizedMovePct)}: ${tail}.`;
   }
   return `${head} The news is still ahead.`;
 }

@@ -108,11 +108,11 @@ export function CaseList({
                   )}
                 </span>
                 <span className="lg:hidden">
-                  {live && isRadar(r) ? <WindowMeter elapsed={r.daysElapsed} total={r.daysTotal} /> : <VerdictMark verdict={r.verdict} />}
+                  {live && isRadar(r) ? <WindowMeter elapsed={r.daysElapsed} total={r.daysTotal} /> : <VerdictMark verdict={r.verdict} direction={r.direction} realizedMovePct={r.realizedMovePct} />}
                 </span>
               </span>
               <span className="hidden lg:block">
-                {live && isRadar(r) ? <WindowMeter elapsed={r.daysElapsed} total={r.daysTotal} /> : <VerdictMark verdict={r.verdict} />}
+                {live && isRadar(r) ? <WindowMeter elapsed={r.daysElapsed} total={r.daysTotal} /> : <VerdictMark verdict={r.verdict} direction={r.direction} realizedMovePct={r.realizedMovePct} />}
               </span>
             </Link>
           </li>

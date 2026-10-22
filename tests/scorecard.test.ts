@@ -74,3 +74,16 @@ describe("scorecardFinding", () => {
     expect(scorecardFinding("fda", [band(0, 50, 3), band(40, 2, 1)])).toContain("Too few to judge");
   });
 });
+
+describe("outcomeOf", () => {
+  it("splits a miss into right way and wrong way", async () => {
+    const { outcomeOf } = await import("@/lib/plain");
+    expect(outcomeOf({ verdict: "matched", direction: "bearish", realizedMovePct: -12 })).toBe("right");
+    expect(outcomeOf({ verdict: "missed", direction: "bullish", realizedMovePct: 1 })).toBe("rightWay");
+    expect(outcomeOf({ verdict: "missed", direction: "bearish", realizedMovePct: -0.3 })).toBe("rightWay");
+    expect(outcomeOf({ verdict: "missed", direction: "bullish", realizedMovePct: -5.7 })).toBe("wrongWay");
+    expect(outcomeOf({ verdict: "missed", direction: "mixed", realizedMovePct: 3 })).toBe("noLean");
+    expect(outcomeOf({ verdict: "pending", direction: "bullish", realizedMovePct: null })).toBe("pending");
+    expect(outcomeOf({ verdict: "missed", direction: "bullish", realizedMovePct: null })).toBe("none");
+  });
+});

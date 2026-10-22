@@ -88,7 +88,7 @@ export default async function Home() {
               />
               <div className="card col-span-2 px-4 py-2.5 sm:col-span-1">
                 <dt className="text-[13px] font-medium text-ink-3">The bets were</dt>
-                <dd className="mt-1.5"><VerdictMark verdict={example.summary.verdict} /></dd>
+                <dd className="mt-1.5"><VerdictMark verdict={example.summary.verdict} direction={example.summary.direction} realizedMovePct={example.summary.realizedMovePct} /></dd>
               </div>
             </dl>
           </figure>

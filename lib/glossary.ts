@@ -18,7 +18,7 @@ export const GLOSSARY = {
   },
   result: {
     title: "Were the bets right?",
-    body: "Right means the stock moved at least as much as expected, in the direction the bets leaned. Anything else counts as wrong. It's a high bar.",
+    body: "Right: the stock beat the expected move, the way the bets leaned. Right way: it moved their way but less than expected. Wrong way: it moved against them. 'Right' is a high bar on purpose.",
   },
   window: {
     title: "The five days",
