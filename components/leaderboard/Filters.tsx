@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useOptimistic, useTransition } from "react";
-import type { FilterState } from "./filters-state";
+import { PAGE, type FilterState } from "./filters-state";
 
 const KINDS = [
   ["all", "All news"],
@@ -30,8 +30,10 @@ export function Filters({ initial, total }: { initial: FilterState; total: numbe
     else params.delete("matched");
     if (next.days === 90) params.delete("days");
     else params.set("days", String(next.days));
+    // A new filter starts back at the first page.
+    params.delete("show");
     startTransition(() => {
-      setOptimistic(next);
+      setOptimistic({ ...next, show: PAGE });
       router.replace(`${pathname}${params.size ? `?${params}` : ""}`, { scroll: false });
     });
   }
@@ -61,7 +63,7 @@ export function Filters({ initial, total }: { initial: FilterState; total: numbe
         onChange={(v) => update({ days: Number(v) })}
       />
       <span className="ml-auto text-[15px] text-ink-3 tnum" aria-live="polite">
-        {total} case{total === 1 ? "" : "s"}
+        {total >= state.show ? `Top ${total}` : `${total} case${total === 1 ? "" : "s"}`}
       </span>
     </div>
   );

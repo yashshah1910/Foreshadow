@@ -42,6 +42,10 @@ const KIND_NOUN: Record<string, string> = {
 
 /** "Q3 earnings, after the close" → "Q3 earnings"; "Top-line results: X" kept. */
 export function eventName(s: EventSummary): string {
+  if (s.catalyst.kind === "earnings") {
+    const when = s.catalyst.session === "premarket" ? ", before the open" : s.catalyst.session === "afterhours" ? ", after the close" : "";
+    return `Earnings${when}`;
+  }
   return s.catalyst.title.split(",")[0].trim();
 }
 

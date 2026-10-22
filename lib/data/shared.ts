@@ -43,9 +43,33 @@ export function toSummary(stored: StoredScore, catalyst: Catalyst, company: Comp
   };
 }
 
+const KEEP_UPPER = new Set(["LP", "LLC", "PLC", "SA", "SAB", "CV", "NV", "AG", "SE", "ASA", "AB", "NT", "ADR", "REIT", "ETF", "USA", "US", "UK", "II", "III", "IV", "UDR", "NBT", "TFI", "TIM", "HCA", "AT&T", "IBM", "CME", "CSX", "UPS", "AMD", "AES"]);
+const LOWER = new Set(["of", "and", "the", "de", "du", "la", "for"]);
+
+/**
+ * UW sends most company names in capitals ("PROCTER & GAMBLE"). Title-case
+ * those, keeping acronyms and tokens with digits (F5, H2O). Names that
+ * already have lowercase letters are left alone.
+ */
+export function prettyCompanyName(raw: string): string {
+  const name = raw.trim();
+  if (/[a-z]/.test(name)) return name;
+  return name
+    .split(/\s+/)
+    .map((w, i) => {
+      if (KEEP_UPPER.has(w) || /\d/.test(w) || w === "&") return w;
+      const lower = w.toLowerCase();
+      if (i > 0 && LOWER.has(lower)) return lower;
+      return lower
+        .replace(/(^|[-.]|'(?=[a-z]{2}))([a-z])/g, (_, sep: string, ch: string) => sep + ch.toUpperCase())
+        .replace(/^Mc([a-z])/, (_, ch: string) => `Mc${ch.toUpperCase()}`);
+    })
+    .join(" ");
+}
+
 export function companyFromCatalyst(catalyst: Catalyst): Company | null {
   const p = catalyst.payload ?? {};
-  const name = typeof p.full_name === "string" ? p.full_name : null;
+  const name = typeof p.full_name === "string" ? prettyCompanyName(p.full_name) : null;
   if (!name) return null;
   return {
     ticker: catalyst.ticker,

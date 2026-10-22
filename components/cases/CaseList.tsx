@@ -58,7 +58,7 @@ export function CaseList({
               <span className="min-w-0">
                 <span className="flex items-baseline gap-2">
                   <span className="ticker text-[16px] text-ink">{r.catalyst.ticker}</span>
-                  <span className="truncate text-[16px] text-ink group-hover:underline group-hover:decoration-ink/30 group-hover:underline-offset-4">{eventName(r)}</span>
+                  <span className="min-w-0 text-[16px] leading-snug text-ink group-hover:underline group-hover:decoration-ink/30 group-hover:underline-offset-4 lg:truncate">{eventName(r)}</span>
                 </span>
                 <span className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13.5px] text-ink-3">
                   <KindTag kind={r.catalyst.kind} />

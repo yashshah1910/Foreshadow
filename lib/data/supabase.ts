@@ -33,6 +33,7 @@ import {
   companyFromCatalyst,
   hitRate,
   isoDaysAgo,
+  prettyCompanyName,
   sortRadar,
   toRadarItem,
   toSummary,
@@ -275,7 +276,7 @@ export class SupabaseDataSource implements DataSource {
     const p = rows.find((r) => typeof r.payload?.full_name === "string")?.payload ?? null;
     const cap = Number(p?.marketcap ?? p?.market_cap);
     const company: Company | null = p
-      ? { ticker: t, name: String(p.full_name), sector: typeof p.sector === "string" ? p.sector : "", marketcap: Number.isFinite(cap) && cap > 0 ? cap : undefined }
+      ? { ticker: t, name: prettyCompanyName(String(p.full_name)), sector: typeof p.sector === "string" ? p.sector : "", marketcap: Number.isFinite(cap) && cap > 0 ? cap : undefined }
       : null;
     return {
       ticker: t,
@@ -310,19 +311,28 @@ export class SupabaseDataSource implements DataSource {
   async searchTickers(query: string): Promise<Company[]> {
     const q = query.trim().toUpperCase();
     if (!q) return [];
+    // Ticker prefix or company name ("tesla", "apple"). Strip characters that
+    // mean something in PostgREST's filter syntax.
+    const safe = q.replace(/[^A-Z0-9 .&'-]/g, "");
+    if (!safe) return [];
     const { data } = await this.db
       .from("catalysts")
       .select("ticker, payload")
-      .ilike("ticker", `${q}%`)
+      .or(`ticker.ilike.${safe}%,payload->>full_name.ilike.*${safe}*`)
       .order("event_date", { ascending: false })
-      .limit(40);
+      .limit(80);
     const seen = new Map<string, Company>();
     for (const r of (data ?? []) as { ticker: string; payload: Record<string, unknown> | null }[]) {
       if (seen.has(r.ticker)) continue;
-      const name = typeof r.payload?.full_name === "string" ? r.payload.full_name : r.ticker;
+      const name = typeof r.payload?.full_name === "string" ? prettyCompanyName(r.payload.full_name) : r.ticker;
       seen.set(r.ticker, { ticker: r.ticker, name, sector: typeof r.payload?.sector === "string" ? r.payload.sector : "" });
     }
-    return [...seen.values()].slice(0, 8);
+    // Exact ticker first, then ticker prefixes, then name matches.
+    const rank = (c: Company) =>
+      c.ticker === q ? 0 : c.ticker.startsWith(q) ? 1 : c.name.toUpperCase().startsWith(safe) ? 2 : 3;
+    return [...seen.values()]
+      .sort((a, b) => rank(a) - rank(b) || a.name.length - b.name.length || a.ticker.localeCompare(b.ticker))
+      .slice(0, 8);
   }
 
   async getNarration(catalystId: string, score: number): Promise<Narration | null> {
@@ -361,6 +371,6 @@ export class SupabaseDataSource implements DataSource {
       .maybeSingle();
     if (!data) return null;
     const r = data as { ticker: string; payload: Record<string, unknown> };
-    return { ticker: r.ticker, name: String(r.payload.full_name), sector: typeof r.payload.sector === "string" ? r.payload.sector : "" };
+    return { ticker: r.ticker, name: prettyCompanyName(String(r.payload.full_name)), sector: typeof r.payload.sector === "string" ? r.payload.sector : "" };
   }
 }

@@ -4,7 +4,8 @@ import { getLeaderboard, getToday } from "@/lib/data";
 import type { CatalystKind } from "@foreshadow/core";
 import { CaseList } from "@/components/cases/CaseList";
 import { Filters } from "@/components/leaderboard/Filters";
-import { readFilters } from "@/components/leaderboard/filters-state";
+import { PAGE, readFilters } from "@/components/leaderboard/filters-state";
+import Link from "next/link";
 import { Legend } from "@/components/cases/Legend";
 import { fmtDate } from "@/lib/format";
 
@@ -22,7 +23,7 @@ export default async function LeaderboardPage({ searchParams }: PageProps<"/lead
       minScore: f.min70 ? 70 : undefined,
       matchedOnly: f.matched,
       days: f.days,
-      limit: 20,
+      limit: f.show,
     }),
     getToday(),
   ]);
@@ -43,7 +44,24 @@ export default async function LeaderboardPage({ searchParams }: PageProps<"/lead
         </Suspense>
       </div>
       <CaseList rows={rows} />
+      {rows.length >= f.show && f.show < 200 ? (
+        <div className="mt-5 flex justify-center">
+          <Link href={moreHref(sp, f.show + PAGE)} scroll={false} className="pressable btn btn-soft">
+            Show 20 more cases
+          </Link>
+        </div>
+      ) : null}
       <Legend />
     </div>
   );
+}
+
+function moreHref(sp: Record<string, string | string[] | undefined>, show: number): string {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(sp)) {
+    if (k === "show" || v === undefined) continue;
+    params.set(k, Array.isArray(v) ? v[0] : v);
+  }
+  params.set("show", String(show));
+  return `/leaderboard?${params}`;
 }

@@ -14,6 +14,7 @@ export function TickerSearch() {
   const [hits, setHits] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  const [searched, setSearched] = useState("");
   const [, startTransition] = useTransition();
   const listId = useId();
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -42,6 +43,7 @@ export function TickerSearch() {
         .then((j: { hits: Hit[] }) => {
           setHits(j.hits ?? []);
           setActive(0);
+          setSearched(term);
         })
         .catch(() => {});
     }, 100);
@@ -61,9 +63,9 @@ export function TickerSearch() {
   return (
     <div className="relative">
       <label className="sr-only" htmlFor="ticker-search">
-        Open a ticker dossier
+        Find a stock by ticker or company name
       </label>
-      <div className="flex h-10 items-center gap-2 rounded-full bg-surface-2 pl-3.5 pr-2 transition-colors focus-within:bg-surface-3">
+      <div className="flex h-10 items-center gap-2 rounded-full bg-surface-2 pl-3.5 pr-2 transition-colors focus-within:bg-surface focus-within:ring-2 focus-within:ring-pen">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="shrink-0 text-ink-3" aria-hidden="true">
           <circle cx="11" cy="11" r="7" />
           <path d="m20 20-3.5-3.5" strokeLinecap="round" />
@@ -101,10 +103,15 @@ export function TickerSearch() {
               inputRef.current?.blur();
             }
           }}
-          className="w-20 bg-transparent text-[15px] font-semibold uppercase text-ink outline-none placeholder:font-normal placeholder:normal-case placeholder:text-ink-3 sm:w-36"
+          className="w-24 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-3 focus-visible:outline-none sm:w-40"
         />
         <kbd className="hidden rounded-md bg-surface px-1.5 py-0.5 text-[11px] font-medium text-ink-3 sm:inline">⌘K</kbd>
       </div>
+      {open && hits.length === 0 && q.trim() && searched === q.trim() ? (
+        <div className="pop absolute right-0 z-20 mt-2 w-72 p-4 text-[14px] text-ink-2" role="status">
+          No stock matches &ldquo;{q.trim()}&rdquo;. Foreshadow covers FDA news and earnings for companies worth over $2B.
+        </div>
+      ) : null}
       {open && hits.length > 0 ? (
         <ul id={listId} role="listbox" className="pop absolute right-0 z-20 mt-2 w-72 overflow-hidden p-1.5">
           {hits.map((h, i) => (
@@ -119,7 +126,7 @@ export function TickerSearch() {
               onMouseEnter={() => setActive(i)}
               className={`flex cursor-pointer items-baseline gap-3 rounded-lg px-3 py-2 text-[14px] ${i === active ? "bg-surface-2 text-ink" : "text-ink-2"}`}
             >
-              <span className="ticker w-14 text-ink">{h.ticker}</span>
+              <span className="ticker w-14 shrink-0 text-ink">{h.ticker}</span>
               <span className="truncate">{h.name}</span>
             </li>
           ))}

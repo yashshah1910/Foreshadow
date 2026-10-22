@@ -66,6 +66,11 @@ export const DEFAULT_MIN_EARNINGS_MARKET_CAP = 2_000_000_000;
  * companies above the market-cap floor with listed options. Congress, insider
  * and macro catalysts pass through (their volume is already small).
  */
+function marketCapOf(c: Catalyst): number {
+  const cap = Number(c.payload?.marketcap);
+  return Number.isFinite(cap) ? cap : 0;
+}
+
 export function inUniverse(c: Catalyst, opts: { minEarningsMarketCap: number; requireOptions: boolean }): boolean {
   const p = c.payload ?? {};
   const hasOptions = p.has_options;
@@ -225,7 +230,19 @@ export async function runIngest(db: SupabaseClient, uw: UwClient, opts: IngestOp
 
 function pickCandidates(catalysts: Catalyst[], existing: Map<string, StoredScore>, mode: IngestMode, today: IsoDate): Catalyst[] {
   if (mode === "radar") {
-    return catalysts.filter((c) => c.eventDate > today).sort((a, b) => a.eventDate.localeCompare(b.eventDate));
+    // Only events whose five-day window has opened have anything to measure.
+    // Never-scored first, then the stalest, biggest companies first, so
+    // successive runs work through the whole list instead of the same few.
+    const today0 = `${today}T00:00:00Z`;
+    return catalysts
+      .filter((c) => c.eventDate > today && partialFootprintWindow(c.eventDate, today).length > 0)
+      .map((c) => {
+        const s = existing.get(c.id);
+        const fresh = s?.partialWindow && s.computedAt >= today0;
+        return { c, rank: !s ? 0 : fresh ? 2 : 1, at: s?.computedAt ?? "", cap: marketCapOf(c) };
+      })
+      .sort((a, b) => a.rank - b.rank || a.at.localeCompare(b.at) || b.cap - a.cap || a.c.eventDate.localeCompare(b.c.eventDate))
+      .map((x) => x.c);
   }
   const needs = (c: Catalyst) => {
     const s = existing.get(c.id);

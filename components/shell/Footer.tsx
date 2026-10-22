@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getStats } from "@/lib/data";
+import { fmtDate } from "@/lib/format";
 import { Mark } from "./Wordmark";
 
 export async function Footer() {
@@ -25,7 +26,7 @@ export async function Footer() {
         <div className="flex flex-col gap-2.5">
           <Link href="/docs#mcp" className="hover:text-ink">Use it from Claude</Link>
           <Link href="/docs#api" className="hover:text-ink">API</Link>
-          {stats?.lastComputedAt ? <span className="text-ink-3">Updated {stats.lastComputedAt.slice(0, 10)}</span> : null}
+          {stats?.lastComputedAt ? <span className="text-ink-3">Scores updated {fmtDate(stats.lastComputedAt.slice(0, 10), { year: true })}</span> : null}
         </div>
       </div>
     </footer>
