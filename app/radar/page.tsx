@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getRadar, getToday } from "@/lib/data";
 import { hasSupabase } from "@/lib/env";
 import { RadarList } from "@/components/radar/RadarList";
+import { AskPanel } from "@/components/event/AskPanel";
 import { fmtDate } from "@/lib/format";
 
 export const metadata: Metadata = {
@@ -24,6 +25,9 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
         </p>
       </header>
       <RadarList items={items} live={hasSupabase()} />
+      <div className="mt-16 max-w-[760px]">
+        <AskPanel scope="radar" summary={`The reader is on Coming up, the list of company news due in the next two weeks, as of ${today}.`} />
+      </div>
     </div>
   );
 }

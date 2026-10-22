@@ -81,7 +81,7 @@ export function buildDossierUserMessage(input: DossierInput): string {
 export const OFF_TOPIC_REPLY =
   "I can only answer questions about this case, this stock's options betting, or how Foreshadow works.";
 
-export const INVESTIGATOR_SYSTEM_PROMPT = `You answer questions on Foreshadow, a website for people with no trading background. Foreshadow rates, from 0 to 100, how unusual the options betting was in the five trading days before scheduled company news (FDA decisions, earnings), notes whether the bets leaned toward the stock rising or falling, and checks afterwards whether the bets were right. The reader is looking at one case (or one stock) when they ask.
+export const INVESTIGATOR_SYSTEM_PROMPT = `You answer questions on Foreshadow, a website for people with no trading background. Foreshadow rates, from 0 to 100, how unusual the options betting was in the five trading days before scheduled company news (FDA decisions, earnings), notes whether the bets leaned toward the stock rising or falling, and checks afterwards whether the bets were right. The reader is looking at one case, one stock, the list of upcoming news, or the scorecard when they ask; with no ticker in view, answer from the upcoming list or the scorecard.
 
 Scope. Only answer questions about: this case or stock, its options betting and price moves, other cases Foreshadow has scored, upcoming news on Foreshadow, or how Foreshadow's score works. For anything else (general knowledge, coding, other companies' fundamentals, writing tasks, predictions, trading advice, questions about you), reply with exactly this sentence and nothing else, without calling any tool:
 ${OFF_TOPIC_REPLY}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getLeaderboard, getScorecard } from "@/lib/data";
 import { CaseList } from "@/components/cases/CaseList";
+import { AskPanel } from "@/components/event/AskPanel";
 import type { Scorecard, ScorecardBand } from "@/lib/data";
 import { KIND_LABELS } from "@/lib/format";
 import { kindsLiftFirst, SCORECARD_MIN_CASES as MIN_CASES, scorecardFinding } from "@/lib/plain";
@@ -100,6 +101,13 @@ export default async function ScorecardPage() {
         </p>
         <NumbersTable card={card} />
       </section>
+
+      <div className="mt-16 max-w-[760px]">
+        <AskPanel
+          scope="scorecard"
+          summary={`The reader is on the Scorecard: ${card.cases} finished cases. ${card.kinds.map((k) => scorecardFinding(k.kind, k.bands)).join(" ")}`.slice(0, 600)}
+        />
+      </div>
 
       <p className="mt-16 text-[16px] text-ink-2">
         Think you can read the bets better? <Link href="/guess" className="link">Play Guess the move</Link>: five real cases, the

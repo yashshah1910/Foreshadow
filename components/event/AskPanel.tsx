@@ -18,10 +18,33 @@ interface AskResponse {
 
 const CASE_SUGGESTIONS = ["Why did it score this way?", "What was the biggest bet?", "Has this happened before for this stock?"];
 const STOCK_SUGGESTIONS = ["Does unusual betting show up before its news?", "Which case had the most unusual betting?", "Is any news coming up?"];
+const RADAR_SUGGESTIONS = ["Which news coming up has the most unusual betting?", "Is anything leaning toward a fall?", "Has betting like this been right before?"];
+const SCORECARD_SUGGESTIONS = ["Does unusual betting actually work?", "Why are most cases not right?", "What was the best call so far?"];
+
+type Scope = "case" | "stock" | "radar" | "scorecard";
+
+const TITLES: Record<Scope, (t?: string) => string> = {
+  case: () => "Ask about this case",
+  stock: (t) => `Ask about ${t}`,
+  radar: () => "Ask about what's coming up",
+  scorecard: () => "Ask about the scorecard",
+};
+
+const SOURCES_LINE: Record<Scope, (t?: string) => string> = {
+  case: () => "this case's data",
+  stock: (t) => `${t}'s cases`,
+  radar: () => "the upcoming news Foreshadow is scoring",
+  scorecard: () => "every finished case",
+};
 const MAX_LENGTH = 300;
 
 /** What the answer is doing while the reader waits, in the order it usually happens. */
-const STEPS = ["Reading this case's score", "Checking the trades", "Writing a short answer"];
+const STEPS: Record<"case" | "stock" | "radar" | "scorecard", string[]> = {
+  case: ["Reading this case's score", "Checking the trades", "Writing a short answer"],
+  stock: ["Reading the stock's cases", "Checking the trades", "Writing a short answer"],
+  radar: ["Reading what's coming up", "Comparing the scores", "Writing a short answer"],
+  scorecard: ["Reading the scorecard", "Looking at past cases", "Writing a short answer"],
+};
 
 const SOURCE_NAMES: Record<string, string> = {
   foreshadow_score: "this case's score",
@@ -37,13 +60,14 @@ export function AskPanel({
   summary,
   scope = "case",
 }: {
-  ticker: string;
+  ticker?: string;
   eventDate?: string;
   summary: string;
-  /** "stock" on a stock page: the questions are about the whole track record. */
-  scope?: "case" | "stock";
+  /** "stock": the whole track record; "radar" and "scorecard": no single stock, the page's list or findings. */
+  scope?: Scope;
 }) {
-  const SUGGESTIONS = scope === "stock" ? STOCK_SUGGESTIONS : CASE_SUGGESTIONS;
+  const SUGGESTIONS =
+    scope === "stock" ? STOCK_SUGGESTIONS : scope === "radar" ? RADAR_SUGGESTIONS : scope === "scorecard" ? SCORECARD_SUGGESTIONS : CASE_SUGGESTIONS;
   const [q, setQ] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [busy, setBusy] = useState(false);
@@ -51,7 +75,7 @@ export function AskPanel({
 
   useEffect(() => {
     if (!busy) return;
-    const t = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 3500);
+    const t = setInterval(() => setStep((s) => Math.min(s + 1, 2)), 3500);
     return () => clearInterval(t);
   }, [busy]);
 
@@ -95,7 +119,7 @@ export function AskPanel({
   return (
     <section aria-labelledby="ask-h" className="tray p-6">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 id="ask-h" className="display text-[24px] text-ink">{scope === "stock" ? `Ask about ${ticker}` : "Ask about this case"}</h2>
+        <h2 id="ask-h" className="display text-[24px] text-ink">{TITLES[scope](ticker)}</h2>
         {started && !busy ? (
           <button type="button" onClick={() => setTurns([])} className="shrink-0 text-[13.5px] font-medium text-ink-3 hover:text-ink">
             Start over
@@ -103,7 +127,7 @@ export function AskPanel({
         ) : null}
       </div>
       <p className="mt-1.5 text-[15px] leading-relaxed text-ink-3">
-        Short answers from {scope === "stock" ? `${ticker}'s cases` : "this case's data"} and Unusual Whales, written by Claude.
+        Short answers from {SOURCES_LINE[scope](ticker)} and Unusual Whales, written by Claude.
       </p>
 
       {started ? (
@@ -114,7 +138,7 @@ export function AskPanel({
               <p className="mt-0.5 text-[15px] font-medium text-ink">{t.q}</p>
               <div className="mt-3">
                 {!t.res && !t.err ? (
-                  <Progress step={step} />
+                  <Progress step={step} steps={STEPS[scope]} />
                 ) : t.err ? (
                   <p className="text-[15px] text-put-ink" role="alert">{t.err}</p>
                 ) : t.res?.offTopic ? (
@@ -138,7 +162,7 @@ export function AskPanel({
           void ask(q);
         }}
       >
-        <label htmlFor="ask-input" className="sr-only">{started ? "Ask a follow-up" : `Your question about ${ticker}`}</label>
+        <label htmlFor="ask-input" className="sr-only">{started ? "Ask a follow-up" : "Your question"}</label>
         <div className="card p-1.5 focus-within:ring-2 focus-within:ring-pen">
           <textarea
             id="ask-input"
@@ -146,7 +170,7 @@ export function AskPanel({
             maxLength={MAX_LENGTH}
             onChange={(e) => setQ(e.target.value)}
             rows={2}
-            placeholder={started ? "Ask a follow-up…" : `Ask something about ${ticker}…`}
+            placeholder={started ? "Ask a follow-up…" : ticker ? `Ask something about ${ticker}…` : "Ask a question…"}
             className="block w-full resize-none bg-transparent px-2.5 py-2 text-[15px] text-ink outline-none placeholder:text-ink-3 focus-visible:outline-none"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -193,10 +217,10 @@ interface Turn {
 /** Earlier turns sent back as history; the API caps it too. */
 const MAX_TURNS = 3;
 
-function Progress({ step }: { step: number }) {
+function Progress({ step, steps }: { step: number; steps: string[] }) {
   return (
     <ol className="space-y-1.5 text-[14.5px]" aria-label="Working on your answer">
-      {STEPS.map((label, i) => (
+      {steps.map((label, i) => (
         <li key={label} className={`flex items-center gap-2.5 ${i < step ? "text-ink-3" : i === step ? "text-ink" : "text-ink-3/60"}`}>
           <span aria-hidden="true" className={`h-2 w-2 rounded-full ${i < step ? "bg-call" : i === step ? "bg-ink motion-safe:animate-pulse" : "bg-surface-3"}`} />
           {label}
