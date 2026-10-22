@@ -34,7 +34,8 @@ export default async function ScorecardPage() {
         <p className="prose-plain mt-5">
           Does unusual betting before the news actually know something? Here is every finished case Foreshadow has
           scored, <strong>{card.cases.toLocaleString("en-US")}</strong> so far, grouped by how unusual the betting was. Nothing is
-          picked by hand, and the numbers update as new cases finish.
+          picked by hand, and the numbers update as new cases finish. FDA cases go back a year; earnings cases cover the last
+          few months, and a full year for some of the largest companies.
         </p>
       </header>
 
