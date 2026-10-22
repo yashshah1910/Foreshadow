@@ -32,7 +32,8 @@ export async function GET(request: Request) {
   const lookbackDays = Number(sp.get("days")) || undefined;
 
   const db = createSupabaseServiceClient();
-  const uw = new UwClient({ apiKey: env.uwApiKey, logger: (m) => console.log("[uw]", m) });
+  // Hard stop for UW calls well inside maxDuration (300s), so the run always reports back.
+  const uw = new UwClient({ apiKey: env.uwApiKey, deadlineAt: Date.now() + 230_000, logger: (m) => console.log("[uw]", m) });
   const logs: string[] = [];
   const report = await runIngest(db, uw, {
     mode,

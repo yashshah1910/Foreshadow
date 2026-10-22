@@ -27,6 +27,11 @@ export interface UwClientOptions {
   logger?: (line: string) => void;
   /** Retries for 429 / 5xx / network errors. Defaults to 3. */
   maxRetries?: number;
+  /**
+   * Epoch ms after which requests fail fast instead of waiting for a slot
+   * or a retry. Serverless callers set it so a run returns inside its limit.
+   */
+  deadlineAt?: number;
   /** Test hooks: replace the real clock. */
   sleep?: (ms: number) => Promise<void>;
   now?: () => number;
@@ -72,6 +77,7 @@ export class UwHttp {
   private readonly sleep: (ms: number) => Promise<void>;
   private readonly now: () => number;
   private readonly maxRetries: number;
+  private readonly deadlineAt: number | undefined;
   private usageState: UwUsage = {
     dailyCount: null,
     dailyLimit: null,
@@ -93,6 +99,7 @@ export class UwHttp {
     this.sleep = opts.sleep ?? defaultSleep;
     this.now = opts.now ?? (() => Date.now());
     this.maxRetries = opts.maxRetries ?? DEFAULT_MAX_RETRIES;
+    this.deadlineAt = opts.deadlineAt;
     this.inFlight = new Semaphore(Math.max(1, opts.maxConcurrent ?? DEFAULT_MAX_CONCURRENT));
     this.limiter = new TokenBucket(opts.requestsPerMinute ?? DEFAULT_REQUESTS_PER_MINUTE, {
       now: this.now,
@@ -129,8 +136,13 @@ export class UwHttp {
     const url = this.buildUrl(path, query);
     const label = url.slice(this.baseUrl.length);
     for (let attempt = 0; ; attempt++) {
+      this.checkDeadline(path);
       await this.limiter.acquire();
       await this.inFlight.acquire();
+      if (this.deadlineAt !== undefined && this.now() > this.deadlineAt) {
+        this.inFlight.release();
+        this.checkDeadline(path);
+      }
       const started = this.now();
       let res: Response;
       let body: unknown;
@@ -168,6 +180,12 @@ export class UwHttp {
   async requestList<T>(path: string, query: Query = {}): Promise<T[]> {
     const data = await this.request<unknown>(path, query);
     return asArray(data) as T[];
+  }
+
+  private checkDeadline(path: string): void {
+    if (this.deadlineAt !== undefined && this.now() > this.deadlineAt) {
+      throw new UwApiError({ status: 0, path, message: `Time budget exceeded before GET ${path}` });
+    }
   }
 
   private recordUsage(h: Headers): void {
