@@ -3,7 +3,7 @@
  * error, or unverifiable numbers). Every figure comes straight from the input,
  * formatted so `verifyNumbers` accepts it.
  */
-import type { DossierEvent, DossierInput, Narration, NarrationAlert, NarrationInput, NarrationSignal } from "./types";
+import type { DossierEvent, DossierInput, Narration, NarrationAlert, NarrationInput } from "./types";
 
 export const CAPTION_MAX_LENGTH = 200;
 
@@ -35,29 +35,29 @@ function utcTime(iso: string): string | null {
   return m ? `${m[1]}:${m[2]} UTC` : null;
 }
 
-/** "a 9.2%" but "an 11.2%" / "an 8.4%" / "an 18.6%". */
-function article(pct: number): string {
-  const lead = Math.floor(Math.abs(pct));
-  return String(lead).startsWith("8") || lead === 11 || lead === 18 ? "an" : "a";
-}
-
 /** "Q3 earnings, after the close" -> "Q3 earnings" */
 function titleCore(title: string): string {
   return title.split(",")[0].trim();
 }
 
 const BAND_PHRASES: Record<NarrationInput["band"], string> = {
-  quiet: "a quiet footprint",
-  notable: "a notable footprint",
-  "someone-knew": "in someone-knew territory",
+  quiet: "about normal for this stock",
+  notable: "unusual for this stock",
+  "someone-knew": "very unusual for this stock",
+};
+
+const LEAN_PHRASES: Record<string, string> = {
+  bullish: "leaned toward bets on a rise",
+  bearish: "leaned toward bets on a fall",
+  mixed: "didn't lean clearly either way",
 };
 
 function flagPhrases(flags: NarrationInput["flags"]): string[] {
   const out: string[] = [];
-  if (flags.partialWindow) out.push("the footprint window is still filling");
-  if (flags.insufficientHistory) out.push("there is not enough history for a reliable baseline");
-  if (flags.multiCatalyst) out.push("other catalysts share this window");
-  if (flags.isIndexOrEtf) out.push("as an index or ETF its positioning is less specific");
+  if (flags.partialWindow) out.push("the week isn't over yet");
+  if (flags.insufficientHistory) out.push("this stock has little trading history to compare against");
+  if (flags.multiCatalyst) out.push("other news fell in the same week");
+  if (flags.isIndexOrEtf) out.push("this is a fund, not a single company");
   return out;
 }
 
@@ -68,60 +68,56 @@ function largestAlert(alerts: NarrationAlert[]): NarrationAlert | undefined {
   );
 }
 
-function strongestSignals(signals: NarrationSignal[], n: number): NarrationSignal[] {
-  return [...signals].sort((a, b) => b.contribution - a.contribution).slice(0, n);
-}
-
 function moveVerb(pct: number): string {
   if (pct > 0) return "rose";
   if (pct < 0) return "fell";
   return "was flat at";
 }
 
+/** "earnings report" for earnings, the news title otherwise. */
+function eventPhrase(input: NarrationInput): string {
+  return input.kind === "earnings" ? "earnings report" : titleCore(input.eventTitle);
+}
+
+function betPhrase(a: NarrationAlert): string {
+  return a.type === "call" ? "calls, a bet on the stock rising" : "puts, a bet on the stock falling";
+}
+
 function openingSentence(input: NarrationInput): string {
   const flags = flagPhrases(input.flags);
   const tail = flags.length > 0 ? `, though ${flags.join(" and ")}` : "";
-  return `In the five sessions before ${input.ticker}'s ${titleCore(input.eventTitle)} on ${shortDate(input.eventDate)}, options positioning ran ${input.direction} and scored ${Math.round(input.score)}, ${BAND_PHRASES[input.band]}${tail}.`;
+  return `In the five trading days before ${input.ticker}'s ${eventPhrase(input)} on ${shortDate(input.eventDate)}, the options betting scored ${Math.round(input.score)}, ${BAND_PHRASES[input.band]}, and ${LEAN_PHRASES[input.direction] ?? LEAN_PHRASES.mixed}${tail}.`;
 }
 
-function signalSentence(input: NarrationInput): string {
-  const [a, b] = strongestSignals(input.signals, 2);
-  let text: string;
-  if (a && b) text = `${a.label} and ${b.label.toLowerCase()} carried the most weight`;
-  else if (a) text = `${a.label} carried the most weight`;
-  else text = "No individual signal stood out";
+function tradeSentence(input: NarrationInput): string {
   const top = largestAlert(input.topAlerts);
-  if (top) {
-    const when = utcTime(top.executedAt);
-    text += `, and the largest alert was ${formatMoney(top.premium)} of ${top.side}-side ${top.type}s at the $${top.strike} strike expiring ${shortDate(top.expiry)}, placed ${when ? `at ${when} ` : ""}on ${shortDate(top.executedAt)}`;
-  } else {
-    text += ", and no single alert dominated the window";
-  }
-  return `${text}.`;
+  if (!top) return "No single large trade stood out that week.";
+  const when = utcTime(top.executedAt);
+  return `The biggest single trade was ${formatMoney(top.premium)} of ${betPhrase(top)} past $${top.strike}, placed ${when ? `at ${when} ` : ""}on ${shortDate(top.executedAt)}.`;
 }
 
 function verdictSentence(input: NarrationInput): string {
   const v = input.verdict;
-  if (!v || v.verdict === "pending") return "The event has not happened yet, so the verdict is pending.";
-  if (v.verdict === "insufficient") return "There was not enough price data to judge whether the footprint matched the move.";
-  const implied = v.impliedMovePct === null ? "No implied move was available" : `Options priced ${article(v.impliedMovePct)} ${formatPct(v.impliedMovePct)} move`;
-  const window = v.reactionWindow === "T" ? "on the day" : "over the next session (T+1)";
-  const realized =
-    v.realizedMovePct === null ? "the realized move was not available" : `the stock ${moveVerb(v.realizedMovePct)} ${formatPct(v.realizedMovePct)} ${window}`;
-  return `${implied}; ${realized}, so the footprint ${v.verdict === "matched" ? "matched" : "missed"} the move.`;
+  if (!v || v.verdict === "pending") return "The news hasn't come out yet, so it's too early to say whether the bets were right.";
+  if (v.verdict === "insufficient") return "There wasn't enough price data to tell whether the bets were right.";
+  const expected =
+    v.impliedMovePct === null ? "No expected move was available" : `Options were pricing in a move of about ${formatPct(v.impliedMovePct)}`;
+  const when = v.reactionWindow === "T" ? "that day" : "the next day";
+  const actual =
+    v.realizedMovePct === null ? "the actual move wasn't available" : `the stock ${moveVerb(v.realizedMovePct)} ${formatPct(v.realizedMovePct)} ${when}`;
+  return `${expected}; ${actual}, so the bets were ${v.verdict === "matched" ? "right" : "wrong"}.`;
 }
 
 function buildCaption(input: NarrationInput): string {
   const top = largestAlert(input.topAlerts);
   const parts = [
     top
-      ? `${formatMoney(top.premium)} of ${top.side}-side ${top.type}s hit ${input.ticker} before its ${titleCore(input.eventTitle)}.`
-      : `${input.ticker} before its ${titleCore(input.eventTitle)}.`,
-    `Score ${Math.round(input.score)}, ${input.direction}.`,
+      ? `Before ${input.ticker}'s ${eventPhrase(input)}, someone put ${formatMoney(top.premium)} on the stock ${top.type === "call" ? "rising" : "falling"}.`
+      : `Options betting before ${input.ticker}'s ${eventPhrase(input)} scored ${Math.round(input.score)}.`,
   ];
   const v = input.verdict;
   if (v && (v.verdict === "matched" || v.verdict === "missed") && v.realizedMovePct !== null) {
-    parts.push(`The stock ${moveVerb(v.realizedMovePct)} ${formatPct(v.realizedMovePct)}: footprint ${v.verdict}.`);
+    parts.push(`The stock ${moveVerb(v.realizedMovePct)} ${formatPct(v.realizedMovePct)}, so the bets were ${v.verdict === "matched" ? "right" : "wrong"}.`);
   }
   let caption = "";
   for (const part of parts) {
@@ -134,7 +130,7 @@ function buildCaption(input: NarrationInput): string {
 
 /** Three deterministic sentences plus a caption; never calls Claude, never throws on empty inputs. */
 export function fallbackNarration(input: NarrationInput): Narration {
-  const story = [openingSentence(input), signalSentence(input), verdictSentence(input)].join(" ");
+  const story = [openingSentence(input), tradeSentence(input), verdictSentence(input)].join(" ");
   return {
     story,
     caption: buildCaption(input),

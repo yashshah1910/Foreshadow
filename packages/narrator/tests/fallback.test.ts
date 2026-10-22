@@ -12,15 +12,15 @@ describe("fallbackNarration", () => {
   it("states score, direction and verdict in exactly three verified sentences", () => {
     const input = sampleInput();
     const n = fallbackNarration(input);
-    expect(n.story).toContain("84");
-    expect(n.story).toContain("bearish");
-    expect(n.story).toContain("matched");
-    expect(n.story).toContain("someone-knew");
+    expect(n.story).toContain("scored 84, very unusual for this stock");
+    expect(n.story).toContain("leaned toward bets on a fall");
     expect(n.story).toContain("$4.1M");
     expect(n.story).toContain("$150");
     expect(n.story).toContain("at 14:32 UTC on Oct 9");
     expect(n.story).toContain("11.2%");
     expect(n.story).toContain("fell 18.6%");
+    expect(n.story).toContain("so the bets were right");
+    expect(n.story).not.toMatch(/someone-knew|bearish|bullish|footprint|signal|catalyst|ask-side|z-score/);
     expect(sentences(n.story)).toHaveLength(3);
     expect(n.numbersVerified).toBe(true);
     expect(n.unverifiedNumbers).toEqual([]);
@@ -32,16 +32,15 @@ describe("fallbackNarration", () => {
     const n = fallbackNarration(sampleInput());
     expect(n.caption.length).toBeLessThanOrEqual(CAPTION_MAX_LENGTH);
     expect(n.caption).not.toContain("#");
-    expect(n.caption).toContain("Score 84, bearish");
-    expect(n.caption).toContain("footprint matched");
+    expect(n.caption).toContain("on the stock falling");
+    expect(n.caption).toContain("so the bets were right");
   });
 
   it("never throws on empty alerts, empty signals and no verdict", () => {
     const input = { ...sampleInput(), signals: [], topAlerts: [], verdict: undefined };
     const n = fallbackNarration(input);
-    expect(n.story).toContain("No individual signal stood out");
-    expect(n.story).toContain("no single alert dominated");
-    expect(n.story).toContain("pending");
+    expect(n.story).toContain("No single large trade stood out");
+    expect(n.story).toContain("too early to say");
     expect(sentences(n.story)).toHaveLength(3);
     expect(n.caption.length).toBeLessThanOrEqual(CAPTION_MAX_LENGTH);
     expect(verifyNumbers(`${n.story}\n${n.caption}`, input).numbersVerified).toBe(true);
@@ -54,18 +53,17 @@ describe("fallbackNarration", () => {
       verdict: { verdict: "missed" as const, realizedMovePct: 2.1, impliedMovePct: null, reactionWindow: "T+1" as const },
     };
     const n = fallbackNarration(flagged);
-    expect(n.story).toContain("still filling");
-    expect(n.story).toContain("not enough history");
-    expect(n.story).toContain("other catalysts");
-    expect(n.story).toContain("index or ETF");
+    expect(n.story).toContain("the week isn't over yet");
+    expect(n.story).toContain("little trading history");
+    expect(n.story).toContain("other news fell in the same week");
+    expect(n.story).toContain("a fund, not a single company");
     expect(n.story).not.toContain("z-score");
-    expect(n.story).toContain("rose 2.1%");
-    expect(n.story).toContain("missed the move");
-    expect(n.story).toContain("T+1");
+    expect(n.story).toContain("rose 2.1% the next day");
+    expect(n.story).toContain("so the bets were wrong");
     expect(verifyNumbers(`${n.story}\n${n.caption}`, flagged).numbersVerified).toBe(true);
 
     const insufficient = { ...sampleInput(), verdict: { ...flagged.verdict, verdict: "insufficient" as const } };
-    expect(fallbackNarration(insufficient).story).toContain("not enough price data");
+    expect(fallbackNarration(insufficient).story).toContain("enough price data");
   });
 });
 
