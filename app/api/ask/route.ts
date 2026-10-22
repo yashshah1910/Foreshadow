@@ -8,6 +8,11 @@ import { createSupabaseServerClient, createSupabaseServiceClient } from "@/lib/s
 
 const Body = z.object({
   question: z.string().trim().min(2).max(300),
+  /** Earlier turns of this conversation, oldest first; capped so follow-ups stay cheap. */
+  history: z
+    .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(1200) }))
+    .max(6)
+    .optional(),
   context: z
     .object({
       ticker: z.string().max(12).optional(),
@@ -56,6 +61,7 @@ export async function POST(request: Request) {
     const result = await investigate({
       question: parsed.data.question,
       context: parsed.data.context,
+      history: parsed.data.history,
       tools: foreshadowTools,
       uwMcp: token ? { url: UW_MCP_URL, token } : undefined,
       maxToolCalls: 4,
