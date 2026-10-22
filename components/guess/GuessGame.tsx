@@ -266,6 +266,9 @@ export function GuessGame({ pool, leanedRightPct }: { pool: GuessCase[]; leanedR
               <Link href={`/event/${encodeURIComponent(c.id)}`} target="_blank" className="pressable btn btn-soft h-11 px-5 text-[15px]">
                 Open the full case
               </Link>
+              <Link href={`/event/${encodeURIComponent(c.id)}#ask-h`} target="_blank" className="link self-center px-1 text-[15px]">
+                Ask Claude why
+              </Link>
             </div>
           </div>
         )}
