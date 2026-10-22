@@ -6,6 +6,7 @@ allowBuilds:
   unrs-resolver: false
   supabase: true
   esbuild: true
+  core-js: false
 
 minimumReleaseAgeExclude:
   - '@anthropic-ai/sdk@1.1.0'
