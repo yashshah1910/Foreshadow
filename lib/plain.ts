@@ -128,8 +128,8 @@ export function scorecardFinding(kind: string, bands: ScorecardBand[]): string {
   const p0 = Math.min(Math.max(ordinary.right / ordinary.cases, 0.01), 0.99);
   const z = (u.right / u.cases - p0) / Math.sqrt((p0 * (1 - p0)) / u.cases);
   if (z >= 1.65 && u.right >= 3) {
-    const times = up / Math.max(op, 0.1);
-    const ratio = times >= 1.95 ? `about ${Math.round(times)} times as often as` : "more often than";
+    const times = op >= 1 ? up / op : Infinity;
+    const ratio = times > 20 ? "far more often than" : times >= 1.95 ? `about ${Math.round(times)} times as often as` : "more often than";
     return `Before ${noun}, unusual betting was right ${up.toFixed(0)}% of the time, ${ratio} ordinary betting (${op.toFixed(0)}%).${early}`;
   }
   return `Before ${noun}, unusual betting hasn't clearly beaten ordinary betting so far: ${up.toFixed(0)}% right against ${op.toFixed(0)}%.${early}`;

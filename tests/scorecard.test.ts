@@ -62,6 +62,13 @@ describe("scorecardFinding", () => {
     expect(scorecardFinding("earnings", [band(0, 236, 18), band(40, 25, 3)])).toContain("hasn't clearly beaten");
   });
 
+  it("doesn't print an absurd ratio when ordinary betting was never right", async () => {
+    const { scorecardFinding } = await import("@/lib/plain");
+    const s = scorecardFinding("earnings", [band(0, 40, 0), band(40, 14, 10)]);
+    expect(s).toContain("far more often than ordinary betting (0%)");
+    expect(s).not.toMatch(/\d{3,} times/);
+  });
+
   it("refuses to judge tiny samples", async () => {
     const { scorecardFinding } = await import("@/lib/plain");
     expect(scorecardFinding("fda", [band(0, 50, 3), band(40, 2, 1)])).toContain("Too few to judge");
