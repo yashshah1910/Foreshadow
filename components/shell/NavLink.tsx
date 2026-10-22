@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+export function NavLink({ href, children, compact = false }: { href: string; children: React.ReactNode; compact?: boolean }) {
   const pathname = usePathname();
   const active = pathname === href || pathname.startsWith(href + "/");
   return (
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`shrink-0 rounded-full px-3.5 py-2 text-[15px] font-medium transition-colors duration-150 ${
+      className={`shrink-0 rounded-full font-medium transition-colors duration-150 ${compact ? "px-1 py-2 text-center text-[13.5px]" : "px-3.5 py-2 text-[15px]"} ${
         active ? "bg-surface-2 text-ink" : "text-ink-2 hover:bg-surface-2 hover:text-ink"
       }`}
     >

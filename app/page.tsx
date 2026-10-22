@@ -1,19 +1,19 @@
 import Link from "next/link";
-import { getEvent, getLeaderboard, getRadar, getStats } from "@/lib/data";
+import { getEvent, getLeaderboard, getRadar, getScorecard, getStats } from "@/lib/data";
 import { reactionWindowFor } from "@foreshadow/core";
 import { Trace } from "@/components/event/Trace";
 import { CaseList } from "@/components/cases/CaseList";
 import { Legend } from "@/components/cases/Legend";
 import { WindowsDiagram } from "@/components/landing/WindowsDiagram";
 import { VerdictMark } from "@/components/viz/Marks";
-import { eventName, eventPhrase, scoreWord } from "@/lib/plain";
-import { fmtDate, fmtPct } from "@/lib/format";
+import { eventName, eventPhrase, scorecardFinding, scoreWord } from "@/lib/plain";
+import { fmtDate, fmtPct, KIND_LABELS } from "@/lib/format";
 
 // Live numbers on the landing: render per request.
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [all, radar, stats] = await Promise.all([getLeaderboard({ limit: 40 }), getRadar(10), getStats()]);
+  const [all, radar, stats, scorecard] = await Promise.all([getLeaderboard({ limit: 40 }), getRadar(10), getStats(), getScorecard()]);
   const exampleSummary = all.find((s) => s.verdict === "matched" && s.score >= 40) ?? all[0] ?? null;
   const example = exampleSummary ? await getEvent(exampleSummary.catalyst.id) : null;
   const { checked, unusual, unusualRight } = stats.past;
@@ -114,6 +114,28 @@ export default async function Home() {
           </p>
         ) : null}
       </section>
+
+      {/* ---------------- Proof ---------------- */}
+      {scorecard.cases > 0 ? (
+        <section aria-labelledby="proof-h" className="mt-28">
+          <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+            <h2 id="proof-h" className="display text-[34px] text-ink sm:text-[42px]">Does it know something?</h2>
+            <Link href="/scorecard" className="pressable btn btn-soft h-10 text-[14.5px]">See the scorecard</Link>
+          </div>
+          <p className="prose-plain mb-7 max-w-[720px]">
+            Foreshadow grades itself in public. Across {scorecard.cases.toLocaleString("en-US")} finished cases, here is how
+            often unusual betting turned out right compared with ordinary betting.
+          </p>
+          <div className="grid gap-2 md:grid-cols-2">
+            {scorecard.kinds.map((k) => (
+              <div key={k.kind} className="tray p-6">
+                <p className="text-[14px] font-medium text-ink-3">{KIND_LABELS[k.kind] ?? k.kind}</p>
+                <p className="mt-2 text-[19px] font-semibold leading-snug text-ink">{scorecardFinding(k.kind, k.bands)}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {/* ---------------- Cases ---------------- */}
       <section aria-labelledby="cases-h" className="mt-28">

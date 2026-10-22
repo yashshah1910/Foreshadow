@@ -21,6 +21,7 @@ export async function Footer() {
         <div className="flex flex-col gap-2.5">
           <Link href="/leaderboard" className="hover:text-ink">Past cases</Link>
           <Link href="/radar" className="hover:text-ink">Coming up</Link>
+          <Link href="/scorecard" className="hover:text-ink">Scorecard</Link>
           <Link href="/docs" className="hover:text-ink">How it works</Link>
         </div>
         <div className="flex flex-col gap-2.5">

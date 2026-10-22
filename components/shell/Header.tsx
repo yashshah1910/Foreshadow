@@ -21,6 +21,7 @@ export async function Header() {
         <nav className="ml-8 hidden items-center gap-1 md:flex" aria-label="Primary">
           <NavLink href="/leaderboard">Past cases</NavLink>
           <NavLink href="/radar">Coming up</NavLink>
+          <NavLink href="/scorecard">Scorecard</NavLink>
           <NavLink href="/docs">How it works</NavLink>
         </nav>
         <div className="ml-auto flex items-center gap-2">
@@ -28,10 +29,11 @@ export async function Header() {
           {hasSupabase() ? <AuthMenu /> : null}
         </div>
       </div>
-      <nav className="-mt-2 flex items-center gap-1 overflow-x-auto px-4 pb-3 md:hidden" aria-label="Primary (mobile)">
-        <NavLink href="/leaderboard">Past cases</NavLink>
-        <NavLink href="/radar">Coming up</NavLink>
-        <NavLink href="/docs">How it works</NavLink>
+      <nav className="-mt-2 grid grid-cols-4 gap-1 px-3 pb-3 md:hidden" aria-label="Primary (mobile)">
+        <NavLink compact href="/leaderboard">Past cases</NavLink>
+        <NavLink compact href="/radar">Coming up</NavLink>
+        <NavLink compact href="/scorecard">Scorecard</NavLink>
+        <NavLink compact href="/docs">How it works</NavLink>
       </nav>
     </header>
   );
