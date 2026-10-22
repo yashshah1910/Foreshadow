@@ -16,7 +16,7 @@ describe("fallbackNarration", () => {
     expect(n.story).toContain("leaned toward bets on a fall");
     expect(n.story).toContain("$4.1M");
     expect(n.story).toContain("$150");
-    expect(n.story).toContain("at 14:32 UTC on Oct 9");
+    expect(n.story).toContain("placed on Oct 9");
     expect(n.story).toContain("11.2%");
     expect(n.story).toContain("fell 18.6%");
     expect(n.story).toContain("so the bets were right");

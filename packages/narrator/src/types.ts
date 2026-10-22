@@ -5,7 +5,7 @@
  * the app builds them from `ScoreResult` / `VerdictResult` and the narrator
  * never touches the database.
  */
-import type { Direction, OptionType, OrderSide, Verdict } from "@foreshadow/core";
+import type { Direction, OptionType, Verdict } from "@foreshadow/core";
 import type { NarratorClient } from "./client";
 
 export type NarrationBand = "quiet" | "notable" | "someone-knew";
@@ -21,16 +21,14 @@ export interface NarrationSignal {
   detail: Record<string, number>;
 }
 
+/** One of the largest trades, as Foreshadow stores it: no ids, timestamps or contract counts. */
 export interface NarrationAlert {
-  executedAt: string;
+  tradeDate: string;
   type: OptionType;
   strike: number;
   expiry: string;
   premium: number;
-  size: number;
-  side: OrderSide;
   isSweep: boolean;
-  underlyingPrice?: number;
 }
 
 export interface NarrationVerdict {

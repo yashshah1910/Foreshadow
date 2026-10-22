@@ -60,6 +60,21 @@ export interface FlowAlert {
   rule?: string;
 }
 
+/**
+ * A flagged trade as Foreshadow stores and shows it: the day, call or put,
+ * strike, expiry, amount and sweep flag. No Unusual Whales ids, rule names,
+ * timestamps, contract counts or other raw fields.
+ */
+export interface TradeExample {
+  tradeDate: IsoDate;
+  type: OptionType;
+  strike: number;
+  expiry: IsoDate;
+  /** Total amount paid, USD. */
+  premium: number;
+  isSweep: boolean;
+}
+
 export interface OiChange {
   ticker: string;
   tradeDate: IsoDate;
@@ -166,8 +181,8 @@ export interface ScoreResult {
   directionScore: number;
   signals: SignalBreakdown[];
   flags: ScoreFlags;
-  /** The five alerts that drove the score, largest premium first. */
-  topAlerts: FlowAlert[];
+  /** The five largest trades in the window, largest premium first. */
+  topAlerts: TradeExample[];
   /** Daily series used by the Event Card chart. */
   daily: DailyMetrics[];
 }
@@ -221,7 +236,8 @@ export type ScoreBandName = "quiet" | "notable" | "someone-knew";
 export interface StoredBreakdown {
   signals: SignalBreakdown[];
   directionScore: number;
-  topAlerts: FlowAlert[];
+  /** Stored rows written before 2026-10-23 may still carry raw fields; read through `toTradeExample`. */
+  topAlerts: TradeExample[];
   verdict: VerdictResult;
   band: ScoreBandName;
   /** Daily metrics from ~T-11 onwards, for the Event Card chart. */

@@ -1,3 +1,4 @@
+import { toTradeExample } from "@foreshadow/core";
 import type { EventDetail, Dossier } from "@/lib/data";
 import type { DossierInput, NarrationInput } from "@foreshadow/narrator";
 
@@ -23,17 +24,7 @@ export function toNarrationInput(ev: EventDetail): NarrationInput {
       baselineMean: x.baselineMean,
       detail: x.detail,
     })),
-    topAlerts: stored.breakdown.topAlerts.map((a) => ({
-      executedAt: a.executedAt,
-      type: a.type,
-      strike: a.strike,
-      expiry: a.expiry,
-      premium: a.premium,
-      size: a.size,
-      side: a.side,
-      isSweep: a.isSweep,
-      underlyingPrice: a.underlyingPrice,
-    })),
+    topAlerts: stored.breakdown.topAlerts.map(toTradeExample),
     verdict: s.partialWindow
       ? undefined
       : {

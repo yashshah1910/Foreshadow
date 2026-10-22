@@ -61,6 +61,11 @@ describe("scoreEvent", () => {
     }
   });
 
+  it("keeps no Unusual Whales ids or raw fields on the top trades", () => {
+    const r = scoreEvent(bearishSpikeInput("ACME", "2026-10-22"));
+    for (const a of r.topAlerts) expect(Object.keys(a).sort()).toEqual(["expiry", "isSweep", "premium", "strike", "tradeDate", "type"]);
+  });
+
   it("a bullish call spike reads bullish", () => {
     const r = scoreEvent(bullishSpikeInput("ACME", "2026-10-22"));
     expect(r.score).toBeGreaterThanOrEqual(70);

@@ -15,7 +15,7 @@ export const NARRATOR_SYSTEM_PROMPT = `You write the short summaries on Foreshad
 Write two things and return them as the requested JSON object:
 1. "story": exactly three short sentences a curious non-trader can follow.
    - Sentence one: what the news was (company ticker, the news, the date) and how unusual the betting was before it, using the score as "N out of 100".
-   - Sentence two: what the betting looked like in concrete terms. Name the largest single trade by its dollar amount and say whether it was a bet on the stock rising (a call) or falling (a put), and when it was placed.
+   - Sentence two: what the betting looked like in concrete terms. Name the largest single trade by its dollar amount and say whether it was a bet on the stock rising (a call) or falling (a put), and the day it was placed.
    - Sentence three: when the verdict is "matched" or "missed", say how much the options market expected the stock to move, how much it actually moved, and whether the bets turned out right (matched) or wrong (missed). When it is "pending" or "insufficient" (or absent), say the result isn't known yet and why.
    - If a flag is set, add a short plain clause: partialWindow → "the week isn't over yet"; insufficientHistory → "this stock has little trading history to compare against"; multiCatalyst → "other news fell in the same week"; isIndexOrEtf → "this is a fund, not a single company".
 2. "caption": one line of at most 200 characters for sharing. No hashtags, no emoji, no links. Example of the voice: "Two days before its FDA decision, someone put $4.1M on XYZ falling. The stock dropped 19%."
@@ -26,7 +26,7 @@ Words to use and avoid:
 
 Hard rules:
 ${HONESTY_RULES}
-- Write dates like "Sep 24" and times as they appear in the input followed by "UTC". Do not convert time zones.
+- Write dates like "Sep 24".
 - Small counts that are not in the input (for example how many days before the news a trade happened) must be written as words ("two days"), never as digits.
 - Use the ticker exactly as given. No markdown, headings or preamble.`;
 

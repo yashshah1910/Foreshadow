@@ -30,11 +30,6 @@ function shortDate(iso: string, withYear = false): string {
   return withYear ? `${base}, ${m[1]}` : base;
 }
 
-function utcTime(iso: string): string | null {
-  const m = /T(\d{2}):(\d{2})/.exec(iso);
-  return m ? `${m[1]}:${m[2]} UTC` : null;
-}
-
 /** "Q3 earnings, after the close" -> "Q3 earnings" */
 function titleCore(title: string): string {
   return title.split(",")[0].trim();
@@ -92,8 +87,7 @@ function openingSentence(input: NarrationInput): string {
 function tradeSentence(input: NarrationInput): string {
   const top = largestAlert(input.topAlerts);
   if (!top) return "No single large trade stood out that week.";
-  const when = utcTime(top.executedAt);
-  return `The biggest single trade was ${formatMoney(top.premium)} of ${betPhrase(top)} past $${top.strike}, placed ${when ? `at ${when} ` : ""}on ${shortDate(top.executedAt)}.`;
+  return `The biggest single trade was ${formatMoney(top.premium)} of ${betPhrase(top)} past $${top.strike}, placed on ${shortDate(top.tradeDate)}.`;
 }
 
 function verdictSentence(input: NarrationInput): string {

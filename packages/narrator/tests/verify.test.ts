@@ -70,7 +70,8 @@ describe("buildHaystack", () => {
 });
 
 describe("verifyNumbers", () => {
-  const input = sampleInput();
+  // The verifier reads any JSON; give it a timestamp and a contract count to match against.
+  const input = { ...sampleInput(), trade: { executedAt: "2025-10-09T14:32:00Z", size: 1200 } };
 
   it("accepts rounded money, percentages and integers", () => {
     expect(verifyNumbers("$4.1M of puts", input).numbersVerified).toBe(true);

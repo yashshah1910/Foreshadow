@@ -17,13 +17,13 @@ import type {
   DailyFootprint,
   DailyMetrics,
   Direction,
-  FlowAlert,
   ScoreFlags,
   ScoreInput,
   ScoreResult,
   SignalBreakdown,
   SignalKey,
 } from "./types";
+import { largestTrades } from "./trades";
 
 export const WEIGHTS: Record<SignalKey, number> = {
   flowIntensity: 0.25,
@@ -385,10 +385,7 @@ export function scoreEvent(input: ScoreInput): ScoreResult {
   };
 
   // ---- Top alerts -------------------------------------------------------
-  const topAlerts: FlowAlert[] = footprintDays
-    .flatMap((d) => d.alerts)
-    .sort((a, b) => b.premium - a.premium || (a.executedAt < b.executedAt ? -1 : 1))
-    .slice(0, 5);
+  const topAlerts = largestTrades(footprintDays.flatMap((d) => d.alerts), 5);
 
   return {
     ticker: input.ticker.toUpperCase(),

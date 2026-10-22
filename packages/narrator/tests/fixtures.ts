@@ -45,24 +45,19 @@ export function sampleInput(): NarrationInput {
     ],
     topAlerts: [
       {
-        executedAt: "2025-10-09T14:32:00Z",
+        tradeDate: "2025-10-09",
         type: "put",
         strike: 150,
         expiry: "2025-11-21",
         premium: 4_120_000,
-        size: 1200,
-        side: "ask",
         isSweep: true,
-        underlyingPrice: 171.4,
       },
       {
-        executedAt: "2025-10-10T15:05:00Z",
+        tradeDate: "2025-10-10",
         type: "put",
         strike: 145,
         expiry: "2025-11-21",
         premium: 850_400,
-        size: 400,
-        side: "ask",
         isSweep: false,
       },
     ],
@@ -72,7 +67,7 @@ export function sampleInput(): NarrationInput {
 }
 
 export const CLEAN_STORY =
-  "XYZ's PDUFA for drug ABC on 2025-10-14 scored 84, bearish, in someone-knew territory. Directional premium (z-score 3.2) and Flow intensity (z-score 2.7) led, with the largest alert $4.1M of ask-side puts at the $150 strike expiring 2025-11-21 at 14:32. The options market implied an 11.2% move and the stock fell 19%, so the footprint matched.";
+  "XYZ's PDUFA for drug ABC on 2025-10-14 scored 84, bearish, in someone-knew territory. Directional premium (z-score 3.2) and Flow intensity (z-score 2.7) led, with the largest alert $4.1M of ask-side puts at the $150 strike expiring 2025-11-21, placed on Oct 9. The options market implied an 11.2% move and the stock fell 19%, so the footprint matched.";
 export const CLEAN_CAPTION =
   "Five days before the PDUFA, $4.1M of ask-side puts hit XYZ. Score 84, bearish. Stock fell 19%. Someone knew.";
 export const BAD_STORY = CLEAN_STORY.replace("$4.1M", "$9.9M");
