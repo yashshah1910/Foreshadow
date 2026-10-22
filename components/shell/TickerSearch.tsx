@@ -9,6 +9,15 @@ interface Hit {
   name: string;
 }
 
+/** Shown when the box is empty, so a first-time visitor has somewhere to start. */
+const POPULAR: Hit[] = [
+  { ticker: "TSLA", name: "Tesla" },
+  { ticker: "NVDA", name: "Nvidia" },
+  { ticker: "AAPL", name: "Apple" },
+  { ticker: "META", name: "Meta Platforms" },
+  { ticker: "AMZN", name: "Amazon" },
+];
+
 export function TickerSearch() {
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -20,6 +29,8 @@ export function TickerSearch() {
   const listId = useId();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const abort = useRef<AbortController | null>(null);
+  const empty = !q.trim();
+  const shown = empty ? POPULAR : hits;
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -77,7 +88,7 @@ export function TickerSearch() {
           ref={inputRef}
           id="ticker-search"
           role="combobox"
-          aria-expanded={open && hits.length > 0}
+          aria-expanded={open && shown.length > 0}
           aria-controls={listId}
           aria-autocomplete="list"
           autoComplete="off"
@@ -94,13 +105,13 @@ export function TickerSearch() {
           onKeyDown={(e) => {
             if (e.key === "ArrowDown") {
               e.preventDefault();
-              setActive((a) => Math.min(a + 1, Math.max(hits.length - 1, 0)));
+              setActive((a) => Math.min(a + 1, Math.max(shown.length - 1, 0)));
             } else if (e.key === "ArrowUp") {
               e.preventDefault();
               setActive((a) => Math.max(a - 1, 0));
             } else if (e.key === "Enter") {
               e.preventDefault();
-              go(hits[active]?.ticker ?? q);
+              go(shown[active]?.ticker ?? q);
             } else if (e.key === "Escape") {
               setOpen(false);
               inputRef.current?.blur();
@@ -115,9 +126,14 @@ export function TickerSearch() {
           No stock matches &ldquo;{q.trim()}&rdquo;. Foreshadow covers FDA news and earnings for companies worth over $2B.
         </div>
       ) : null}
-      {open && hits.length > 0 ? (
-        <ul id={listId} role="listbox" className="pop absolute right-0 z-20 mt-2 w-72 overflow-hidden p-1.5">
-          {hits.map((h, i) => (
+      {open && shown.length > 0 ? (
+        <ul id={listId} role="listbox" aria-label={empty ? "Popular stocks" : "Matching stocks"} className="pop absolute right-0 z-20 mt-2 w-72 overflow-hidden p-1.5">
+          {empty ? (
+            <li role="presentation" className="px-3 pb-1 pt-1.5 text-[12.5px] font-medium text-ink-3">
+              Try one of these
+            </li>
+          ) : null}
+          {shown.map((h, i) => (
             <li
               key={h.ticker}
               role="option"
