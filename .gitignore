@@ -53,3 +53,8 @@ packages/*/dist/
 
 # Personal notes, not for the repo
 docs/discord-post.md
+
+# Local agent tooling (installed skills, launch configs)
+.agents/
+.claude/
+skills-lock.json

@@ -76,19 +76,6 @@ export const KIND_LABELS: Record<string, string> = {
   potus: "POTUS",
 };
 
-export const DIRECTION_LABELS: Record<string, string> = {
-  bullish: "Bullish",
-  bearish: "Bearish",
-  mixed: "Mixed",
-};
-
-export const VERDICT_LABELS: Record<string, string> = {
-  matched: "Matched",
-  missed: "Missed",
-  pending: "Pending",
-  insufficient: "No data",
-};
-
 export function fmtMarketcap(n: number | undefined): string {
   if (!n) return "";
   if (Math.abs(n) >= 1e12) return `$${(n / 1e12).toFixed(1)}T`;

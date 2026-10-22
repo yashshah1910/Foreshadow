@@ -1,5 +1,5 @@
 import type { Direction, Verdict } from "@foreshadow/core";
-import { directionPlain, scoreWord, verdictShort } from "@/lib/plain";
+import { directionPlain, verdictShort } from "@/lib/plain";
 import { KIND_LABELS } from "@/lib/format";
 
 /** The 0–100 score. 70+ gets the one highlighter on the page. */
@@ -11,10 +11,6 @@ export function ScoreFigure({ score, size = "md" }: { score: number; size?: "sm"
       {score >= 70 ? <span className="hl">{n}</span> : n}
     </span>
   );
-}
-
-export function bandName(score: number): string {
-  return scoreWord(score);
 }
 
 export function DirectionMark({ direction, short = false }: { direction: Direction; short?: boolean }) {

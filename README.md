@@ -51,7 +51,7 @@ Useful flags: `--min-cap 2e9` (earnings market-cap floor, the default), `--concu
 3 requests in flight), `--max N`, `--dry-run`, `--loop`. `pnpm uw:check AAPL` reports how far back your UW plan's
 history goes.
 
-Checks: `pnpm test` (127 tests: scorer, UW client, narrator), `pnpm typecheck`, `pnpm lint`.
+Checks: `pnpm test` (140 tests: scorer, UW client, narrator, rate limits), `pnpm typecheck`, `pnpm lint`.
 
 ## Keys
 
@@ -106,12 +106,15 @@ Claude never computes a number. `packages/narrator/` wraps the Messages API for 
    JSON output contract. Every number in the story is checked against the input rows; if one can't be verified the
    call is retried once, then the template is shown. The rows render beside the story so a reader can check.
 2. **Catalyst tagger**: maps President's-schedule and economic-calendar rows to tickers and sectors with a confidence.
-3. **Investigator** ("Ask about this case"): a short tool loop (≤ 6 calls) over `foreshadow_score`, `foreshadow_radar`,
+3. **Ask about this case**: a short tool loop (at most 4 calls) over `foreshadow_score`, `foreshadow_radar`,
    `foreshadow_history` **and the Unusual Whales hosted MCP** (`https://api.unusualwhales.com/api/mcp`, with the
-   user's own key). Tool calls are shown inline.
-4. **Stock summary**: one paragraph on whether a ticker is a repeat offender.
+   user's own key, falling back to Foreshadow's tools when that server is unreachable). Answers are under 120
+   plain-English words. Questions outside the case, the stock or Foreshadow get one fixed sentence and no tool calls.
+4. **Stock summary**: one paragraph on whether unusual betting keeps showing up before a stock's news.
 
-Narrations are cached by (ticker, event date, score). Model: `claude-haiku-5-5` (override with `NARRATOR_MODEL`).
+Model: `claude-haiku-5-5` (override with `NARRATOR_MODEL`). Case summaries are cached by (case, score). Every route that
+spends credits is rate-limited per IP (`lib/rate-limit.ts`): Ask allows 3 questions a minute, 12 an hour and 40 a day;
+summaries fall back to the deterministic template when a visitor goes over.
 
 ## MCP
 
