@@ -22,7 +22,8 @@ export function getDataSource(): DataSource {
  * Supabase reads are slow enough (hundreds of score rows with their daily
  * breakdowns) that every click waited on them. Share results across requests
  * for a few minutes; scores only change when the ingest runs. Fixture mode is
- * already in memory. The radar stays uncached because it updates live.
+ * already in memory. The radar is cached for a minute only: it updates live,
+ * and Coming up says when it was last scored.
  */
 function shared<A extends unknown[], R>(key: string, seconds: number, fn: (...args: A) => Promise<R>): (...args: A) => Promise<R> {
   if (dataMode() !== "supabase") return fn;
@@ -56,8 +57,7 @@ export const getToday = cache(() => getDataSource().today());
 export const getLeaderboard = cache((filters?: LeaderboardFilters) => sharedLeaderboard(filters));
 export const getEvent = cache((id: string) => sharedEvent(id));
 export const getTickerDossier = cache((ticker: string) => sharedDossier(ticker.toUpperCase()));
-export const getRadar = cache((daysAhead?: number, minScore?: number) =>
-  getDataSource().getRadar({ daysAhead, minScore }),
-);
+const sharedRadar = shared("radar", 60, (daysAhead?: number, minScore?: number) => getDataSource().getRadar({ daysAhead, minScore }));
+export const getRadar = cache((daysAhead?: number, minScore?: number) => sharedRadar(daysAhead, minScore));
 export const getScorecard = cache(() => sharedScorecard());
 export const getCompany = cache((ticker: string) => getDataSource().getCompany(ticker));
