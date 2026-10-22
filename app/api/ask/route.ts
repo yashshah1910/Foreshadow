@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { investigate, isNarratorConfigured, NarratorError, OFF_TOPIC_REPLY } from "@foreshadow/narrator";
+import { investigate, isNarratorConfigured, NarratorError } from "@foreshadow/narrator";
+import { publicAnswer } from "@/lib/ask";
 import { ASK_LIMITS, clientIp, rateLimit, waitPhrase } from "@/lib/rate-limit";
 import { foreshadowTools } from "@/lib/tools/foreshadow";
 import { env, hasSupabase, UW_MCP_URL } from "@/lib/env";
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
       uwMcp: token ? { url: UW_MCP_URL, token } : undefined,
       maxToolCalls: 4,
     });
-    return Response.json({ ...result, offTopic: result.answer.trim() === OFF_TOPIC_REPLY });
+    return Response.json(publicAnswer(result));
   } catch (err) {
     console.error("[ask]", err);
     const msg = err instanceof NarratorError ? err.message : "Something went wrong while answering. Try again in a moment.";
