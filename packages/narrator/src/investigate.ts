@@ -2,7 +2,7 @@
  * The Investigator: a manual tool loop over the three Foreshadow tools and,
  * when configured, the Unusual Whales hosted MCP server (beta MCP connector).
  */
-import type Anthropic from "@anthropic-ai/sdk";
+import Anthropic from "@anthropic-ai/sdk";
 import { getClient, getModel, type NarratorClient } from "./client";
 import { toNarratorError } from "./errors";
 import { INVESTIGATOR_SYSTEM_PROMPT, TOOL_BUDGET_EXHAUSTED_NOTE, buildInvestigatorUserMessage } from "./prompts";
@@ -44,7 +44,7 @@ function plainSession(client: NarratorClient, model: string, messages: Anthropic
         system: systemBlocks<Anthropic.TextBlockParam>(final),
         tools: [...FORESHADOW_TOOL_DEFINITIONS],
         tool_choice: toolChoice(final),
-        output_config: { effort: "medium" },
+        output_config: { effort: "low" },
         messages,
       }),
     append: (turn, results) => {
@@ -70,7 +70,7 @@ function mcpSession(
         mcp_servers: [{ type: "url", url: uwMcp.url, name: UW_MCP_SERVER_NAME, authorization_token: uwMcp.token }],
         tools: [{ type: "mcp_toolset", mcp_server_name: UW_MCP_SERVER_NAME }, ...FORESHADOW_TOOL_DEFINITIONS],
         tool_choice: toolChoice(final),
-        output_config: { effort: "medium" },
+        output_config: { effort: "low" },
         messages,
       }),
     append: (turn, results) => {
@@ -152,6 +152,10 @@ async function runLoop<T extends TurnLike>(
   }
 }
 
+function isMcpConnectionError(err: unknown): boolean {
+  return err instanceof Anthropic.BadRequestError && /mcp_servers/i.test(err.message);
+}
+
 /**
  * Answer a user question with the Foreshadow tools (and the UW MCP server when
  * configured). Foreshadow tool executions are capped at `maxToolCalls`; MCP
@@ -166,8 +170,13 @@ export async function investigate(input: InvestigateInput, opts: NarratorOptions
 
   try {
     if (input.uwMcp) {
-      const messages: Anthropic.Beta.BetaMessageParam[] = [...history, question];
-      return await runLoop(mcpSession(client, model, messages, input.uwMcp), input.tools, maxToolCalls, model);
+      try {
+        const messages: Anthropic.Beta.BetaMessageParam[] = [...history, question];
+        return await runLoop(mcpSession(client, model, messages, input.uwMcp), input.tools, maxToolCalls, model);
+      } catch (err) {
+        // The hosted UW MCP server is sometimes unreachable; answer with the Foreshadow tools instead.
+        if (!isMcpConnectionError(err)) throw err;
+      }
     }
     const messages: Anthropic.MessageParam[] = [...history, question];
     return await runLoop(plainSession(client, model, messages), input.tools, maxToolCalls, model);

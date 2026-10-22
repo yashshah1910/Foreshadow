@@ -111,7 +111,7 @@ Claude never computes a number. `packages/narrator/` wraps the Messages API for 
    user's own key). Tool calls are shown inline.
 4. **Stock summary**: one paragraph on whether a ticker is a repeat offender.
 
-Narrations are cached by (ticker, event date, score). Model: `claude-sonnet-5-5` (override with `NARRATOR_MODEL`).
+Narrations are cached by (ticker, event date, score). Model: `claude-haiku-5-5` (override with `NARRATOR_MODEL`).
 
 ## MCP
 

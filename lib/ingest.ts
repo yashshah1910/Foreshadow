@@ -55,6 +55,11 @@ export interface IngestOptions {
   dryRun?: boolean;
   /** Events scored in parallel (default 1). */
   concurrency?: number;
+  /**
+   * Stop starting new events after this many ms (serverless time limits).
+   * Work already fetched is cached, so the next run picks up from there.
+   */
+  budgetMs?: number;
   /** Called after each upsert, e.g. to dispatch alerts. */
   onScored?: (change: { prev: StoredScore | null; next: StoredScore; catalyst: Catalyst }) => Promise<void>;
 }
@@ -175,6 +180,11 @@ export async function runIngest(db: SupabaseClient, uw: UwClient, opts: IngestOp
     const queue = [...candidates];
     const workers = Array.from({ length: Math.max(1, opts.concurrency ?? 1) }, async () => {
       for (let catalyst = queue.shift(); catalyst; catalyst = queue.shift()) {
+      if (opts.budgetMs !== undefined && Date.now() - started > opts.budgetMs) {
+        queue.length = 0;
+        warnings.push(`time budget reached; ${candidates.length - scored} events left for the next run`);
+        break;
+      }
       try {
         const others = catalysts.filter(
           (c) => c.id !== catalyst.id && c.ticker === catalyst.ticker && footprintWindow(catalyst.eventDate).includes(c.eventDate),

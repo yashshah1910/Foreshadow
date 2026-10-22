@@ -15,8 +15,8 @@ const input = {
 describe("summarizeDossier", () => {
   it("returns the summary and model, and gives Claude the precomputed percentages", async () => {
     const { client, calls } = fakeClient({ parse: () => parsedMessage({ summary: "  XYZ is a repeat offender. " }) });
-    const result = await summarizeDossier(input, { client, model: "claude-sonnet-5-5" });
-    expect(result).toEqual({ summary: "XYZ is a repeat offender.", model: "claude-sonnet-5-5" });
+    const result = await summarizeDossier(input, { client, model: "claude-haiku-5-5" });
+    expect(result).toEqual({ summary: "XYZ is a repeat offender.", model: "claude-haiku-5-5" });
     const params = calls[0].params as ParseParams;
     expect(params.output_config?.effort).toBe("low");
     expect(params.max_tokens).toBe(2048);

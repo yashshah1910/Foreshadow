@@ -7,6 +7,7 @@ export { TAGGER_CHUNK_SIZE, TAGGER_MAX_TOKENS, tagCatalysts } from "./tagger";
 export { DOSSIER_MAX_TOKENS, summarizeDossier } from "./dossier";
 export { FORESHADOW_TOOL_DEFINITIONS, FORESHADOW_TOOL_NAMES, runForeshadowTool } from "./tools";
 export { INVESTIGATE_MAX_TOKENS, DEFAULT_MAX_TOOL_CALLS, UW_MCP_SERVER_NAME, investigate } from "./investigate";
+export { OFF_TOPIC_REPLY } from "./prompts";
 export { SECTORS, SectorSchema, NarrationOutputSchema, TaggerOutputSchema, TaggedRowSchema, DossierOutputSchema } from "./schemas";
 export type { Sector } from "./schemas";
 export {

@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NarratorUnavailableError } from "./errors";
 
 /** Exact model id; no date suffix. Override with `NARRATOR_MODEL` or the `model` option. */
-export const DEFAULT_MODEL = "claude-sonnet-5-5";
+export const DEFAULT_MODEL = "claude-haiku-5-5";
 
 /**
  * The slice of the Anthropic client the narrator uses. A real `Anthropic`

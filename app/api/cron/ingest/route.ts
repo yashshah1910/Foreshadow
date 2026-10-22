@@ -38,6 +38,9 @@ export async function GET(request: Request) {
     mode,
     maxEvents,
     lookbackDays,
+    // Leave headroom under maxDuration for in-flight events to finish.
+    budgetMs: 150_000,
+    concurrency: 3,
     log: (m) => {
       logs.push(m);
       console.log("[ingest]", m);

@@ -1,4 +1,4 @@
-import type Anthropic from "@anthropic-ai/sdk";
+import Anthropic from "@anthropic-ai/sdk";
 import { describe, expect, it } from "vitest";
 import { investigate } from "../src/investigate";
 import { FORESHADOW_TOOL_DEFINITIONS } from "../src/tools";
@@ -34,11 +34,11 @@ describe("investigate (Foreshadow tools only)", () => {
     });
     const result = await investigate(
       { question: "How did XYZ score?", context: { ticker: "XYZ", eventDate: "2025-10-14" }, tools },
-      { client, model: "claude-sonnet-5-5" },
+      { client, model: "claude-haiku-5-5" },
     );
     expect(scoreCalls).toEqual([{ ticker: "XYZ", eventDate: "2025-10-14" }]);
     expect(result.stopped).toBe("end_turn");
-    expect(result.model).toBe("claude-sonnet-5-5");
+    expect(result.model).toBe("claude-haiku-5-5");
     expect(result.answer).toContain("XYZ scored 84.3");
     expect(result.toolCalls).toEqual([
       {
@@ -53,7 +53,7 @@ describe("investigate (Foreshadow tools only)", () => {
 
     const first = calls[0].params as CreateParams;
     expect(first.max_tokens).toBe(8192);
-    expect(first.output_config?.effort).toBe("medium");
+    expect(first.output_config?.effort).toBe("low");
     expect(first.tool_choice).toEqual({ type: "auto" });
     expect(first.tools).toEqual(FORESHADOW_TOOL_DEFINITIONS);
     expect(first.system).toEqual([expect.objectContaining({ cache_control: { type: "ephemeral" } })]);
@@ -193,4 +193,25 @@ describe("investigate (with the Unusual Whales MCP server)", () => {
     expect(result.stopped).toBe("end_turn");
     expect(result.answer).toContain("Answer.");
   });
+
+  it("falls back to the Foreshadow tools when the UW MCP server can't be reached", async () => {
+    const { tools } = makeTools();
+    const mcpDown = Object.assign(Object.create(Anthropic.BadRequestError.prototype), {
+      message: "400 mcp_servers[0] 'unusual-whales': Error while communicating with MCP server.",
+      status: 400,
+    });
+    const { client, calls } = fakeClient({
+      betaCreate: () => {
+        throw mcpDown;
+      },
+      create: () => message([text("Answer without Unusual Whales.")]),
+    });
+    const result = await investigate(
+      { question: "What hit XYZ?", tools, uwMcp: { url: "https://mcp.unusualwhales.com/mcp", token: "uw-token" } },
+      { client, model: "claude-haiku-5-5" },
+    );
+    expect(calls.map((c) => c.method)).toEqual(["betaCreate", "create"]);
+    expect(result.answer).toBe("Answer without Unusual Whales.");
+  });
 });
+

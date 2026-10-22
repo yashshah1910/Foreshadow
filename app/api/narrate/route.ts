@@ -1,6 +1,7 @@
 import { NARRATION_VERSION, fallbackNarration, isNarratorConfigured, narrateEvent } from "@foreshadow/narrator";
 import { getDataSource } from "@/lib/data";
 import { toNarrationInput } from "@/lib/narrator/input";
+import { SUMMARY_LIMITS, clientIp, rateLimit } from "@/lib/rate-limit";
 
 /**
  * GET /api/narrate?id=<catalyst id>
@@ -22,7 +23,8 @@ export async function GET(request: Request) {
   }
 
   const input = toNarrationInput(ev);
-  if (!isNarratorConfigured()) {
+  // Over the limit: the template still gives the reader a summary, without spending credits.
+  if (!isNarratorConfigured() || !rateLimit("summary", clientIp(request), SUMMARY_LIMITS).ok) {
     const n = fallbackNarration(input);
     return Response.json({ narration: { ...n, createdAt: new Date().toISOString() }, source: "fallback" });
   }

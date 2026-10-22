@@ -25,13 +25,13 @@ describe("narrateEvent", () => {
     expect(result).toEqual({
       story: CLEAN_STORY,
       caption: CLEAN_CAPTION,
-      model: "claude-sonnet-5-5",
+      model: "claude-haiku-5-5",
       numbersVerified: true,
       unverifiedNumbers: [],
     });
     expect(calls).toHaveLength(1);
     const params = calls[0].params as ParseParams;
-    expect(params.model).toBe("claude-sonnet-5-5");
+    expect(params.model).toBe("claude-haiku-5-5");
     expect(params.max_tokens).toBe(2048);
     expect(params.output_config?.effort).toBe("low");
     expect(params.output_config?.format?.type).toBe("json_schema");
@@ -84,11 +84,11 @@ describe("narrateEvent", () => {
 
   it("uses an injected client even without a key, and honours model overrides", async () => {
     vi.stubEnv("ANTHROPIC_API_KEY", "");
-    vi.stubEnv("NARRATOR_MODEL", "claude-sonnet-5-5");
-    expect(getModel()).toBe("claude-sonnet-5-5");
+    vi.stubEnv("NARRATOR_MODEL", "claude-opus-5-5");
+    expect(getModel()).toBe("claude-opus-5-5");
     const { client, calls } = fakeClient({ parse: () => parsedMessage({ story: CLEAN_STORY, caption: CLEAN_CAPTION }) });
     const viaEnv = await narrateEvent(sampleInput(), { client });
-    expect(viaEnv.model).toBe("claude-sonnet-5-5");
+    expect(viaEnv.model).toBe("claude-opus-5-5");
     const viaOpt = await narrateEvent(sampleInput(), { client, model: "claude-opus-5" });
     expect(viaOpt.model).toBe("claude-opus-5");
     expect((calls[1].params as ParseParams).model).toBe("claude-opus-5");
