@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getEvent, getToday } from "@/lib/data";
+import { getEvent, getLeaderboard, getToday } from "@/lib/data";
+import type { EventSummary } from "@/lib/data";
+import { similarCases, type Similar } from "@/lib/similar";
 import { reactionWindowFor } from "@foreshadow/core";
 import { Trace } from "@/components/event/Trace";
 import { AlertsPanel } from "@/components/event/AlertsPanel";
@@ -34,6 +36,8 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
   const session =
     s.catalyst.session === "premarket" ? "before the market opened" : s.catalyst.session === "afterhours" ? "after the market closed" : null;
   const pastRelated = related.filter((r) => r.catalyst.eventDate <= today).slice(0, 6);
+  const pool = await getLeaderboard({ kind: s.catalyst.kind, limit: 400 });
+  const similar = similarCases(s, pool);
   const notes: string[] = [];
   if (s.flags.insufficientHistory) notes.push("This stock had little options trading before, so the comparison is less reliable.");
   if (s.flags.multiCatalyst) notes.push("Another piece of news fell in the same week, so some of the betting may be about that.");
@@ -152,6 +156,15 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
         </div>
       </div>
 
+      <section className="mt-28" aria-labelledby="similar-h">
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-4">
+          <h2 id="similar-h" className="display text-[32px] text-ink">Cases like this one</h2>
+          <Link href="/scorecard" className="link shrink-0 text-[15px]">See the full scorecard</Link>
+        </div>
+        <p className="prose-plain mb-6 max-w-[720px]">{similarSentence(s, similar)}</p>
+        {similar.cases.length > 0 ? <CaseList rows={similar.cases.slice(0, 5)} showYear /> : null}
+      </section>
+
       {pastRelated.length > 0 ? (
         <section className="mt-28" aria-labelledby="related-h">
           <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
@@ -174,4 +187,14 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
       <dd>{children}</dd>
     </div>
   );
+}
+
+function similarSentence(s: EventSummary, sim: Similar): string {
+  const kind = s.catalyst.kind === "fda" ? "FDA" : s.catalyst.kind === "earnings" ? "earnings" : "past";
+  const lean = s.direction === "bullish" ? " with bets leaning toward a rise" : s.direction === "bearish" ? " with bets leaning toward a fall" : "";
+  const n = sim.cases.length;
+  if (n === 0) return `No finished ${kind} cases look like this one yet. As more cases finish, they'll show up here.`;
+  const share = Math.round((sim.right / n) * 100);
+  const lead = s.verdict === "pending" ? "Betting like this has shown up before. Of" : "Of";
+  return `${lead} ${n} finished ${kind} case${n === 1 ? "" : "s"} that scored ${sim.lo} to ${sim.hi}${lean}, the bets were right in ${sim.right} (${share}%).`;
 }
