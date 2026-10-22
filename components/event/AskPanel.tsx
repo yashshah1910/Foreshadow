@@ -15,7 +15,8 @@ interface AskResponse {
   offTopic?: boolean;
 }
 
-const SUGGESTIONS = ["Why did it score this way?", "What was the biggest bet?", "Has this happened before for this stock?"];
+const CASE_SUGGESTIONS = ["Why did it score this way?", "What was the biggest bet?", "Has this happened before for this stock?"];
+const STOCK_SUGGESTIONS = ["Does unusual betting show up before its news?", "Which case had the most unusual betting?", "Is any news coming up?"];
 const MAX_LENGTH = 300;
 
 /** What the answer is doing while the reader waits, in the order it usually happens. */
@@ -27,7 +28,19 @@ const SOURCE_NAMES: Record<string, string> = {
   foreshadow_radar: "upcoming news",
 };
 
-export function AskPanel({ ticker, eventDate, summary }: { ticker: string; eventDate?: string; summary: string }) {
+export function AskPanel({
+  ticker,
+  eventDate,
+  summary,
+  scope = "case",
+}: {
+  ticker: string;
+  eventDate?: string;
+  summary: string;
+  /** "stock" on a stock page: the questions are about the whole track record. */
+  scope?: "case" | "stock";
+}) {
+  const SUGGESTIONS = scope === "stock" ? STOCK_SUGGESTIONS : CASE_SUGGESTIONS;
   const [q, setQ] = useState("");
   const [asked, setAsked] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -70,9 +83,9 @@ export function AskPanel({ ticker, eventDate, summary }: { ticker: string; event
 
   return (
     <section aria-labelledby="ask-h" className="tray p-6">
-      <h2 id="ask-h" className="display text-[24px] text-ink">Ask about this case</h2>
+      <h2 id="ask-h" className="display text-[24px] text-ink">{scope === "stock" ? `Ask about ${ticker}` : "Ask about this case"}</h2>
       <p className="mt-1.5 text-[15px] leading-relaxed text-ink-3">
-        Short answers from this case&apos;s data and Unusual Whales, written by Claude.
+        Short answers from {scope === "stock" ? `${ticker}'s cases` : "this case's data"} and Unusual Whales, written by Claude.
       </p>
 
       <form

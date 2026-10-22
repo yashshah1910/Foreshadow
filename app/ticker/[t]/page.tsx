@@ -6,6 +6,7 @@ import { DossierSummary } from "@/components/dossier/DossierSummary";
 import { CaseList } from "@/components/cases/CaseList";
 import { fmtDate, fmtMarketcap } from "@/lib/format";
 import { KindTag } from "@/components/viz/Marks";
+import { AskPanel } from "@/components/event/AskPanel";
 
 export async function generateMetadata({ params }: PageProps<"/ticker/[t]">): Promise<Metadata> {
   const { t } = await params;
@@ -101,6 +102,14 @@ export default async function TickerPage({ params }: PageProps<"/ticker/[t]">) {
         <h2 id="past-h" className="display mb-6 text-[34px] text-ink">Past cases</h2>
         <CaseList rows={past} animate={false} showYear />
       </section>
+
+      <div className="mt-24 max-w-[640px]">
+        <AskPanel
+          scope="stock"
+          ticker={ticker}
+          summary={`${ticker}${company ? ` (${company.name})` : ""}: ${hitRate.scored} scored cases, very unusual ${hitRate.strong} times, right ${hitRate.strongMatched} of those.`}
+        />
+      </div>
       </>
       ) : null}
     </div>
