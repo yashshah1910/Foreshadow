@@ -160,7 +160,7 @@ export function ToolPlayground({ ticker, eventDate }: { ticker: string; eventDat
           </button>
         </form>
         <p className="mt-3 text-[13px] text-ink-3">What Claude sends:</p>
-        <pre className="mt-1 overflow-x-auto well px-3 py-2 font-mono text-[12.5px] text-ink">
+        <pre tabIndex={0} className="mt-1 overflow-x-auto well px-3 py-2 font-mono text-[12.5px] text-ink">
           {JSON.stringify({ name: tool.name, arguments: args })}
         </pre>
         {shown ? (
@@ -171,7 +171,7 @@ export function ToolPlayground({ ticker, eventDate }: { ticker: string; eventDat
             {shown.json ? (
               <>
                 <p className="mt-3 text-[13px] text-ink-3">What Claude gets back:</p>
-                <pre className="mt-1 max-h-[320px] overflow-auto well px-3 py-2 font-mono text-[12px] leading-relaxed text-ink">
+                <pre tabIndex={0} className="mt-1 max-h-[320px] overflow-auto well px-3 py-2 font-mono text-[12px] leading-relaxed text-ink">
                   {JSON.stringify(shown.json, null, 2)}
                 </pre>
               </>

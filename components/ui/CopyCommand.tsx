@@ -8,7 +8,7 @@ export function CopyCommand({ command, label = "Copy command" }: { command: stri
   const [copied, setCopied] = useState(false);
   return (
     <div className="well flex items-center gap-2 py-1.5 pl-4 pr-1.5">
-      <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-[13px] text-ink">{command}</code>
+      <code tabIndex={0} className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-[13px] text-ink">{command}</code>
       <button
         type="button"
         onClick={async () => {
