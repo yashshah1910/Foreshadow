@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { env } from "@/lib/env";
+import { getLeaderboard } from "@/lib/data";
+import { ToolPlayground } from "@/components/docs/ToolPlayground";
 
 export const metadata: Metadata = {
   title: "How it works",
@@ -16,8 +18,10 @@ const SIGNALS: [string, string, string, string][] = [
   ["Dark pool prints", "/api/darkpool/{t}", "notional of prints ≥ $1M per day (log1p) vs. baseline", "10%"],
 ];
 
-export default function DocsPage() {
+export default async function DocsPage() {
   const base = env.siteUrl.replace(/\/$/, "");
+  // The playground starts on the most unusual finished case, so its first run always returns something.
+  const [top] = await getLeaderboard({ limit: 1 });
   return (
     <div className="mx-auto max-w-[760px] px-5 py-12 sm:px-8 lg:py-16">
       <h1 className="display text-[44px] text-ink sm:text-[60px]">How it works</h1>
@@ -207,6 +211,9 @@ export default function DocsPage() {
           <li><span className="font-mono text-ink">foreshadow_scorecard</span> () → how often unusual betting was right, by kind of news and score band, against ordinary betting.</li>
           <li><span className="font-mono text-ink">foreshadow_similar</span> (ticker, eventDate) → finished cases like this one and how often their bets were right.</li>
         </ul>
+        <h3 className="mt-6 text-[18px] font-semibold text-ink">Try the tools here</h3>
+        <p className="mt-1">Each tool has a REST twin that returns the same thing. Run one to see exactly what Claude gets.</p>
+        <ToolPlayground ticker={top?.catalyst.ticker ?? "TSLA"} eventDate={top?.catalyst.eventDate ?? "2026-10-21"} />
         <p className="mt-3">
           For stdio-only clients: <span className="font-mono text-ink">FORESHADOW_URL={base} npx foreshadow-mcp</span> (package in{" "}
           <span className="font-mono">packages/mcp-stdio</span>). Try it in Claude Desktop: &ldquo;was there unusual options betting before Tesla&apos;s Oct 21 earnings?&rdquo;
