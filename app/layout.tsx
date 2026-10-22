@@ -50,8 +50,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${bricolage.variable} ${instrument.variable} ${plexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <a
+          href="#main"
+          className="pop sr-only z-50 px-4 py-2.5 text-[15px] font-medium text-ink focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+        >
+          Skip to content
+        </a>
         <Header />
-        <main className="flex-1 w-full">{children}</main>
+        <main id="main" tabIndex={-1} className="flex-1 w-full outline-none">{children}</main>
         <Footer />
       </body>
     </html>
