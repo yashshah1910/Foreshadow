@@ -20,7 +20,8 @@ export function Timeline({ events }: { events: EventSummary[] }) {
   const t0 = sorted.length ? Date.parse(sorted[0].catalyst.eventDate) : 0;
   const t1 = sorted.length ? Date.parse(sorted[sorted.length - 1].catalyst.eventDate) : 1;
   const span = Math.max(1, t1 - t0);
-  const x = (d: string) => PL + 10 + ((Date.parse(d) - t0) / span) * (width - PL - PR - 20);
+  // One date only: put it in the middle instead of pinned to the left edge.
+  const x = (d: string) => (t1 === t0 ? (PL + width - PR) / 2 : PL + 10 + ((Date.parse(d) - t0) / span) * (width - PL - PR - 20));
   const y = (s: number) => PT + (1 - s / 100) * (H - PT - PB);
   return (
     <div ref={ref} className="w-full">
@@ -38,12 +39,20 @@ export function Timeline({ events }: { events: EventSummary[] }) {
         </text>
         {sorted.length ? (
           <>
-            <text x={PL + 10} y={H - 8} className="fill-ink-3" fontSize="11.5">
-              {fmtDate(sorted[0].catalyst.eventDate, { year: true })}
-            </text>
-            <text x={width - PR - 10} y={H - 8} textAnchor="end" className="fill-ink-3" fontSize="11.5">
-              {fmtDate(sorted[sorted.length - 1].catalyst.eventDate, { year: true })}
-            </text>
+            {t1 === t0 ? (
+              <text x={x(sorted[0].catalyst.eventDate)} y={H - 8} textAnchor="middle" className="fill-ink-3" fontSize="11.5">
+                {fmtDate(sorted[0].catalyst.eventDate, { year: true })}
+              </text>
+            ) : (
+              <>
+                <text x={PL + 10} y={H - 8} className="fill-ink-3" fontSize="11.5">
+                  {fmtDate(sorted[0].catalyst.eventDate, { year: true })}
+                </text>
+                <text x={width - PR - 10} y={H - 8} textAnchor="end" className="fill-ink-3" fontSize="11.5">
+                  {fmtDate(sorted[sorted.length - 1].catalyst.eventDate, { year: true })}
+                </text>
+              </>
+            )}
           </>
         ) : null}
         {sorted.map((e) => {

@@ -8,6 +8,7 @@ import { fmtDate, fmtMarketcap } from "@/lib/format";
 import { KindTag } from "@/components/viz/Marks";
 import { AskPanel } from "@/components/event/AskPanel";
 import { WatchButton } from "@/components/shell/WatchButton";
+import { addTradingDays } from "@foreshadow/core";
 
 export async function generateMetadata({ params }: PageProps<"/ticker/[t]">): Promise<Metadata> {
   const { t } = await params;
@@ -46,18 +47,30 @@ export default async function TickerPage({ params }: PageProps<"/ticker/[t]">) {
             <a href={`/feed.xml?ticker=${ticker}`} className="link text-[15px]">
               Follow {ticker} by RSS
             </a>
+            <a href={`/calendar.ics?tickers=${ticker}`} className="link text-[15px]">
+              Add {ticker}&apos;s news to your calendar
+            </a>
           </div>
         </div>
         <div>
+          {dossier.next?.[0] ? (
+            <p className="mb-4 rounded-2xl bg-surface-2 px-4 py-3 text-[15.5px] text-ink-2">
+              <strong className="font-semibold text-ink">Next news:</strong> {dossier.next[0].kind === "earnings" ? "earnings" : dossier.next[0].title},{" "}
+              {fmtDate(dossier.next[0].eventDate, { weekday: true })}. Foreshadow starts scoring the betting on{" "}
+              {fmtDate(addTradingDays(dossier.next[0].eventDate, -5), { weekday: true })}.
+            </p>
+          ) : null}
           {past.length > 0 ? (
             <p className="prose-plain">
-              Before <strong>{hitRate.scored}</strong> past news events, the betting was very unusual{" "}
-              <strong>{hitRate.strong}</strong> time{hitRate.strong === 1 ? "" : "s"}
-              {hitRate.strong > 0 ? (
+              Before <strong>{hitRate.scored}</strong> past news event{hitRate.scored === 1 ? "" : "s"},{" "}
+              {hitRate.strong === 0 ? (
+                <>the betting was never very unusual (70 or more).</>
+              ) : (
                 <>
-                  , and those bets were right <strong>{hitRate.strongMatched}</strong> time{hitRate.strongMatched === 1 ? "" : "s"}.
+                  the betting was very unusual <strong>{hitRate.strong}</strong> time{hitRate.strong === 1 ? "" : "s"}, and those bets were
+                  right <strong>{hitRate.strongMatched}</strong> time{hitRate.strongMatched === 1 ? "" : "s"}.
                 </>
-              ) : "."}
+              )}
             </p>
           ) : null}
         </div>
