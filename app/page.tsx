@@ -132,6 +132,9 @@ export default async function Home() {
             yes, the bets were right.
           </Step>
         </ol>
+        <p className="mt-8 text-[16px] text-ink-2">
+          The score is plain arithmetic you can check. <Link href="/docs#score" className="link">Try it with the sliders</Link>.
+        </p>
         <WindowsDiagram />
         {unusual > 0 ? (
           <p className="prose-plain mt-10 max-w-[720px] text-[18px]">
