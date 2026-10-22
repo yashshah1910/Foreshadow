@@ -138,6 +138,9 @@ export async function foreshadowSimilar(args: { ticker: string; eventDate: strin
     similarCases: sim.cases.length,
     betsRight: sim.right,
     rightPct: sim.cases.length ? Math.round((sim.right / sim.cases.length) * 100) : null,
+    // Looser: the stock moved the way the bets leaned, whatever the size of the move.
+    movedTheirWay: sim.wentTheirWay,
+    movedTheirWayPct: sim.cases.length ? Math.round((sim.wentTheirWay / sim.cases.length) * 100) : null,
     closest: sim.cases.slice(0, 8).map(summarize),
   };
 }

@@ -27,6 +27,14 @@ describe("similarCases", () => {
     expect([r.lo, r.hi]).toEqual([42, 58]);
   });
 
+  it("counts cases that moved the way the bets leaned, whatever the size", () => {
+    const target = s(50);
+    const pool = [s(51, { realizedMovePct: -2 }), s(52, { realizedMovePct: 3 }), s(49, { realizedMovePct: -9, verdict: "matched" })];
+    const r = similarCases(target, pool, 3);
+    expect(r.right).toBe(1);
+    expect(r.wentTheirWay).toBe(2);
+  });
+
   it("widens the range to find enough cases, but not past 32 points", () => {
     const target = s(50);
     const r = similarCases(target, [s(75), s(20), s(10)], 2);

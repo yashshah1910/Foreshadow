@@ -211,7 +211,8 @@ function similarSentence(s: EventSummary, sim: Similar): string {
   if (n === 0) return `No finished ${kind} cases look like this one yet. As more cases finish, they'll show up here.`;
   const share = Math.round((sim.right / n) * 100);
   const lead = s.verdict === "pending" ? "Betting like this has shown up before. Of" : "Of";
-  return `${lead} ${n} finished ${kind} case${n === 1 ? "" : "s"} that scored ${sim.lo} to ${sim.hi}${lean}, the bets were right in ${sim.right} (${share}%).`;
+  const way = s.direction === "mixed" ? "" : `, and the stock at least moved the way they leaned in ${sim.wentTheirWay} (${Math.round((sim.wentTheirWay / n) * 100)}%)`;
+  return `${lead} ${n} finished ${kind} case${n === 1 ? "" : "s"} that scored ${sim.lo} to ${sim.hi}${lean}, the bets were right in ${sim.right} (${share}%)${way}.`;
 }
 
 /** One plain line for sharing: what happened before the news and whether the bets were right. */

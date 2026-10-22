@@ -153,7 +153,7 @@ The five tools have REST twins with the same JSON:
 | `foreshadow_radar` | `GET /api/radar?daysAhead=&minScore=` | `today` and `items`: upcoming cases with the same summary fields plus `windowStart`, `windowOpen`, `daysElapsed`, `daysTotal` |
 | `foreshadow_history` | `GET /api/history?ticker=` | `ticker`, `company`, `hitRate` and `events` (case summaries) |
 | `foreshadow_scorecard` | `GET /api/scorecard` | `cases`, `definition` and per kind of news a `finding` plus `bands` (`scores`, `cases`, `rightPct`, `movedMoreThanExpectedPct`, `movedWithLeanPct`) |
-| `foreshadow_similar` | `GET /api/similar?ticker=&eventDate=` | The `case`, what it was `matchedOn` (kind, lean, score range), `similarCases`, `betsRight`, `rightPct` and the `closest` case summaries |
+| `foreshadow_similar` | `GET /api/similar?ticker=&eventDate=` | The `case`, what it was `matchedOn` (kind, lean, score range), `similarCases`, `betsRight`, `rightPct`, `movedTheirWay`, `movedTheirWayPct` and the `closest` case summaries |
 
 These are Foreshadow's results, not a copy of Unusual Whales data. `trades.largest` holds at most five example trades,
 each only `{ tradeDate, type, strike, expiry, premium, isSweep }`: no alert ids, timestamps, contract counts or other raw

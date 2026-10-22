@@ -5,6 +5,8 @@ export interface Similar {
   /** Finished cases like this one, closest score first. */
   cases: EventSummary[];
   right: number;
+  /** Cases where the stock at least moved the way the bets leaned, whatever the size of the move. */
+  wentTheirWay: number;
   /** Score range used, after widening if needed to find enough cases. */
   lo: number;
   hi: number;
@@ -34,6 +36,7 @@ export function similarCases(target: EventSummary, pool: EventSummary[], want = 
   return {
     cases: picked,
     right: picked.filter((s) => s.verdict === "matched").length,
+    wentTheirWay: picked.filter((s) => s.direction !== "mixed" && s.realizedMovePct !== null && s.realizedMovePct !== 0 && (s.direction === "bullish") === s.realizedMovePct > 0).length,
     lo: Math.max(0, Math.round(target.score - width)),
     hi: Math.min(100, Math.round(target.score + width)),
   };
