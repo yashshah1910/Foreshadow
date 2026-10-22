@@ -5,7 +5,8 @@ import { GLOSSARY, type GlossaryKey } from "@/lib/glossary";
 
 /**
  * A small "?" beside a label that opens a one-line plain explanation.
- * Opens on click or keyboard, closes on Escape, outside click or blur.
+ * Opens on hover or keyboard focus (tap on touch screens), closes when the
+ * pointer leaves, on blur, on Escape or on an outside tap.
  */
 export function Explain({ term, label, compact = false }: { term: GlossaryKey; label?: string; compact?: boolean }) {
   const [open, setOpen] = useState(false);
@@ -30,13 +31,20 @@ export function Explain({ term, label, compact = false }: { term: GlossaryKey; l
   }, [open]);
 
   return (
-    <span ref={wrap} className="relative inline-flex align-middle">
+    <span
+      ref={wrap}
+      className="relative inline-flex align-middle"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
       <button
         type="button"
         aria-expanded={open}
         aria-controls={id}
         aria-label={`What is ${label ?? entry.title}?`}
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setOpen(true)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
         className={`grid place-items-center rounded-full bg-surface-2 font-semibold leading-none text-ink-2 transition-colors hover:bg-surface-3 hover:text-ink ${compact ? "ml-1 h-4 w-4 text-[10px]" : "ml-1.5 h-[18px] w-[18px] text-[11px]"}`}
       >
         ?
