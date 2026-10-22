@@ -17,6 +17,7 @@ interface AskResponse {
 }
 
 const CASE_SUGGESTIONS = ["Why did it score this way?", "What was the biggest bet?", "Has this happened before for this stock?"];
+const PENDING_SUGGESTIONS = ["Why is this betting unusual?", "What would make these bets right?", "Has betting like this been right before?"];
 const STOCK_SUGGESTIONS = ["Does unusual betting show up before its news?", "Which case had the most unusual betting?", "Is any news coming up?"];
 const RADAR_SUGGESTIONS = ["Which news coming up has the most unusual betting?", "Is anything leaning toward a fall?", "Has betting like this been right before?"];
 const SCORECARD_SUGGESTIONS = ["Does unusual betting actually work?", "Why are most cases not right?", "What was the best call so far?"];
@@ -59,15 +60,18 @@ export function AskPanel({
   eventDate,
   summary,
   scope = "case",
+  pending = false,
 }: {
   ticker?: string;
   eventDate?: string;
   summary: string;
+  /** A case whose news hasn't happened yet: suggest forward-looking questions. */
+  pending?: boolean;
   /** "stock": the whole track record; "radar" and "scorecard": no single stock, the page's list or findings. */
   scope?: Scope;
 }) {
   const SUGGESTIONS =
-    scope === "stock" ? STOCK_SUGGESTIONS : scope === "radar" ? RADAR_SUGGESTIONS : scope === "scorecard" ? SCORECARD_SUGGESTIONS : CASE_SUGGESTIONS;
+    scope === "stock" ? STOCK_SUGGESTIONS : scope === "radar" ? RADAR_SUGGESTIONS : scope === "scorecard" ? SCORECARD_SUGGESTIONS : pending ? PENDING_SUGGESTIONS : CASE_SUGGESTIONS;
   const [q, setQ] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [busy, setBusy] = useState(false);

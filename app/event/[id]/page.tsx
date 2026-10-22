@@ -17,7 +17,7 @@ import { CaseList } from "@/components/cases/CaseList";
 import { KindTag, VerdictMark, WindowMeter } from "@/components/viz/Marks";
 import { Explain } from "@/components/ui/Explain";
 import type { GlossaryKey } from "@/lib/glossary";
-import { caseSummary, directionPlain, eventName, eventPhrase, factsFromStored, OUTCOME_PLAIN, outcomeOf, scoreWord } from "@/lib/plain";
+import { caseSummary, directionPlain, eventName, eventPhrase, factsFromStored, OUTCOME_PLAIN, OUTCOME_SHORT, outcomeOf, scoreWord } from "@/lib/plain";
 import { fmtDate, fmtPct } from "@/lib/format";
 
 export async function generateMetadata({ params }: PageProps<"/event/[id]">): Promise<Metadata> {
@@ -159,7 +159,8 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
           <AskPanel
             ticker={s.catalyst.ticker}
             eventDate={s.catalyst.eventDate}
-            summary={`${s.catalyst.ticker} ${s.catalyst.title} on ${s.catalyst.eventDate}: score ${s.score}, ${s.direction}, verdict ${s.verdict}.`}
+            summary={`${s.catalyst.ticker} ${eventName(s)} on ${s.catalyst.eventDate}: betting scored ${Math.round(s.score)} out of 100, ${directionPlain(s.direction).toLowerCase()}. Result: ${OUTCOME_SHORT[outcomeOf(s)].toLowerCase()}.`}
+            pending={s.verdict === "pending"}
           />
           <div className="flex flex-wrap gap-2">
             <ShareButton id={s.catalyst.id} text={shareText(s)} />
