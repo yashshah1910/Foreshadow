@@ -12,8 +12,8 @@ Built for Unusual Whales Hackathon #1 with Next.js 16 and Supabase. The scorer i
 (no LLM anywhere near the numbers); Claude writes the plain-English summaries and answers questions. There is also a
 remote MCP server, so Claude can query Foreshadow directly.
 
-The live site covers FDA news from the past year and earnings from the last 90 days for US companies worth over $2B
-with listed options, and scores news coming up in the next two weeks every 15 minutes.
+The live site covers FDA news from the past year and earnings from the last 90 days (a full year for about 45 of the
+largest companies) for US companies worth over $2B with listed options, and scores news coming up in the next two weeks every 15 minutes.
 
 ### A two-minute tour
 
@@ -30,12 +30,12 @@ with listed options, and scores news coming up in the next two weeks every 15 mi
 
 | Page | What it shows |
 | --- | --- |
-| **Past cases** `/leaderboard` | Finished news events from the last 90 days, ranked by how unusual the betting was, with which way the bets leaned, the move options priced in, the actual move, and whether the bets were right. Filters: FDA or earnings, very unusual only, bets were right, 30 days, 90 days or a year; sort by most unusual, newest or biggest move. |
+| **Past cases** `/leaderboard` | Finished news events (the last 90 days unless you pick another window), ranked by how unusual the betting was, with which way the bets leaned, the move options priced in, the actual move, and whether the bets were right. Filters: FDA or earnings, very unusual only, bets were right, 30 days, 90 days or a year; sort by most unusual, newest or biggest move. |
 | **Case page** `/event/[id]` | One case end to end: a day-by-day chart (stock price on top, one row per measurement below, the five counted days highlighted), every large trade behind the score, the score's arithmetic, a Claude summary, and "Ask about this case". **Replay the days** steps through the chart one trading day at a time with a plain caption, and **Cases like this one** shows how past cases of the same kind, with a similar score and lean, turned out. Shareable, with a generated preview image. |
-| **Stock page** `/ticker/[t]` | Every case for one stock on a timeline, its track record ("very unusual 3 times, right 2 of those") and a Claude summary. Stocks whose news isn't scored yet show what's queued. |
+| **Stock page** `/ticker/[t]` | Every case for one stock on a timeline, its track record ("very unusual 3 times, right 2 of those") and a Claude summary. It also says when the stock's next news is and when scoring starts, with an RSS feed and a calendar for that stock. Stocks whose news isn't scored yet show what's queued. |
 | **Coming up** `/radar` | A calendar of news due in the next two weeks, grouped by day, scored on the part of the five-day window that has already happened, with the most unusual betting so far at the top. Updates arrive through Supabase Realtime. Ask Claude "which news coming up has the most unusual betting?" right on the page. |
 | **Scorecard** `/scorecard` | Foreshadow grading itself in public: across every finished case, how often the bets were right by kind of news and score band, against ordinary betting as the yardstick. A lift is only claimed when it clears a significance check at that sample size. Ask Claude "does this actually work?" on the page. |
-| **Guess the move** `/guess` | A five-round game on real finished cases: see the ten days of betting before the news with the result hidden, call rise or fall, then compare your record with simply following the bets. |
+| **Guess the move** `/guess` | A five-round game on real finished cases: see the ten days of betting before the news with the result hidden, call rise or fall, then compare your record with simply following the bets. Play all cases, FDA news only or earnings only; ↑/↓ on the keyboard work too. |
 | **RSS** `/feed.xml` | Upcoming news once its betting turns unusual, plus recent unusual cases, for any feed reader or a Discord RSS bot. |
 | **Calendar** `/calendar.ics` | Subscribe in Google, Apple or Outlook calendar: upcoming news whose betting is already unusual, or with `?tickers=AAPL,TSLA` everything coming up for your stocks, each with its live score and a link to the case. |
 | **How it works** `/docs` | The method in plain words, then the exact formula, data sources, API and MCP setup, with a score sandbox (move each measurement, watch the score; presets are real cases) and a panel that runs any of the five MCP tools in the browser. |
@@ -81,7 +81,7 @@ Useful flags: `--min-cap 2e9` (earnings market-cap floor, the default), `--concu
 3 requests in flight), `--max N`, `--dry-run`, `--loop`. `pnpm uw:check AAPL` reports how far back your UW plan's
 history goes.
 
-Checks: `pnpm test` (140 tests: scorer, UW client, narrator, rate limits), `pnpm typecheck`, `pnpm lint`.
+Checks: `pnpm test` (180 tests: scorer, UW client, narrator, plain-English wording, similar cases, rate limits), `pnpm typecheck`, `pnpm lint`. CI runs all three plus a demo-mode build on every push.
 
 ## Keys
 
@@ -93,6 +93,7 @@ Checks: `pnpm test` (140 tests: scorer, UW client, narrator, rate limits), `pnpm
 | `ANTHROPIC_API_KEY` | The case summaries, stock summaries, the Ask panel and the catalyst tagger. **Without it every surface still works**; the story slot shows the deterministic template. |
 | `CRON_SECRET` | Protects `/api/cron/ingest`. Vercel Cron sends it as a Bearer token; the GitHub Actions radar workflow needs it as a repo secret. |
 | `RESEND_API_KEY` | Email alerts (Discord webhooks need nothing). |
+| `NEXT_PUBLIC_POSTHOG_KEY` | Optional product analytics (PostHog, proxied through `/ingest`). Empty → nothing is sent. |
 
 No keys live in the repo; copy `.env.example`.
 
