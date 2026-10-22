@@ -60,7 +60,7 @@ Checks: `pnpm test` (140 tests: scorer, UW client, narrator, rate limits), `pnpm
 | Variable | Needed for |
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Accounts, BYOK, watchlists, alerts, Realtime. Empty → demo mode from fixtures. |
-| `SUPABASE_SECRET_KEY` | The ingest, the narration cache and server-side reads. (`SUPABASE_SERVICE_ROLE_KEY` also works.) |
+| `SUPABASE_SECRET_KEY` | The ingest, the narration cache and server-side reads; required, because raw Unusual Whales data (`footprints`, `catalysts.payload`) is readable by the service role only. (`SUPABASE_SERVICE_ROLE_KEY` also works.) |
 | `UW_API_KEY` | Fresh scoring and Coming up. Signed-in users can bring their own key instead (Settings → stored in Vault). |
 | `ANTHROPIC_API_KEY` | The case summaries, stock summaries, the Ask panel and the catalyst tagger. **Without it every surface still works**; the story slot shows the deterministic template. |
 | `CRON_SECRET` | Protects `/api/cron/ingest`. Vercel Cron sends it as a Bearer token; the GitHub Actions radar workflow needs it as a repo secret. |
@@ -140,7 +140,8 @@ The five tools have REST twins with the same JSON:
 These are Foreshadow's results, not a copy of Unusual Whales data. `trades.largest` holds at most five example trades,
 each only `{ tradeDate, type, strike, expiry, premium, isSweep }`: no alert ids, timestamps, contract counts or other raw
 fields. Case pages show the ten largest the same way, and `/api/ask` returns only the answer and the names of the sources
-it used. The raw cached responses in the `footprints` table are readable by the service role only.
+it used. Stored scores keep the same trimmed trades, and the raw cached responses (`footprints`) and catalyst
+calendar rows (`catalysts.payload`) are readable by the service role only.
 
 ## Architecture
 
