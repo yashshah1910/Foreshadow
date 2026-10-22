@@ -1,9 +1,11 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import type { StoredScore } from "@foreshadow/core";
 import type { FlowAlert } from "@foreshadow/core";
 import type { InvestigateResult } from "@foreshadow/narrator";
 import { publicAnswer } from "@/lib/ask";
 import { API_SAMPLE_SIZE, sampleTrades, tradeTotals } from "@/lib/data/sample";
-import { foreshadowHistory, foreshadowRadar, foreshadowScore } from "@/lib/tools/foreshadow";
+import { foreshadowHistory, foreshadowRadar, foreshadowScore, foreshadowSimilar } from "@/lib/tools/foreshadow";
 
 const TRADE_KEYS = ["expiry", "isSweep", "premium", "strike", "tradeDate", "type"];
 
@@ -51,6 +53,15 @@ describe("sampleTrades", () => {
   });
 });
 
+describe("stored scores", () => {
+  it("keep only example fields on their top trades", () => {
+    const scores = JSON.parse(readFileSync("supabase/fixtures/scores.json", "utf8")) as StoredScore[];
+    const trades = scores.flatMap((s) => s.breakdown.topAlerts);
+    expect(trades.length).toBeGreaterThan(0);
+    for (const t of trades) expect(Object.keys(t).sort()).toEqual(TRADE_KEYS);
+  });
+});
+
 describe("foreshadow_score", () => {
   it("returns derived results and a few example trades, never raw UW rows", async () => {
     const res = await foreshadowScore({ ticker: "VXRA", eventDate: "2026-09-18" });
@@ -69,11 +80,12 @@ describe("foreshadow_score", () => {
   });
 });
 
-describe("foreshadow_radar and foreshadow_history", () => {
+describe("foreshadow_radar, foreshadow_history and foreshadow_similar", () => {
   it("carry no trade rows at all", async () => {
     const radar = await foreshadowRadar({ daysAhead: 30 });
     const history = await foreshadowHistory({ ticker: "VXRA" });
-    for (const value of [radar, history]) {
+    const similar = await foreshadowSimilar({ ticker: "VXRA", eventDate: "2026-09-18" });
+    for (const value of [radar, history, similar]) {
       const keys = keysDeep(value);
       for (const raw of ["alerts", "topAlerts", "trades", "executedAt", "strike"]) expect(keys.has(raw), raw).toBe(false);
     }
