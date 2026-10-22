@@ -7,6 +7,7 @@ import { similarCases, type Similar } from "@/lib/similar";
 import { reactionWindowFor } from "@foreshadow/core";
 import { Trace } from "@/components/event/Trace";
 import { AlertsPanel } from "@/components/event/AlertsPanel";
+import { FiveDays } from "@/components/event/FiveDays";
 import { ScoreReceipt } from "@/components/event/ScoreReceipt";
 import { Narration } from "@/components/event/Narration";
 import { AskPanel } from "@/components/event/AskPanel";
@@ -131,6 +132,11 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
           </div>
         </div>
         <p className="mt-3 px-1 text-[14px] text-ink-3">Hover over a day to see its numbers, or select the chart and use the arrow keys.</p>
+        <FiveDays
+          daily={stored.breakdown.daily}
+          windowDays={windowDays}
+          normalPerDay={stored.breakdown.signals.find((x) => x.key === "flowIntensity")?.baselineMean ?? null}
+        />
       </section>
 
       {/* ---------------- Trades + Claude ---------------- */}
