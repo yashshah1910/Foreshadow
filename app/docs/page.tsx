@@ -148,8 +148,9 @@ export default async function DocsPage() {
           </table>
         </div>
         <p className="mt-3">
-          Catalysts come from <span className="font-mono text-ink">/api/market/fda-calendar</span>,{" "}
-          <span className="font-mono text-ink">/api/earnings/premarket</span> and <span className="font-mono text-ink">afterhours</span>,{" "}
+          The cases on the site are FDA news and earnings, from <span className="font-mono text-ink">/api/market/fda-calendar</span>,{" "}
+          <span className="font-mono text-ink">/api/earnings/premarket</span> and <span className="font-mono text-ink">afterhours</span>. The ingest
+          can also read other calendars (not shown on the site yet):{" "}
           <span className="font-mono text-ink">/api/congress/recent-trades</span> (with the premium{" "}
           <span className="font-mono text-ink">unusual-trades</span> feed and its <span className="font-mono">committee_conflict</span> tag when available),{" "}
           <span className="font-mono text-ink">/api/insider/transactions</span>, <span className="font-mono text-ink">/api/potus/schedule</span> and{" "}
