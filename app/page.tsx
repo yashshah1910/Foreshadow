@@ -63,6 +63,7 @@ export default async function Home() {
                 rows={["flow"]}
                 priceHeight={130}
                 eventLabel={eventPhrase(example.summary)}
+                replay
               />
             </div>
             <dl className="mt-1.5 grid grid-cols-2 gap-1.5 sm:grid-cols-3">

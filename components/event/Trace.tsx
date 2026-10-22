@@ -205,7 +205,7 @@ export function Trace(p: TraceProps) {
         ))}
 
         {/* Peak annotation, in pen */}
-        {m.peak ? (
+        {m.peak && (step === null || step >= m.peak.i) ? (
           <text x={m.peak.x} y={m.peak.y} textAnchor={m.peak.anchor} className="fill-pen stroke-surface" strokeWidth={4} paintOrder="stroke" strokeLinejoin="round" fontSize="11.5" fontWeight={600}>
             {m.peak.text}
           </text>
@@ -239,6 +239,15 @@ export function Trace(p: TraceProps) {
             opacity={0.94}
           />
         ) : null}
+
+        {/* Replay: row titles stay readable above the mask */}
+        {step !== null
+          ? m.rows.map((row) => (
+              <text key={`t-${row.key}`} x={PAD_L} y={row.top + 13} className="fill-ink stroke-surface" strokeWidth={4} paintOrder="stroke" strokeLinejoin="round" fontSize="13.5" fontWeight={600}>
+                {ROW_SPEC[row.key].label}
+              </text>
+            ))
+          : null}
 
         {/* Crosshair dot */}
         {active !== null && m.closeOf(active) !== null ? (
@@ -281,7 +290,8 @@ function replayCaption(m: ReturnType<typeof layout>, p: TraceProps, i: number): 
   if (day > p.eventDate) return `${date}: after the news. Nothing from here counts.`;
   const mt = m.metricsOf(day);
   const counted = p.windowDays.includes(day);
-  const bets = mt ? `${money(mt.callPremium)} bet on a rise, ${money(mt.putPremium)} on a fall` : "no large bets flagged";
+  const side = (v: number, what: string) => (v > 0 ? `${money(v)} bet on a ${what}` : `no large bets on a ${what}`);
+  const bets = mt && (mt.callPremium > 0 || mt.putPremium > 0) ? `${side(mt.callPremium, "rise")}, ${side(mt.putPremium, "fall")}` : "no large bets flagged";
   return counted ? `${date}: ${bets}. This day counts toward the score.` : `${date}: ${bets}. A normal day, for comparison.`;
 }
 
@@ -434,7 +444,7 @@ function layout(p: TraceProps, width: number) {
 
   let y = PAD_T + priceH + ROW_GAP + 6;
   const barW = Math.max(3, Math.min(20, slot * 0.56));
-  let peak: { x: number; y: number; text: string; anchor: "start" | "middle" | "end" } | null = null;
+  let peak: { x: number; y: number; text: string; anchor: "start" | "middle" | "end"; i: number } | null = null;
   const firstAfter = eventOnChart ? eventIdx : -1;
   const afterX = firstAfter >= 0 && n - firstAfter >= 3 ? PAD_L + firstAfter * slot + slot / 2 : null;
 
@@ -474,6 +484,7 @@ function layout(p: TraceProps, width: number) {
             y: isCall ? mid - ch + 9 : mid + ph - 1,
             text: `${money(v)} on a ${isCall ? "rise" : "fall"}`,
             anchor: flip ? "end" : "start",
+            i,
           };
         }
       });
@@ -506,7 +517,7 @@ function layout(p: TraceProps, width: number) {
   });
 
   const height = y - ROW_GAP + 8 + X_AXIS;
-  const peakLabel = peak as { x: number; y: number; text: string; anchor: "start" | "middle" | "end" } | null;
+  const peakLabel = peak as { x: number; y: number; text: string; anchor: "start" | "middle" | "end"; i: number } | null;
   if (peakLabel && eventX !== null && peakLabel.anchor === "start") {
     const w = peakLabel.text.length * 7.2;
     if (peakLabel.x < eventX && peakLabel.x + w > eventX - 4) {
