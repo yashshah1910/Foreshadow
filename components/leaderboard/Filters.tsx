@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useOptimistic } from "react";
 import { useListPending } from "./ListPending";
 import { PAGE, type FilterState } from "./filters-state";
+import { track } from "@/lib/analytics";
 
 const KINDS = [
   ["all", "All news"],
@@ -20,6 +21,7 @@ export function Filters({ initial, total }: { initial: FilterState; total: numbe
 
   function update(patch: Partial<FilterState>) {
     const next = { ...state, ...patch };
+    track("cases_filtered", { ...patch, kind: next.kind, days: next.days, sort: next.sort });
     const params = new URLSearchParams(sp.toString());
     if (next.kind === "all") params.delete("kind");
     else params.set("kind", next.kind);

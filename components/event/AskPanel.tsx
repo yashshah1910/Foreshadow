@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Answer } from "./Answer";
+import { track } from "@/lib/analytics";
 
 interface ToolCall {
   name: string;
@@ -65,6 +66,7 @@ export function AskPanel({
         { role: "user" as const, content: t.q },
         { role: "assistant" as const, content: t.res!.answer.slice(0, 1200) },
       ]);
+    track("ask_question", { scope, ticker, follow_up: turns.length > 0, suggested: SUGGESTIONS.includes(text) });
     setStep(0);
     setBusy(true);
     setTurns((ts) => [...ts, { q: text }]);
@@ -79,8 +81,10 @@ export function AskPanel({
       const j = (await r.json().catch(() => ({ error: "Something went wrong. Try again in a moment." }))) as AskResponse | { error: string };
       if (!r.ok || "error" in j) throw new Error("error" in j ? j.error : "Something went wrong. Try again in a moment.");
       turn = { q: text, res: j };
+      track("ask_answered", { scope, ticker, off_topic: Boolean(j.offTopic), sources: j.toolCalls.length });
     } catch (e) {
       turn = { q: text, err: e instanceof Error ? e.message : "Something went wrong. Try again in a moment." };
+      track("ask_failed", { scope, ticker });
     }
     setTurns((ts) => [...ts.slice(0, -1), turn]);
     setBusy(false);

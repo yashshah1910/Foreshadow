@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "@/lib/analytics";
 
 export function ShareButton({ id, text }: { id: string; text: string }) {
   const [copied, setCopied] = useState(false);
@@ -13,6 +14,7 @@ export function ShareButton({ id, text }: { id: string; text: string }) {
         const url = `${window.location.origin}/event/${encodeURIComponent(id)}`;
         try {
           await navigator.clipboard.writeText(url);
+          track("case_link_copied", { case: id });
           setCopied(true);
           setTimeout(() => setCopied(false), 1600);
         } catch {
@@ -30,6 +32,7 @@ export function ShareButton({ id, text }: { id: string; text: string }) {
       href={`https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(`https://foreshadow-six.vercel.app${path}`)}`}
       target="_blank"
       rel="noreferrer"
+      onClick={() => track("case_shared_x", { case: id })}
       className="pressable btn btn-soft w-fit"
     >
       <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

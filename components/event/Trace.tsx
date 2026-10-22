@@ -6,6 +6,7 @@ import { useMeasure } from "@/lib/hooks/useMeasure";
 import { bandPath } from "@/components/viz/Highlight";
 import { money } from "@/lib/plain";
 import { fmtDateShort, fmtInt, fmtMoney } from "@/lib/format";
+import { track } from "@/lib/analytics";
 
 export type TraceRowKey = "flow" | "oi" | "volume" | "skew" | "darkPool";
 
@@ -69,7 +70,10 @@ export function Trace(p: TraceProps) {
         <div className={`flex flex-wrap items-center gap-3 ${p.compact ? "mb-2" : "mb-4"}`}>
           <button
             type="button"
-            onClick={() => setStep((s) => (s === null ? 0 : null))}
+            onClick={() => {
+              if (step === null) track("replay_started", { where: p.compact ? "home" : "case" });
+              setStep((s) => (s === null ? 0 : null));
+            }}
             className={`pressable btn btn-soft ${p.compact ? "h-8 px-3.5 text-[13.5px]" : "h-9 px-4 text-[14px]"}`}
             aria-pressed={step !== null}
           >

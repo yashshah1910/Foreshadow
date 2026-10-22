@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { track } from "@/lib/analytics";
 
 interface Hit {
   ticker: string;
@@ -54,6 +55,7 @@ export function TickerSearch() {
   function go(ticker: string) {
     const t = ticker.trim().toUpperCase();
     if (!t) return;
+    track("stock_searched", { ticker: t });
     setOpen(false);
     setQ("");
     setHits([]);

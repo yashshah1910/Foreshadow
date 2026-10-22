@@ -1,6 +1,7 @@
 "use client";
 
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
+import { track } from "@/lib/analytics";
 
 /** "Watch TSLA": saves the stock on this device so Coming up can show it first. */
 export function WatchButton({ ticker }: { ticker: string }) {
@@ -10,7 +11,10 @@ export function WatchButton({ ticker }: { ticker: string }) {
     <button
       type="button"
       aria-pressed={on}
-      onClick={() => toggle(ticker)}
+      onClick={() => {
+        track(on ? "stock_unwatched" : "stock_watched", { ticker });
+        toggle(ticker);
+      }}
       className={`pressable btn h-10 px-4 text-[14.5px] ${on ? "bg-ink text-surface hover:bg-ink" : "btn-soft"}`}
       title={on ? `Stop watching ${ticker}` : `Watch ${ticker} on this device`}
     >
