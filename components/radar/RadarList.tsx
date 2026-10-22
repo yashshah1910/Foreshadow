@@ -91,7 +91,7 @@ export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }
           href={`/event/${encodeURIComponent(lead.catalyst.id)}`}
           className="tray group mb-10 flex flex-wrap items-center gap-x-6 gap-y-3 p-6 transition-colors hover:bg-surface-3"
         >
-          <span className="min-w-0 flex-1">
+          <span className="min-w-[16rem] flex-1">
             <span className="block text-[14px] font-medium text-ink-3">Most unusual betting so far</span>
             <span className="mt-1.5 block text-[22px] font-semibold leading-snug text-ink">
               <span className="ticker">{lead.catalyst.ticker}</span> {eventName(lead)}, {fmtDate(lead.catalyst.eventDate, { weekday: true })}

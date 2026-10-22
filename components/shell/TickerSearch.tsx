@@ -117,7 +117,7 @@ export function TickerSearch() {
               inputRef.current?.blur();
             }
           }}
-          className="w-24 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-3 focus-visible:outline-none sm:w-40"
+          className="w-[min(6rem,22vw)] bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-3 focus-visible:outline-none sm:w-40"
         />
         <kbd className="hidden rounded-md bg-surface px-1.5 py-0.5 text-[11px] font-medium text-ink-3 sm:inline">⌘K</kbd>
       </div>
