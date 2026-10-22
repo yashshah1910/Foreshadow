@@ -38,7 +38,7 @@ with listed options, and scores news coming up in the next two weeks every 15 mi
 | **Guess the move** `/guess` | A five-round game on real finished cases: see the ten days of betting before the news with the result hidden, call rise or fall, then compare your record with simply following the bets. |
 | **RSS** `/feed.xml` | Upcoming news once its betting turns unusual, plus recent unusual cases, for any feed reader or a Discord RSS bot. |
 | **Calendar** `/calendar.ics` | Subscribe in Google, Apple or Outlook calendar: upcoming news whose betting is already unusual, or with `?tickers=AAPL,TSLA` everything coming up for your stocks, each with its live score and a link to the case. |
-| **How it works** `/docs` | The method in plain words, then the exact formula, data sources, API and MCP setup, with a panel that runs any of the five MCP tools in the browser. |
+| **How it works** `/docs` | The method in plain words, then the exact formula, data sources, API and MCP setup, with a score sandbox (move each measurement, watch the score; presets are real cases) and a panel that runs any of the five MCP tools in the browser. |
 | **MCP** `/api/mcp` | Remote MCP (streamable HTTP): `foreshadow_score`, `foreshadow_radar`, `foreshadow_history`, `foreshadow_scorecard`, `foreshadow_similar`, plus three prompts (`investigate_case`, `week_ahead`, `stock_track_record`). Plus `packages/mcp-stdio` for stdio-only clients. |
 | **Accounts** `/settings` | Supabase Auth (magic link + Google). Bring your own UW key, stored in Supabase Vault. Watchlists. Discord-webhook or email alerts when a Coming-up score crosses your threshold. |
 

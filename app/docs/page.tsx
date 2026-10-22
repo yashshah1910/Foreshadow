@@ -3,6 +3,7 @@ import Link from "next/link";
 import { env } from "@/lib/env";
 import { getLeaderboard } from "@/lib/data";
 import { ToolPlayground } from "@/components/docs/ToolPlayground";
+import { ScoreSandbox } from "@/components/docs/ScoreSandbox";
 
 export const metadata: Metadata = {
   title: "How it works",
@@ -113,6 +114,9 @@ export default async function DocsPage() {
           every baseline gets a small standard-deviation floor so a near-constant history can&apos;t turn a bump into
           an infinite z.
         </p>
+        <h3 className="mt-6 text-[18px] font-semibold text-ink">Try it</h3>
+        <p className="mt-1">Move a measurement and watch its points change. The presets are real cases.</p>
+        <ScoreSandbox />
       </Section>
 
       <Section id="windows" title="Windows">
