@@ -1,0 +1,115 @@
+import { describe, expect, it } from "vitest";
+import { CAPTION_MAX_LENGTH, fallbackDossierSummary, fallbackNarration, formatMoney, formatPct } from "../src/fallback";
+import type { DossierInput } from "../src/types";
+import { verifyNumbers } from "../src/verify";
+import { sampleInput } from "./fixtures";
+
+function sentences(text: string): string[] {
+  return text.split(/(?<=\.)\s+(?=[A-Z])/).filter(Boolean);
+}
+
+describe("fallbackNarration", () => {
+  it("states score, direction and verdict in exactly three verified sentences", () => {
+    const input = sampleInput();
+    const n = fallbackNarration(input);
+    expect(n.story).toContain("84");
+    expect(n.story).toContain("bearish");
+    expect(n.story).toContain("matched");
+    expect(n.story).toContain("someone-knew");
+    expect(n.story).toContain("$4.1M");
+    expect(n.story).toContain("$150");
+    expect(n.story).toContain("at 14:32 UTC on Oct 9");
+    expect(n.story).toContain("11.2%");
+    expect(n.story).toContain("fell 18.6%");
+    expect(sentences(n.story)).toHaveLength(3);
+    expect(n.numbersVerified).toBe(true);
+    expect(n.unverifiedNumbers).toEqual([]);
+    expect(n.model).toBe("fallback");
+    expect(verifyNumbers(`${n.story}\n${n.caption}`, input).numbersVerified).toBe(true);
+  });
+
+  it("writes a short caption without hashtags", () => {
+    const n = fallbackNarration(sampleInput());
+    expect(n.caption.length).toBeLessThanOrEqual(CAPTION_MAX_LENGTH);
+    expect(n.caption).not.toContain("#");
+    expect(n.caption).toContain("Score 84, bearish");
+    expect(n.caption).toContain("footprint matched");
+  });
+
+  it("never throws on empty alerts, empty signals and no verdict", () => {
+    const input = { ...sampleInput(), signals: [], topAlerts: [], verdict: undefined };
+    const n = fallbackNarration(input);
+    expect(n.story).toContain("No individual signal stood out");
+    expect(n.story).toContain("no single alert dominated");
+    expect(n.story).toContain("pending");
+    expect(sentences(n.story)).toHaveLength(3);
+    expect(n.caption.length).toBeLessThanOrEqual(CAPTION_MAX_LENGTH);
+    expect(verifyNumbers(`${n.story}\n${n.caption}`, input).numbersVerified).toBe(true);
+  });
+
+  it("mentions flags, missed verdicts and insufficient data", () => {
+    const flagged = {
+      ...sampleInput(),
+      flags: { insufficientHistory: true, multiCatalyst: true, partialWindow: true, isIndexOrEtf: true },
+      verdict: { verdict: "missed" as const, realizedMovePct: 2.1, impliedMovePct: null, reactionWindow: "T+1" as const },
+    };
+    const n = fallbackNarration(flagged);
+    expect(n.story).toContain("still filling");
+    expect(n.story).toContain("not enough history");
+    expect(n.story).toContain("other catalysts");
+    expect(n.story).toContain("index or ETF");
+    expect(n.story).not.toContain("z-score");
+    expect(n.story).toContain("rose 2.1%");
+    expect(n.story).toContain("missed the move");
+    expect(n.story).toContain("T+1");
+    expect(verifyNumbers(`${n.story}\n${n.caption}`, flagged).numbersVerified).toBe(true);
+
+    const insufficient = { ...sampleInput(), verdict: { ...flagged.verdict, verdict: "insufficient" as const } };
+    expect(fallbackNarration(insufficient).story).toContain("not enough price data");
+  });
+});
+
+describe("formatters", () => {
+  it("round money and percentages the way the verifier expects", () => {
+    expect(formatMoney(4_120_000)).toBe("$4.1M");
+    expect(formatMoney(850_400)).toBe("$850K");
+    expect(formatMoney(1_250_000_000)).toBe("$1.3B");
+    expect(formatMoney(420)).toBe("$420");
+    expect(formatMoney(-1500)).toBe("-$2K");
+    expect(formatPct(-18.6)).toBe("18.6%");
+  });
+});
+
+describe("fallbackDossierSummary", () => {
+  const dossier: DossierInput = {
+    ticker: "XYZ",
+    events: [
+      { eventDate: "2025-10-14", kind: "fda", title: "PDUFA for drug ABC", score: 84.3, direction: "bearish", verdict: "matched", realizedMovePct: -18.6 },
+      { eventDate: "2025-07-30", kind: "earnings", title: "Q2 earnings", score: 71, direction: "bullish", verdict: "matched", realizedMovePct: 6.4 },
+      { eventDate: "2025-04-29", kind: "earnings", title: "Q1 earnings", score: 22, direction: "mixed", verdict: "missed", realizedMovePct: -1.1 },
+    ],
+    hitRate: { scored: 3, strong: 2, matched: 2 },
+  };
+
+  it("contains the hit rate, the top event's score, direction and verdict", () => {
+    const s = fallbackDossierSummary(dossier);
+    expect(s).toContain("XYZ has 3 scored catalysts");
+    expect(s).toContain("2 reached someone-knew territory and 2 of those matched the move");
+    expect(s).toContain("repeat offender");
+    expect(s).toContain("The strongest footprint, 84 and bearish");
+    expect(s).toContain("bearish");
+    expect(s).toContain("matched as the stock fell 18.6%");
+    expect(s).toContain("fell 18.6%");
+    expect(verifyNumbers(s, dossier).numbersVerified).toBe(true);
+  });
+
+  it("classifies weaker records and never throws on empty events", () => {
+    expect(fallbackDossierSummary({ ...dossier, hitRate: { scored: 3, strong: 1, matched: 0 } })).toContain("worth watching");
+    expect(fallbackDossierSummary({ ...dossier, hitRate: { scored: 3, strong: 0, matched: 0 } })).toContain("no sign of a repeat pattern");
+    const empty = fallbackDossierSummary({ ticker: "ABC", events: [], hitRate: { scored: 0, strong: 0, matched: 0 } });
+    expect(empty).toContain("ABC has no scored catalysts");
+    const single = fallbackDossierSummary({ ...dossier, events: [dossier.events[0]], hitRate: { scored: 1, strong: 1, matched: 1 } });
+    expect(single).toContain("1 scored catalyst in");
+    expect(single).not.toContain("Most recently");
+  });
+});

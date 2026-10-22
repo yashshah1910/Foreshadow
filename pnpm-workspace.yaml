@@ -1,0 +1,15 @@
+packages:
+  - "packages/mcp-stdio"
+
+allowBuilds:
+  sharp: false
+  unrs-resolver: false
+  supabase: true
+  esbuild: true
+
+minimumReleaseAgeExclude:
+  - '@anthropic-ai/sdk@1.1.0'
+  - framer-motion@14.6.0
+  - motion-dom@14.6.0
+  - motion-utils@14.6.0
+  - motion@14.6.0

@@ -1,0 +1,170 @@
+[
+  {
+    "ticker": "VXRA",
+    "name": "Vexara Therapeutics",
+    "sector": "Healthcare",
+    "marketcap": 2100000000
+  },
+  {
+    "ticker": "CLNB",
+    "name": "Celanta Bio",
+    "sector": "Healthcare",
+    "marketcap": 900000000
+  },
+  {
+    "ticker": "ORYX",
+    "name": "Oryx Neuroscience",
+    "sector": "Healthcare",
+    "marketcap": 4400000000
+  },
+  {
+    "ticker": "HLXB",
+    "name": "Helixbright Medicines",
+    "sector": "Healthcare",
+    "marketcap": 1500000000
+  },
+  {
+    "ticker": "AZTH",
+    "name": "Azoth Pharma",
+    "sector": "Healthcare",
+    "marketcap": 600000000
+  },
+  {
+    "ticker": "MYRB",
+    "name": "Myrobalan Therapeutics",
+    "sector": "Healthcare",
+    "marketcap": 3200000000
+  },
+  {
+    "ticker": "KRYO",
+    "name": "Kryos Genomics",
+    "sector": "Healthcare",
+    "marketcap": 1100000000
+  },
+  {
+    "ticker": "PLSB",
+    "name": "Pulsebio",
+    "sector": "Healthcare",
+    "marketcap": 7800000000
+  },
+  {
+    "ticker": "ZENT",
+    "name": "Zenthera",
+    "sector": "Healthcare",
+    "marketcap": 700000000
+  },
+  {
+    "ticker": "QNTM",
+    "name": "Quantim Systems",
+    "sector": "Technology",
+    "marketcap": 240000000000
+  },
+  {
+    "ticker": "LUMX",
+    "name": "Lumex Photonics",
+    "sector": "Technology",
+    "marketcap": 38000000000
+  },
+  {
+    "ticker": "NVRA",
+    "name": "Nivara Compute",
+    "sector": "Technology",
+    "marketcap": 130000000000
+  },
+  {
+    "ticker": "DRFT",
+    "name": "Drift Robotics",
+    "sector": "Technology",
+    "marketcap": 9000000000
+  },
+  {
+    "ticker": "SYNQ",
+    "name": "Synqa Cloud",
+    "sector": "Technology",
+    "marketcap": 26000000000
+  },
+  {
+    "ticker": "OPTA",
+    "name": "Optara Semiconductor",
+    "sector": "Technology",
+    "marketcap": 72000000000
+  },
+  {
+    "ticker": "VELO",
+    "name": "Velocity Networks",
+    "sector": "Communication",
+    "marketcap": 14000000000
+  },
+  {
+    "ticker": "CRBN",
+    "name": "Carbonix Materials",
+    "sector": "Materials",
+    "marketcap": 4000000000
+  },
+  {
+    "ticker": "HLDN",
+    "name": "Holden Outfitters",
+    "sector": "Consumer",
+    "marketcap": 11000000000
+  },
+  {
+    "ticker": "FRGO",
+    "name": "Fargo Freight",
+    "sector": "Industrials",
+    "marketcap": 8000000000
+  },
+  {
+    "ticker": "MRCT",
+    "name": "Mercato Grocers",
+    "sector": "Consumer",
+    "marketcap": 6000000000
+  },
+  {
+    "ticker": "ARLN",
+    "name": "Arlen Foods",
+    "sector": "Consumer",
+    "marketcap": 9000000000
+  },
+  {
+    "ticker": "TBLT",
+    "name": "Tablet Air",
+    "sector": "Industrials",
+    "marketcap": 3000000000
+  },
+  {
+    "ticker": "KPTL",
+    "name": "Keystone Capital",
+    "sector": "Financials",
+    "marketcap": 22000000000
+  },
+  {
+    "ticker": "BRDG",
+    "name": "Bridgewater Trust",
+    "sector": "Financials",
+    "marketcap": 7000000000
+  },
+  {
+    "ticker": "SOLV",
+    "name": "Solvent Energy",
+    "sector": "Energy",
+    "marketcap": 5000000000
+  },
+  {
+    "ticker": "HYDR",
+    "name": "Hydra Power",
+    "sector": "Energy",
+    "marketcap": 2500000000
+  },
+  {
+    "ticker": "AERO",
+    "name": "Aerolith Defense",
+    "sector": "Defense",
+    "marketcap": 31000000000
+  },
+  {
+    "ticker": "SPY",
+    "name": "S&P 500 ETF",
+    "sector": "Macro",
+    "marketcap": 600000000000
+  }
+]

@@ -1,0 +1,1170 @@
+[
+ {
+  "ticker": "SOLV",
+  "kind": "earnings",
+  "eventDate": "2026-11-05",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 6.58,
+   "full_name": "Solvent Energy",
+   "sector": "Energy",
+   "marketcap": 5000000000,
+   "is_s_p_500": false
+  },
+  "id": "earnings:SOLV:2026-11-05:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "QNTM",
+  "kind": "earnings",
+  "eventDate": "2026-11-04",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 4.88,
+   "full_name": "Quantim Systems",
+   "sector": "Technology",
+   "marketcap": 240000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:QNTM:2026-11-04:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "HLDN",
+  "kind": "earnings",
+  "eventDate": "2026-11-03",
+  "session": "premarket",
+  "title": "Q3 earnings, before the open",
+  "payload": {
+   "expected_move_perc": 8.06,
+   "full_name": "Holden Outfitters",
+   "sector": "Consumer",
+   "marketcap": 11000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:HLDN:2026-11-03:q3-earnings-before-the-open",
+  "source": "seed"
+ },
+ {
+  "ticker": "PLSB",
+  "kind": "fda",
+  "eventDate": "2026-11-03",
+  "session": "premarket",
+  "title": "Pulsatinib PDUFA decision",
+  "payload": {
+   "drug": "pulsatinib",
+   "catalyst": "PDUFA Date",
+   "indication": "HER2+ metastatic breast cancer",
+   "status": "NDA",
+   "marketcap": 7800000000
+  },
+  "id": "fda:PLSB:2026-11-03:pulsatinib-pdufa-decision",
+  "source": "seed"
+ },
+ {
+  "ticker": "VELO",
+  "kind": "earnings",
+  "eventDate": "2026-10-30",
+  "session": "premarket",
+  "title": "Q3 earnings, before the open",
+  "payload": {
+   "expected_move_perc": 9.58,
+   "full_name": "Velocity Networks",
+   "sector": "Communication",
+   "marketcap": 14000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:VELO:2026-10-30:q3-earnings-before-the-open",
+  "source": "seed"
+ },
+ {
+  "ticker": "KRYO",
+  "kind": "fda",
+  "eventDate": "2026-10-29",
+  "session": "premarket",
+  "title": "Kryogene-T advisory committee",
+  "payload": {
+   "drug": "kryogene-T",
+   "catalyst": "Advisory Committee Meeting",
+   "indication": "Sickle cell disease",
+   "status": "NDA",
+   "marketcap": 1100000000
+  },
+  "id": "fda:KRYO:2026-10-29:kryogene-t-advisory-committee",
+  "source": "seed"
+ },
+ {
+  "ticker": "SYNQ",
+  "kind": "earnings",
+  "eventDate": "2026-10-29",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 8.3,
+   "full_name": "Synqa Cloud",
+   "sector": "Technology",
+   "marketcap": 26000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:SYNQ:2026-10-29:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "LUMX",
+  "kind": "earnings",
+  "eventDate": "2026-10-28",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 9.65,
+   "full_name": "Lumex Photonics",
+   "sector": "Technology",
+   "marketcap": 38000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:LUMX:2026-10-28:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "SPY",
+  "kind": "economic",
+  "eventDate": "2026-10-28",
+  "session": "intraday",
+  "title": "FOMC rate decision",
+  "payload": {
+   "type": "fomc",
+   "event": "FOMC Rate Decision"
+  },
+  "id": "economic:SPY:2026-10-28:fomc-rate-decision",
+  "source": "seed"
+ },
+ {
+  "ticker": "DRFT",
+  "kind": "earnings",
+  "eventDate": "2026-10-27",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 6.55,
+   "full_name": "Drift Robotics",
+   "sector": "Technology",
+   "marketcap": 9000000000,
+   "is_s_p_500": false
+  },
+  "id": "earnings:DRFT:2026-10-27:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "ZENT",
+  "kind": "fda",
+  "eventDate": "2026-10-27",
+  "session": "premarket",
+  "title": "Zentherapine PDUFA decision",
+  "payload": {
+   "drug": "zentherapine",
+   "catalyst": "PDUFA Date",
+   "indication": "Postpartum depression",
+   "status": "NDA",
+   "marketcap": 700000000
+  },
+  "id": "fda:ZENT:2026-10-27:zentherapine-pdufa-decision",
+  "source": "seed"
+ },
+ {
+  "ticker": "MRCT",
+  "kind": "earnings",
+  "eventDate": "2026-10-23",
+  "session": "premarket",
+  "title": "Q3 earnings, before the open",
+  "payload": {
+   "expected_move_perc": 4.93,
+   "full_name": "Mercato Grocers",
+   "sector": "Consumer",
+   "marketcap": 6000000000,
+   "is_s_p_500": false
+  },
+  "id": "earnings:MRCT:2026-10-23:q3-earnings-before-the-open",
+  "source": "seed"
+ },
+ {
+  "ticker": "OPTA",
+  "kind": "earnings",
+  "eventDate": "2026-10-21",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 7.05,
+   "full_name": "Optara Semiconductor",
+   "sector": "Technology",
+   "marketcap": 72000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:OPTA:2026-10-21:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "AERO",
+  "kind": "earnings",
+  "eventDate": "2026-10-20",
+  "session": "premarket",
+  "title": "Q3 earnings, before the open",
+  "payload": {
+   "expected_move_perc": 9.96,
+   "full_name": "Aerolith Defense",
+   "sector": "Defense",
+   "marketcap": 31000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:AERO:2026-10-20:q3-earnings-before-the-open",
+  "source": "seed"
+ },
+ {
+  "ticker": "NVRA",
+  "kind": "earnings",
+  "eventDate": "2026-10-20",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 10.84,
+   "full_name": "Nivara Compute",
+   "sector": "Technology",
+   "marketcap": 130000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:NVRA:2026-10-20:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "BRDG",
+  "kind": "earnings",
+  "eventDate": "2026-10-15",
+  "session": "premarket",
+  "title": "Q3 earnings, before the open",
+  "payload": {
+   "expected_move_perc": 9.74,
+   "full_name": "Bridgewater Trust",
+   "sector": "Financials",
+   "marketcap": 7000000000,
+   "is_s_p_500": false
+  },
+  "id": "earnings:BRDG:2026-10-15:q3-earnings-before-the-open",
+  "source": "seed"
+ },
+ {
+  "ticker": "KPTL",
+  "kind": "earnings",
+  "eventDate": "2026-10-14",
+  "session": "premarket",
+  "title": "Q3 earnings, before the open",
+  "payload": {
+   "expected_move_perc": 7.93,
+   "full_name": "Keystone Capital",
+   "sector": "Financials",
+   "marketcap": 22000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:KPTL:2026-10-14:q3-earnings-before-the-open",
+  "source": "seed"
+ },
+ {
+  "ticker": "LUMX",
+  "kind": "insider",
+  "eventDate": "2026-10-13",
+  "session": "unknown",
+  "title": "A director bought $2.9M of stock",
+  "payload": {
+   "owner_name": "H. Nakamura",
+   "officer_title": "Director",
+   "transaction_code": "P",
+   "value": 2900000,
+   "formtype": "4",
+   "filing_date": "2026-10-15",
+   "is_10b5_1": false
+  },
+  "id": "insider:LUMX:2026-10-13:a-director-bought-2-9m-of-stock",
+  "source": "seed"
+ },
+ {
+  "ticker": "MYRB",
+  "kind": "fda",
+  "eventDate": "2026-10-09",
+  "session": "premarket",
+  "title": "Myrbanitide PDUFA decision",
+  "payload": {
+   "drug": "myrbanitide",
+   "catalyst": "PDUFA Date",
+   "indication": "Obesity with cardiovascular risk",
+   "status": "NDA",
+   "marketcap": 3200000000
+  },
+  "id": "fda:MYRB:2026-10-09:myrbanitide-pdufa-decision",
+  "source": "seed"
+ },
+ {
+  "ticker": "ARLN",
+  "kind": "insider",
+  "eventDate": "2026-10-06",
+  "session": "unknown",
+  "title": "A 10% owner bought $5.2M of stock",
+  "payload": {
+   "owner_name": "M. Deluca",
+   "officer_title": "10% Owner",
+   "transaction_code": "P",
+   "value": 5200000,
+   "formtype": "4",
+   "filing_date": "2026-10-08",
+   "is_10b5_1": false
+  },
+  "id": "insider:ARLN:2026-10-06:a-10-owner-bought-5-2m-of-stock",
+  "source": "seed"
+ },
+ {
+  "ticker": "KPTL",
+  "kind": "congress",
+  "eventDate": "2026-10-01",
+  "session": "unknown",
+  "title": "Sen. Teodor Vance bought $250K–$500K",
+  "payload": {
+   "name": "Sen. Teodor Vance",
+   "txn_type": "Buy",
+   "amounts": "$250,001 - $500,000",
+   "member_type": "senate",
+   "filed_at_date": "2026-11-02",
+   "tags": [
+    "committee_conflict"
+   ]
+  },
+  "id": "congress:KPTL:2026-10-01:sen-teodor-vance-bought-250k-500k",
+  "source": "seed"
+ },
+ {
+  "ticker": "HLXB",
+  "kind": "fda",
+  "eventDate": "2026-09-30",
+  "session": "premarket",
+  "title": "Helixovir PDUFA decision",
+  "payload": {
+   "drug": "helixovir",
+   "catalyst": "PDUFA Date",
+   "indication": "Chronic hepatitis D",
+   "status": "NDA",
+   "marketcap": 1500000000
+  },
+  "id": "fda:HLXB:2026-09-30:helixovir-pdufa-decision",
+  "source": "seed"
+ },
+ {
+  "ticker": "NVRA",
+  "kind": "congress",
+  "eventDate": "2026-09-29",
+  "session": "unknown",
+  "title": "Sen. Marcus Hale sold $100K–$250K",
+  "payload": {
+   "name": "Sen. Marcus Hale",
+   "txn_type": "Sell",
+   "amounts": "$100,001 - $250,000",
+   "member_type": "senate",
+   "filed_at_date": "2026-11-01",
+   "tags": [
+    "committee_conflict"
+   ]
+  },
+  "id": "congress:NVRA:2026-09-29:sen-marcus-hale-sold-100k-250k",
+  "source": "seed"
+ },
+ {
+  "ticker": "FRGO",
+  "kind": "insider",
+  "eventDate": "2026-09-24",
+  "session": "unknown",
+  "title": "CFO sold $3.4M of stock",
+  "payload": {
+   "owner_name": "S. Lindqvist",
+   "officer_title": "Chief Financial Officer",
+   "transaction_code": "S",
+   "value": 3400000,
+   "formtype": "4",
+   "filing_date": "2026-09-26",
+   "is_10b5_1": false
+  },
+  "id": "insider:FRGO:2026-09-24:cfo-sold-3-4m-of-stock",
+  "source": "seed"
+ },
+ {
+  "ticker": "AERO",
+  "kind": "congress",
+  "eventDate": "2026-09-22",
+  "session": "unknown",
+  "title": "Sen. Marcus Hale bought $100K–$250K",
+  "payload": {
+   "name": "Sen. Marcus Hale",
+   "txn_type": "Buy",
+   "amounts": "$100,001 - $250,000",
+   "member_type": "senate",
+   "filed_at_date": "2026-10-26",
+   "tags": []
+  },
+  "id": "congress:AERO:2026-09-22:sen-marcus-hale-bought-100k-250k",
+  "source": "seed"
+ },
+ {
+  "ticker": "VXRA",
+  "kind": "fda",
+  "eventDate": "2026-09-18",
+  "session": "premarket",
+  "title": "Vexarotene PDUFA decision",
+  "payload": {
+   "drug": "vexarotene",
+   "catalyst": "PDUFA Date",
+   "indication": "Relapsed small-cell lung cancer",
+   "status": "NDA",
+   "marketcap": 2100000000
+  },
+  "id": "fda:VXRA:2026-09-18:vexarotene-pdufa-decision",
+  "source": "seed"
+ },
+ {
+  "ticker": "MRCT",
+  "kind": "earnings",
+  "eventDate": "2026-09-17",
+  "session": "premarket",
+  "title": "Q3 earnings, before the open",
+  "payload": {
+   "expected_move_perc": 4.78,
+   "full_name": "Mercato Grocers",
+   "sector": "Consumer",
+   "marketcap": 6000000000,
+   "is_s_p_500": false
+  },
+  "id": "earnings:MRCT:2026-09-17:q3-earnings-before-the-open",
+  "source": "seed"
+ },
+ {
+  "ticker": "SPY",
+  "kind": "economic",
+  "eventDate": "2026-09-17",
+  "session": "intraday",
+  "title": "FOMC rate decision",
+  "payload": {
+   "type": "fomc",
+   "event": "FOMC Rate Decision"
+  },
+  "id": "economic:SPY:2026-09-17:fomc-rate-decision",
+  "source": "seed"
+ },
+ {
+  "ticker": "CRBN",
+  "kind": "insider",
+  "eventDate": "2026-09-15",
+  "session": "unknown",
+  "title": "CEO bought $1.8M of stock",
+  "payload": {
+   "owner_name": "J. Marchetti",
+   "officer_title": "Chief Executive Officer",
+   "transaction_code": "P",
+   "value": 1800000,
+   "formtype": "4",
+   "filing_date": "2026-09-17",
+   "is_10b5_1": false
+  },
+  "id": "insider:CRBN:2026-09-15:ceo-bought-1-8m-of-stock",
+  "source": "seed"
+ },
+ {
+  "ticker": "SYNQ",
+  "kind": "earnings",
+  "eventDate": "2026-09-10",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 6.94,
+   "full_name": "Synqa Cloud",
+   "sector": "Technology",
+   "marketcap": 26000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:SYNQ:2026-09-10:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "HYDR",
+  "kind": "congress",
+  "eventDate": "2026-09-08",
+  "session": "unknown",
+  "title": "Sen. Marcus Hale sold $15K–$50K",
+  "payload": {
+   "name": "Sen. Marcus Hale",
+   "txn_type": "Sell",
+   "amounts": "$15,001 - $50,000",
+   "member_type": "senate",
+   "filed_at_date": "2026-09-30",
+   "tags": []
+  },
+  "id": "congress:HYDR:2026-09-08:sen-marcus-hale-sold-15k-50k",
+  "source": "seed"
+ },
+ {
+  "ticker": "HLDN",
+  "kind": "earnings",
+  "eventDate": "2026-09-03",
+  "session": "premarket",
+  "title": "Q3 earnings, before the open",
+  "payload": {
+   "expected_move_perc": 5.2,
+   "full_name": "Holden Outfitters",
+   "sector": "Consumer",
+   "marketcap": 11000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:HLDN:2026-09-03:q3-earnings-before-the-open",
+  "source": "seed"
+ },
+ {
+  "ticker": "OPTA",
+  "kind": "congress",
+  "eventDate": "2026-08-28",
+  "session": "unknown",
+  "title": "Rep. Dana Whitlock bought $50K–$100K",
+  "payload": {
+   "name": "Rep. Dana Whitlock",
+   "txn_type": "Buy",
+   "amounts": "$50,001 - $100,000",
+   "member_type": "house",
+   "filed_at_date": "2026-10-01",
+   "tags": []
+  },
+  "id": "congress:OPTA:2026-08-28:rep-dana-whitlock-bought-50k-100k",
+  "source": "seed"
+ },
+ {
+  "ticker": "ORYX",
+  "kind": "fda",
+  "eventDate": "2026-08-27",
+  "session": "premarket",
+  "title": "Oryzapine advisory committee",
+  "payload": {
+   "drug": "oryzapine",
+   "catalyst": "Advisory Committee Meeting",
+   "indication": "Treatment-resistant depression",
+   "status": "AdCom",
+   "marketcap": 4400000000
+  },
+  "id": "fda:ORYX:2026-08-27:oryzapine-advisory-committee",
+  "source": "seed"
+ },
+ {
+  "ticker": "QNTM",
+  "kind": "earnings",
+  "eventDate": "2026-08-26",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 9.16,
+   "full_name": "Quantim Systems",
+   "sector": "Technology",
+   "marketcap": 240000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:QNTM:2026-08-26:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "TBLT",
+  "kind": "insider",
+  "eventDate": "2026-08-25",
+  "session": "unknown",
+  "title": "A director bought $1.1M of stock",
+  "payload": {
+   "owner_name": "R. Okonkwo",
+   "officer_title": "Director",
+   "transaction_code": "P",
+   "value": 1100000,
+   "formtype": "4",
+   "filing_date": "2026-08-27",
+   "is_10b5_1": false
+  },
+  "id": "insider:TBLT:2026-08-25:a-director-bought-1-1m-of-stock",
+  "source": "seed"
+ },
+ {
+  "ticker": "ARLN",
+  "kind": "earnings",
+  "eventDate": "2026-08-20",
+  "session": "premarket",
+  "title": "Q3 earnings, before the open",
+  "payload": {
+   "expected_move_perc": 10.53,
+   "full_name": "Arlen Foods",
+   "sector": "Consumer",
+   "marketcap": 9000000000,
+   "is_s_p_500": false
+  },
+  "id": "earnings:ARLN:2026-08-20:q3-earnings-before-the-open",
+  "source": "seed"
+ },
+ {
+  "ticker": "NVRA",
+  "kind": "earnings",
+  "eventDate": "2026-08-19",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 10.24,
+   "full_name": "Nivara Compute",
+   "sector": "Technology",
+   "marketcap": 130000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:NVRA:2026-08-19:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "BRDG",
+  "kind": "insider",
+  "eventDate": "2026-08-18",
+  "session": "unknown",
+  "title": "COO sold $2.2M of stock",
+  "payload": {
+   "owner_name": "A. Petrov",
+   "officer_title": "Chief Operating Officer",
+   "transaction_code": "S",
+   "value": 2200000,
+   "formtype": "4",
+   "filing_date": "2026-08-20",
+   "is_10b5_1": false
+  },
+  "id": "insider:BRDG:2026-08-18:coo-sold-2-2m-of-stock",
+  "source": "seed"
+ },
+ {
+  "ticker": "SOLV",
+  "kind": "earnings",
+  "eventDate": "2026-08-13",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 4.95,
+   "full_name": "Solvent Energy",
+   "sector": "Energy",
+   "marketcap": 5000000000,
+   "is_s_p_500": false
+  },
+  "id": "earnings:SOLV:2026-08-13:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "VELO",
+  "kind": "earnings",
+  "eventDate": "2026-08-12",
+  "session": "premarket",
+  "title": "Q3 earnings, before the open",
+  "payload": {
+   "expected_move_perc": 5.19,
+   "full_name": "Velocity Networks",
+   "sector": "Communication",
+   "marketcap": 14000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:VELO:2026-08-12:q3-earnings-before-the-open",
+  "source": "seed"
+ },
+ {
+  "ticker": "HYDR",
+  "kind": "earnings",
+  "eventDate": "2026-08-11",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 4.98,
+   "full_name": "Hydra Power",
+   "sector": "Energy",
+   "marketcap": 2500000000,
+   "is_s_p_500": false
+  },
+  "id": "earnings:HYDR:2026-08-11:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "CLNB",
+  "kind": "fda",
+  "eventDate": "2026-08-07",
+  "session": "premarket",
+  "title": "Celantumab PDUFA decision",
+  "payload": {
+   "drug": "celantumab",
+   "catalyst": "PDUFA Date",
+   "indication": "Moderate-to-severe ulcerative colitis",
+   "status": "NDA",
+   "marketcap": 900000000
+  },
+  "id": "fda:CLNB:2026-08-07:celantumab-pdufa-decision",
+  "source": "seed"
+ },
+ {
+  "ticker": "TBLT",
+  "kind": "earnings",
+  "eventDate": "2026-08-06",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 5.34,
+   "full_name": "Tablet Air",
+   "sector": "Industrials",
+   "marketcap": 3000000000,
+   "is_s_p_500": false
+  },
+  "id": "earnings:TBLT:2026-08-06:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "LUMX",
+  "kind": "earnings",
+  "eventDate": "2026-08-05",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 9.13,
+   "full_name": "Lumex Photonics",
+   "sector": "Technology",
+   "marketcap": 38000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:LUMX:2026-08-05:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "CRBN",
+  "kind": "earnings",
+  "eventDate": "2026-08-04",
+  "session": "premarket",
+  "title": "Q3 earnings, before the open",
+  "payload": {
+   "expected_move_perc": 9.13,
+   "full_name": "Carbonix Materials",
+   "sector": "Materials",
+   "marketcap": 4000000000,
+   "is_s_p_500": false
+  },
+  "id": "earnings:CRBN:2026-08-04:q3-earnings-before-the-open",
+  "source": "seed"
+ },
+ {
+  "ticker": "AZTH",
+  "kind": "fda",
+  "eventDate": "2026-07-31",
+  "session": "premarket",
+  "title": "Azothimod PDUFA decision",
+  "payload": {
+   "drug": "azothimod",
+   "catalyst": "PDUFA Date",
+   "indication": "Myasthenia gravis",
+   "status": "NDA",
+   "marketcap": 600000000
+  },
+  "id": "fda:AZTH:2026-07-31:azothimod-pdufa-decision",
+  "source": "seed"
+ },
+ {
+  "ticker": "FRGO",
+  "kind": "earnings",
+  "eventDate": "2026-07-30",
+  "session": "premarket",
+  "title": "Q3 earnings, before the open",
+  "payload": {
+   "expected_move_perc": 6.73,
+   "full_name": "Fargo Freight",
+   "sector": "Industrials",
+   "marketcap": 8000000000,
+   "is_s_p_500": false
+  },
+  "id": "earnings:FRGO:2026-07-30:q3-earnings-before-the-open",
+  "source": "seed"
+ },
+ {
+  "ticker": "DRFT",
+  "kind": "earnings",
+  "eventDate": "2026-07-29",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 6.8,
+   "full_name": "Drift Robotics",
+   "sector": "Technology",
+   "marketcap": 9000000000,
+   "is_s_p_500": false
+  },
+  "id": "earnings:DRFT:2026-07-29:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "OPTA",
+  "kind": "earnings",
+  "eventDate": "2026-07-28",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 7.93,
+   "full_name": "Optara Semiconductor",
+   "sector": "Technology",
+   "marketcap": 72000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:OPTA:2026-07-28:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "SOLV",
+  "kind": "congress",
+  "eventDate": "2026-07-27",
+  "session": "unknown",
+  "title": "Rep. Priya Anand bought $15K–$50K",
+  "payload": {
+   "name": "Rep. Priya Anand",
+   "txn_type": "Buy",
+   "amounts": "$15,001 - $50,000",
+   "member_type": "house",
+   "filed_at_date": "2026-09-02",
+   "tags": []
+  },
+  "id": "congress:SOLV:2026-07-27:rep-priya-anand-bought-15k-50k",
+  "source": "seed"
+ },
+ {
+  "ticker": "SYNQ",
+  "kind": "earnings",
+  "eventDate": "2026-06-03",
+  "session": "afterhours",
+  "title": "Q4 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 6.27,
+   "full_name": "Synqa Cloud",
+   "sector": "Technology",
+   "marketcap": 26000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:SYNQ:2026-06-03:q4-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "QNTM",
+  "kind": "earnings",
+  "eventDate": "2026-05-27",
+  "session": "afterhours",
+  "title": "Q4 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 9.93,
+   "full_name": "Quantim Systems",
+   "sector": "Technology",
+   "marketcap": 240000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:QNTM:2026-05-27:q4-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "LUMX",
+  "kind": "earnings",
+  "eventDate": "2026-05-06",
+  "session": "afterhours",
+  "title": "Q4 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 9.28,
+   "full_name": "Lumex Photonics",
+   "sector": "Technology",
+   "marketcap": 38000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:LUMX:2026-05-06:q4-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "SYNQ",
+  "kind": "earnings",
+  "eventDate": "2026-03-04",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 9.5,
+   "full_name": "Synqa Cloud",
+   "sector": "Technology",
+   "marketcap": 26000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:SYNQ:2026-03-04:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "QNTM",
+  "kind": "earnings",
+  "eventDate": "2026-02-25",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 6.52,
+   "full_name": "Quantim Systems",
+   "sector": "Technology",
+   "marketcap": 240000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:QNTM:2026-02-25:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "LUMX",
+  "kind": "earnings",
+  "eventDate": "2026-02-04",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 6.8,
+   "full_name": "Lumex Photonics",
+   "sector": "Technology",
+   "marketcap": 38000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:LUMX:2026-02-04:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "SYNQ",
+  "kind": "earnings",
+  "eventDate": "2025-12-03",
+  "session": "afterhours",
+  "title": "Q2 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 6.13,
+   "full_name": "Synqa Cloud",
+   "sector": "Technology",
+   "marketcap": 26000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:SYNQ:2025-12-03:q2-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "QNTM",
+  "kind": "earnings",
+  "eventDate": "2025-11-19",
+  "session": "afterhours",
+  "title": "Q2 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 5.71,
+   "full_name": "Quantim Systems",
+   "sector": "Technology",
+   "marketcap": 240000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:QNTM:2025-11-19:q2-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "LUMX",
+  "kind": "earnings",
+  "eventDate": "2025-11-05",
+  "session": "afterhours",
+  "title": "Q2 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 9.73,
+   "full_name": "Lumex Photonics",
+   "sector": "Technology",
+   "marketcap": 38000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:LUMX:2025-11-05:q2-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "SYNQ",
+  "kind": "earnings",
+  "eventDate": "2025-09-10",
+  "session": "afterhours",
+  "title": "Q1 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 7.55,
+   "full_name": "Synqa Cloud",
+   "sector": "Technology",
+   "marketcap": 26000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:SYNQ:2025-09-10:q1-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "QNTM",
+  "kind": "earnings",
+  "eventDate": "2025-08-27",
+  "session": "afterhours",
+  "title": "Q1 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 6.35,
+   "full_name": "Quantim Systems",
+   "sector": "Technology",
+   "marketcap": 240000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:QNTM:2025-08-27:q1-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "LUMX",
+  "kind": "earnings",
+  "eventDate": "2025-08-06",
+  "session": "afterhours",
+  "title": "Q1 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 8.81,
+   "full_name": "Lumex Photonics",
+   "sector": "Technology",
+   "marketcap": 38000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:LUMX:2025-08-06:q1-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "SYNQ",
+  "kind": "earnings",
+  "eventDate": "2025-06-04",
+  "session": "afterhours",
+  "title": "Q4 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 7.46,
+   "full_name": "Synqa Cloud",
+   "sector": "Technology",
+   "marketcap": 26000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:SYNQ:2025-06-04:q4-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "QNTM",
+  "kind": "earnings",
+  "eventDate": "2025-05-28",
+  "session": "afterhours",
+  "title": "Q4 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 8.32,
+   "full_name": "Quantim Systems",
+   "sector": "Technology",
+   "marketcap": 240000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:QNTM:2025-05-28:q4-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "LUMX",
+  "kind": "earnings",
+  "eventDate": "2025-05-07",
+  "session": "afterhours",
+  "title": "Q4 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 6.12,
+   "full_name": "Lumex Photonics",
+   "sector": "Technology",
+   "marketcap": 38000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:LUMX:2025-05-07:q4-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "SYNQ",
+  "kind": "earnings",
+  "eventDate": "2025-03-05",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 8.74,
+   "full_name": "Synqa Cloud",
+   "sector": "Technology",
+   "marketcap": 26000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:SYNQ:2025-03-05:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "QNTM",
+  "kind": "earnings",
+  "eventDate": "2025-02-26",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 7.66,
+   "full_name": "Quantim Systems",
+   "sector": "Technology",
+   "marketcap": 240000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:QNTM:2025-02-26:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "LUMX",
+  "kind": "earnings",
+  "eventDate": "2025-02-05",
+  "session": "afterhours",
+  "title": "Q3 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 6.82,
+   "full_name": "Lumex Photonics",
+   "sector": "Technology",
+   "marketcap": 38000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:LUMX:2025-02-05:q3-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "SYNQ",
+  "kind": "earnings",
+  "eventDate": "2024-12-04",
+  "session": "afterhours",
+  "title": "Q2 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 6.5,
+   "full_name": "Synqa Cloud",
+   "sector": "Technology",
+   "marketcap": 26000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:SYNQ:2024-12-04:q2-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "QNTM",
+  "kind": "earnings",
+  "eventDate": "2024-11-20",
+  "session": "afterhours",
+  "title": "Q2 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 9.29,
+   "full_name": "Quantim Systems",
+   "sector": "Technology",
+   "marketcap": 240000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:QNTM:2024-11-20:q2-earnings-after-the-close",
+  "source": "seed"
+ },
+ {
+  "ticker": "LUMX",
+  "kind": "earnings",
+  "eventDate": "2024-11-06",
+  "session": "afterhours",
+  "title": "Q2 earnings, after the close",
+  "payload": {
+   "expected_move_perc": 6.2,
+   "full_name": "Lumex Photonics",
+   "sector": "Technology",
+   "marketcap": 38000000000,
+   "is_s_p_500": true
+  },
+  "id": "earnings:LUMX:2024-11-06:q2-earnings-after-the-close",
+  "source": "seed"
+ }
+]

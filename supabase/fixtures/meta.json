@@ -1,0 +1,11 @@
+{
+  "today": "2026-10-22",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "seed": 20261022,
+  "synthetic": true,
+  "heroCatalystId": "fda:VXRA:2026-09-18:vexarotene-pdufa-decision",
+  "counts": {
+    "catalysts": 72,
+    "tickers": 28
+  }
+}

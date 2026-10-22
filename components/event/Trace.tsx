@@ -1,0 +1,466 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import type { DailyMetrics, OhlcBar, SignalBreakdown } from "@foreshadow/core";
+import { useMeasure } from "@/lib/hooks/useMeasure";
+import { bandPath } from "@/components/viz/Highlight";
+import { fmtDateShort, fmtInt, fmtMoney } from "@/lib/format";
+
+export type TraceRowKey = "flow" | "oi" | "volume" | "skew" | "darkPool";
+
+export interface TraceProps {
+  bars: OhlcBar[];
+  daily: DailyMetrics[];
+  windowDays: string[];
+  eventDate: string;
+  reactionDate: string | null;
+  signals: SignalBreakdown[];
+  rows?: TraceRowKey[];
+  priceHeight?: number;
+  eventLabel: string;
+}
+
+const PAD_L = 2;
+const PAD_R = 54;
+const PAD_T = 34;
+const ROW_HEAD = 22;
+const ROW_GAP = 16;
+const X_AXIS = 24;
+
+const ROW_SPEC: Record<TraceRowKey, { label: string; height: number; signals: SignalBreakdown["key"][] }> = {
+  flow: { label: "Flow-alert premium", height: 86, signals: ["flowIntensity", "directionalPremium"] },
+  oi: { label: "New open interest", height: 42, signals: ["openInterest"] },
+  volume: { label: "Option volume percentile", height: 34, signals: ["volumeUnusualness"] },
+  skew: { label: "25Δ put–call skew", height: 34, signals: ["skewShift"] },
+  darkPool: { label: "Dark pool ≥ $1M", height: 34, signals: ["darkPool"] },
+};
+
+/**
+ * Exhibit A: the trace. Price on top, then one row per footprint signal, all
+ * sharing the same sessions. The footprint window sits under a highlighter;
+ * each row carries its contribution to the score.
+ */
+export function Trace(p: TraceProps) {
+  const { ref, width } = useMeasure<HTMLDivElement>(960);
+  const [active, setActive] = useState<number | null>(null);
+  const m = useMemo(() => layout(p, width), [p, width]);
+
+  return (
+    <div ref={ref} className="relative w-full select-none">
+      <svg
+        width={width}
+        height={m.height}
+        viewBox={`0 0 ${width} ${m.height}`}
+        className="block overflow-visible outline-none"
+        role="img"
+        aria-label={`Price and options footprint around the ${p.eventLabel} on ${fmtDateShort(p.eventDate)}. Use the left and right arrow keys to read each session.`}
+        tabIndex={0}
+        onMouseLeave={() => setActive(null)}
+        onMouseMove={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const i = Math.floor((e.clientX - rect.left - PAD_L) / m.slot);
+          setActive(i >= 0 && i < m.days.length ? i : null);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowRight") setActive((a) => Math.min(m.days.length - 1, (a ?? -1) + 1));
+          else if (e.key === "ArrowLeft") setActive((a) => Math.max(0, (a ?? m.days.length) - 1));
+          else if (e.key === "Escape") setActive(null);
+        }}
+        onFocus={() => setActive((a) => a ?? Math.max(0, m.days.indexOf(p.eventDate) - 1))}
+        onBlur={() => setActive(null)}
+      >
+        {/* Footprint window: the highlighter */}
+        {m.band ? (
+          <g>
+            <path d={bandPath(m.band.x0, m.band.x1, PAD_T - 10, m.height - X_AXIS + 2)} className="hl-band hl-band-draw" />
+            <text x={m.band.x0 + 8} y={14} className="fill-ink-2 font-mono" fontSize="10.5" letterSpacing="0.08em">
+              {m.narrow ? "FOOTPRINT" : `FOOTPRINT · T-${p.windowDays.length} → T-1`}
+            </text>
+          </g>
+        ) : null}
+
+        {/* Active column */}
+        {active !== null ? (
+          <rect x={PAD_L + active * m.slot} y={PAD_T - 10} width={m.slot} height={m.height - X_AXIS - PAD_T + 12} className="fill-ink" opacity={0.05} />
+        ) : null}
+
+        {/* ---------------- Price ---------------- */}
+        {m.priceTicks.map((t) => (
+          <g key={t}>
+            <line x1={PAD_L} x2={PAD_L + m.plotW} y1={m.yPrice(t)} y2={m.yPrice(t)} className="stroke-line" />
+            <text x={PAD_L + m.plotW + 10} y={m.yPrice(t) + 3.5} className="fill-ink-3 font-mono" fontSize="10.5">
+              {t >= 100 ? t.toFixed(0) : t.toFixed(t >= 10 ? 1 : 2)}
+            </text>
+          </g>
+        ))}
+        {m.pricePath ? (
+          <path d={m.pricePath} pathLength={1} className="ink-draw stroke-ink" fill="none" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        ) : null}
+
+        {/* Event line */}
+        {m.eventX !== null ? (
+          <g>
+            <line x1={m.eventX} x2={m.eventX} y1={PAD_T - 14} y2={m.height - X_AXIS + 2} className="stroke-ink" strokeWidth="1.5" />
+            <text
+              x={m.eventX + (m.eventFlip ? -7 : 7)}
+              y={14}
+              textAnchor={m.eventFlip ? "end" : "start"}
+              className="fill-ink font-mono"
+              fontSize="10.5"
+              fontWeight={600}
+              letterSpacing="0.08em"
+            >
+              {m.eventOnChart ? "EVENT" : `EVENT ${fmtDateShort(p.eventDate).toUpperCase()} →`}
+            </text>
+          </g>
+        ) : null}
+
+        {/* Reaction annotation, in pen: a measuring bracket beside the event */}
+        {m.reaction ? (
+          <g>
+            <path
+              d={`M${m.reaction.bx - m.reaction.dir * 5},${m.reaction.y0} H${m.reaction.bx} V${m.reaction.y1} H${m.reaction.bx - m.reaction.dir * 5}`}
+              className="stroke-pen"
+              fill="none"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle cx={m.reaction.x1} cy={m.reaction.y1} r="4.5" className="fill-surface stroke-pen" strokeWidth="2" />
+            <text
+              x={m.reaction.bx + m.reaction.dir * 8}
+              y={(m.reaction.y0 + m.reaction.y1) / 2 + 4}
+              textAnchor={m.reaction.dir > 0 ? "start" : "end"}
+              className="fill-pen font-mono"
+              fontSize="12"
+              fontWeight={600}
+            >
+              {m.reaction.label}
+            </text>
+          </g>
+        ) : null}
+
+        {/* ---------------- Signal rows ---------------- */}
+        {m.rows.map((row) => (
+          <g key={row.key}>
+            <text x={PAD_L} y={row.top + 13} className="fill-ink" fontSize="12" fontWeight={500}>
+              {ROW_SPEC[row.key].label}
+              {row.key === "flow" && !m.narrow ? (
+                <tspan className="fill-ink-3" fontSize="11">
+                  {"  calls ▲  puts ▼"}
+                </tspan>
+              ) : null}
+            </text>
+            {row.contribution ? (
+              <text x={PAD_L + m.plotW + PAD_R - 2} y={row.top + 13} textAnchor="end" className="fill-ink font-mono" fontSize="11.5" fontWeight={600}>
+                {`+${row.contribution.value.toFixed(1)}`}
+                <tspan className="fill-ink-3" fontWeight={400}>{` / ${row.contribution.max}`}</tspan>
+              </text>
+            ) : null}
+            <line x1={PAD_L} x2={PAD_L + m.plotW} y1={row.base} y2={row.base} className="stroke-line-strong" />
+            {row.marks.map((mk, i) =>
+              mk.kind === "bar" ? (
+                <rect key={i} x={mk.x} y={mk.y} width={mk.w} height={Math.max(0.8, mk.h)} rx={2} className={mk.cls} opacity={mk.op} />
+              ) : (
+                <circle key={i} cx={mk.x} cy={mk.y} r={mk.r} className={mk.cls} opacity={mk.op} />
+              ),
+            )}
+            {row.path ? <path d={row.path} className="stroke-ink-2" fill="none" strokeWidth="1.75" strokeLinejoin="round" /> : null}
+            {row.afterX !== null && row.key === "flow" && PAD_L + m.plotW - row.afterX > 190 ? (
+              <text x={row.afterX + 8} y={row.base + 4} className="fill-ink-3" fontSize="11">
+                not scored after the event
+              </text>
+            ) : null}
+          </g>
+        ))}
+
+        {/* Peak annotation, in pen */}
+        {m.peak ? (
+          <text x={m.peak.x} y={m.peak.y} textAnchor={m.peak.anchor} className="fill-pen font-mono" fontSize="11.5" fontWeight={600}>
+            {m.peak.text}
+          </text>
+        ) : null}
+
+        {/* ---------------- X axis ---------------- */}
+        {m.days.map((d, i) =>
+          m.showTick(i) ? (
+            <text
+              key={d}
+              x={m.xOf(i)}
+              y={m.height - 6}
+              textAnchor="middle"
+              className={d === p.eventDate ? "fill-ink font-mono" : "fill-ink-3 font-mono"}
+              fontSize="10.5"
+              fontWeight={d === p.eventDate ? 600 : 400}
+            >
+              {fmtDateShort(d)}
+            </text>
+          ) : null,
+        )}
+
+        {/* Crosshair dot */}
+        {active !== null && m.closeOf(active) !== null ? (
+          <circle cx={m.xOf(active)} cy={m.yPrice(m.closeOf(active)!)} r="4" className="fill-ink stroke-surface" strokeWidth="2" pointerEvents="none" />
+        ) : null}
+      </svg>
+
+      {active !== null ? (
+        <TraceTooltip
+          day={m.days[active]}
+          close={m.closeOf(active)}
+          metrics={m.metricsOf(m.days[active])}
+          left={m.xOf(active)}
+          width={width}
+          inWindow={p.windowDays.includes(m.days[active])}
+          isEvent={m.days[active] === p.eventDate}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function TraceTooltip(props: {
+  day: string;
+  close: number | null;
+  metrics: DailyMetrics | null;
+  left: number;
+  width: number;
+  inWindow: boolean;
+  isEvent: boolean;
+}) {
+  const { day, close, metrics, left, width, inWindow, isEvent } = props;
+  const flip = left > width * 0.6;
+  return (
+    <div
+      role="status"
+      className="sheet pointer-events-none absolute top-8 z-10 w-60 p-3 text-[12px]"
+      style={flip ? { right: width - left + 14 } : { left: left + 14 }}
+    >
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-mono font-semibold text-ink">{fmtDateShort(day)}</span>
+        {isEvent ? <span className="label text-ink">event</span> : inWindow ? <span className="hl label">footprint</span> : <span className="label">baseline</span>}
+      </div>
+      <TipRow label="Close" value={close !== null ? `$${close.toFixed(2)}` : "—"} />
+      {metrics ? (
+        <>
+          <TipRow label="Call premium" value={fmtMoney(metrics.callPremium)} swatch="call" />
+          <TipRow label="Put premium" value={fmtMoney(metrics.putPremium)} swatch="put" />
+          <TipRow label="Net ask-side" value={`${metrics.netPremium >= 0 ? "+" : "−"}${fmtMoney(Math.abs(metrics.netPremium))}`} />
+          <TipRow label="Alerts · sweeps" value={`${metrics.alertCount} · ${Math.round(metrics.sweepShare * 100)}%`} />
+          <TipRow label="New OI (abs)" value={fmtInt(metrics.oiAbs)} />
+          {metrics.volumePercentile !== null ? <TipRow label="Volume pctile" value={String(metrics.volumePercentile)} /> : null}
+          {metrics.skew !== null ? <TipRow label="25Δ skew" value={`${(metrics.skew * 100).toFixed(1)} pts`} /> : null}
+          <TipRow label="Dark pool ≥ $1M" value={metrics.darkPoolNotional > 0 ? fmtMoney(metrics.darkPoolNotional) : "—"} />
+        </>
+      ) : (
+        <p className="mt-1 text-ink-3">{isEvent ? "The news lands. Nothing after this point is scored." : "Not scored: after the event."}</p>
+      )}
+    </div>
+  );
+}
+
+function TipRow({ label, value, swatch }: { label: string; value: string; swatch?: "call" | "put" }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-[3px]">
+      <span className="flex items-center gap-1.5 text-ink-2">
+        {swatch ? <span className={`h-[2px] w-3 rounded ${swatch === "call" ? "bg-call" : "bg-put"}`} aria-hidden="true" /> : null}
+        {label}
+      </span>
+      <span className="font-mono text-ink tnum">{value}</span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Geometry
+// ---------------------------------------------------------------------------
+
+type Mark =
+  | { kind: "bar"; x: number; y: number; w: number; h: number; cls: string; op: number }
+  | { kind: "dot"; x: number; y: number; r: number; cls: string; op: number };
+
+function layout(p: TraceProps, width: number) {
+  const rowKeys = p.rows ?? (["flow", "oi", "volume", "skew", "darkPool"] as TraceRowKey[]);
+  const metricsByDate = new Map(p.daily.map((d) => [d.date, d]));
+  let days = p.bars.map((b) => b.date);
+  if (days.length === 0) days = p.daily.map((d) => d.date).slice(-10);
+  const n = Math.max(1, days.length);
+  const plotW = Math.max(160, width - PAD_L - PAD_R);
+  const slot = plotW / n;
+  const xOf = (i: number) => PAD_L + slot * i + slot / 2;
+  const priceH = p.priceHeight ?? 168;
+  const windowSet = new Set(p.windowDays);
+
+  // Price scale
+  const closes = p.bars.map((b) => b.close);
+  const lo = closes.length ? Math.min(...closes) : 0;
+  const hi = closes.length ? Math.max(...closes) : 1;
+  const pad = Math.max((hi - lo) * 0.12, hi * 0.01);
+  const pLo = lo - pad;
+  const pHi = hi + pad;
+  const yPrice = (v: number) => PAD_T + (1 - (v - pLo) / (pHi - pLo || 1)) * priceH;
+  const priceTicks = niceTicks(lo, hi, 3);
+  const pricePath = closes.length
+    ? closes.map((c, i) => `${i === 0 ? "M" : "L"}${xOf(i).toFixed(1)},${yPrice(c).toFixed(1)}`).join(" ")
+    : null;
+
+  // Event
+  const eventIdx = days.indexOf(p.eventDate);
+  const eventOnChart = eventIdx >= 0;
+  const lastDay = days[days.length - 1];
+  const eventX = eventOnChart ? xOf(eventIdx) : lastDay && p.eventDate > lastDay ? PAD_L + plotW - 1 : null;
+  const eventFlip = eventX !== null && eventX > PAD_L + plotW * 0.82;
+
+  // Footprint band
+  const winIdx = days.map((d, i) => (windowSet.has(d) ? i : -1)).filter((i) => i >= 0);
+  const band = winIdx.length
+    ? { x0: PAD_L + Math.min(...winIdx) * slot + 1, x1: PAD_L + (Math.max(...winIdx) + 1) * slot - 1 }
+    : null;
+
+  // Reaction
+  let reaction: { y0: number; x1: number; y1: number; bx: number; dir: 1 | -1; label: string } | null = null;
+  if (p.reactionDate) {
+    const ri = days.indexOf(p.reactionDate);
+    if (ri > 0) {
+      const from = closes[ri - 1];
+      const to = closes[ri];
+      const pct = ((to - from) / from) * 100;
+      const short = `${pct >= 0 ? "+" : "−"}${Math.abs(pct).toFixed(1)}%`;
+      const label = width < 640 ? short : `${short} on the news`;
+      const textW = label.length * 7.4 + 12;
+      const gap = Math.min(14, slot * 0.45);
+      const roomRight = PAD_L + plotW + PAD_R - (xOf(ri) + gap + 8);
+      const dir: 1 | -1 = roomRight >= textW ? 1 : -1;
+      reaction = { y0: yPrice(from), x1: xOf(ri), y1: yPrice(to), bx: xOf(ri) + dir * gap, dir, label };
+    }
+  }
+
+  // Signal rows
+  const contributionFor = (key: TraceRowKey) => {
+    const keys = ROW_SPEC[key].signals;
+    const sig = p.signals.filter((s) => keys.includes(s.key));
+    if (!sig.length) return null;
+    return {
+      value: sig.reduce((a, s) => a + s.contribution, 0),
+      max: Math.round(sig.reduce((a, s) => a + s.weight, 0) * 100),
+    };
+  };
+
+  let y = PAD_T + priceH + ROW_GAP + 6;
+  const barW = Math.max(3, Math.min(20, slot * 0.56));
+  let peak: { x: number; y: number; text: string; anchor: "start" | "middle" | "end" } | null = null;
+  const firstAfter = eventOnChart ? eventIdx : -1;
+  const afterX = firstAfter >= 0 && n - firstAfter >= 3 ? PAD_L + firstAfter * slot + slot / 2 : null;
+
+  const rows = rowKeys.map((key) => {
+    const spec = ROW_SPEC[key];
+    const top = y;
+    const plotTop = top + ROW_HEAD;
+    const h = spec.height;
+    const marks: Mark[] = [];
+    let path: string | null = null;
+    let base = plotTop + h;
+
+    const val = (d: string) => metricsByDate.get(d);
+    const opFor = (d: string) => (windowSet.has(d) ? 1 : 0.32);
+
+    if (key === "flow") {
+      const mid = plotTop + h / 2;
+      base = mid;
+      const max = Math.max(1, ...days.map((d) => Math.max(val(d)?.callPremium ?? 0, val(d)?.putPremium ?? 0)));
+      const half = h / 2 - 2;
+      let best = 0;
+      days.forEach((d, i) => {
+        const mt = val(d);
+        if (!mt) return;
+        const x = xOf(i) - barW / 2;
+        const ch = (mt.callPremium / max) * half;
+        const ph = (mt.putPremium / max) * half;
+        if (ch > 0) marks.push({ kind: "bar", x, y: mid - ch - 1, w: barW, h: ch, cls: "fill-call", op: opFor(d) });
+        if (ph > 0) marks.push({ kind: "bar", x, y: mid + 1, w: barW, h: ph, cls: "fill-put", op: opFor(d) });
+        const v = Math.max(mt.callPremium, mt.putPremium);
+        if (windowSet.has(d) && v > best) {
+          best = v;
+          const isCall = mt.callPremium >= mt.putPremium;
+          const flip = i > n * 0.6;
+          peak = {
+            x: flip ? x - 6 : x + barW + 6,
+            y: isCall ? mid - ch + 9 : mid + ph - 1,
+            text: `${fmtMoney(v, { decimals: 1 })} ${isCall ? "calls" : "puts"}`,
+            anchor: flip ? "end" : "start",
+          };
+        }
+      });
+    } else if (key === "skew") {
+      const pts = days
+        .map((d, i) => ({ d, i, v: val(d)?.skew }))
+        .filter((q): q is { d: string; i: number; v: number } => typeof q.v === "number");
+      if (pts.length) {
+        const sLo = Math.min(...pts.map((q) => q.v));
+        const sHi = Math.max(...pts.map((q) => q.v));
+        const ys = (v: number) => plotTop + 3 + (1 - (v - sLo) / (sHi - sLo || 1)) * (h - 6);
+        path = pts.map((q, k) => `${k === 0 ? "M" : "L"}${xOf(q.i).toFixed(1)},${ys(q.v).toFixed(1)}`).join(" ");
+        for (const q of pts) marks.push({ kind: "dot", x: xOf(q.i), y: ys(q.v), r: windowSet.has(q.d) ? 3 : 2.2, cls: windowSet.has(q.d) ? "fill-ink" : "fill-ink-3", op: 1 });
+      }
+    } else {
+      const get = (mt: DailyMetrics) =>
+        key === "oi" ? mt.oiAbs : key === "volume" ? (mt.volumePercentile ?? 0) : mt.darkPoolNotional;
+      const max = key === "volume" ? 100 : Math.max(1, ...days.map((d) => (val(d) ? get(val(d)!) : 0)));
+      days.forEach((d, i) => {
+        const mt = val(d);
+        if (!mt) return;
+        const v = get(mt);
+        const bh = (v / max) * (h - 2);
+        if (bh <= 0) return;
+        marks.push({ kind: "bar", x: xOf(i) - barW / 2, y: base - bh, w: barW, h: bh, cls: windowSet.has(d) ? "fill-ink" : "fill-ink-3", op: windowSet.has(d) ? 0.92 : 0.45 });
+      });
+    }
+    y = plotTop + h + ROW_GAP;
+    return { key, top, base, marks, path, contribution: contributionFor(key), afterX };
+  });
+
+  const height = y - ROW_GAP + 8 + X_AXIS;
+  const peakLabel = peak as { x: number; y: number; text: string; anchor: "start" | "middle" | "end" } | null;
+  if (peakLabel && eventX !== null && peakLabel.anchor === "start") {
+    const w = peakLabel.text.length * 7.2;
+    if (peakLabel.x < eventX && peakLabel.x + w > eventX - 4) {
+      peakLabel.anchor = "end";
+      peakLabel.x = peakLabel.x - barW - 12;
+    }
+  }
+  const tickEvery = slot >= 46 ? 1 : slot >= 26 ? 2 : 3;
+
+  return {
+    days,
+    slot,
+    plotW,
+    xOf,
+    yPrice,
+    priceTicks,
+    pricePath,
+    eventX,
+    eventOnChart,
+    eventFlip,
+    band,
+    reaction,
+    rows,
+    peak: peakLabel,
+    height,
+    narrow: width < 640,
+    showTick: (i: number) =>
+      days[i] === p.eventDate || (i % tickEvery === 0 && (eventIdx < 0 || Math.abs(i - eventIdx) >= Math.max(1, tickEvery))),
+    closeOf: (i: number) => (i >= 0 && i < closes.length ? closes[i] : null),
+    metricsOf: (d: string) => metricsByDate.get(d) ?? null,
+  };
+}
+
+function niceTicks(lo: number, hi: number, count: number): number[] {
+  const span = hi - lo;
+  if (span <= 0) return [lo];
+  const rough = span / count;
+  const pow = 10 ** Math.floor(Math.log10(rough));
+  const step = [1, 2, 2.5, 5, 10].map((k) => k * pow).find((s) => s >= rough) ?? pow;
+  const out: number[] = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(Number(v.toFixed(6)));
+  return out;
+}

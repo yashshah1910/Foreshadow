@@ -1,0 +1,315 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ---------------------------------------------------------------------------
+   Foreshadow — "marked-up evidence"
+   Cool graph paper, ink, and one highlighter. Calls teal, puts red (validated
+   for colour-blind separation in both themes). Pen blue is for annotations.
+   --------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: light;
+  --bg: #eceef2;
+  --surface: #fbfbfc;
+  --surface-2: #f3f4f7;
+  --surface-3: #e6e8ee;
+  --line: rgba(18, 24, 38, 0.1);
+  --line-strong: rgba(18, 24, 38, 0.2);
+  --grid: rgba(47, 79, 216, 0.055);
+  --ink: #121826;
+  --ink-2: #4a5468;
+  --ink-3: #7a8396;
+  --call: #0e8a7a;
+  --put: #d23a52;
+  --call-soft: rgba(14, 138, 122, 0.12);
+  --put-soft: rgba(210, 58, 82, 0.1);
+  --hl: #ffe14a;
+  --hl-ink: #121826;
+  --hl-opacity: 0.9;
+  --hl-blend: multiply;
+  --hl-band: 0.4;
+  --pen: #2f4fd8;
+  --sheet-shadow: 0 1px 0 rgba(18, 24, 38, 0.04), 0 14px 34px -22px rgba(18, 24, 38, 0.35);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d1016;
+  --surface: #151922;
+  --surface-2: #1b2030;
+  --surface-3: #252b3c;
+  --line: rgba(220, 228, 255, 0.08);
+  --line-strong: rgba(220, 228, 255, 0.16);
+  --grid: rgba(142, 164, 255, 0.04);
+  --ink: #e8ebf1;
+  --ink-2: #a3abbb;
+  --ink-3: #6d7588;
+  --call: #1ea5ad;
+  --put: #e8604c;
+  --call-soft: rgba(30, 165, 173, 0.16);
+  --put-soft: rgba(232, 96, 76, 0.14);
+  --hl: #ffe14a;
+  --hl-ink: #15130a;
+  --hl-opacity: 0.94;
+  --hl-blend: normal;
+  --hl-band: 0.085;
+  --pen: #8ea4ff;
+  --sheet-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 18px 40px -24px rgba(0, 0, 0, 0.8);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0d1016;
+    --surface: #151922;
+    --surface-2: #1b2030;
+    --surface-3: #252b3c;
+    --line: rgba(220, 228, 255, 0.08);
+    --line-strong: rgba(220, 228, 255, 0.16);
+    --grid: rgba(142, 164, 255, 0.04);
+    --ink: #e8ebf1;
+    --ink-2: #a3abbb;
+    --ink-3: #6d7588;
+    --call: #1ea5ad;
+    --put: #e8604c;
+    --call-soft: rgba(30, 165, 173, 0.16);
+    --put-soft: rgba(232, 96, 76, 0.14);
+    --hl: #ffe14a;
+    --hl-ink: #15130a;
+    --hl-opacity: 0.94;
+    --hl-blend: normal;
+    --hl-band: 0.085;
+    --pen: #8ea4ff;
+    --sheet-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 18px 40px -24px rgba(0, 0, 0, 0.8);
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-call: var(--call);
+  --color-put: var(--put);
+  --color-call-soft: var(--call-soft);
+  --color-put-soft: var(--put-soft);
+  --color-hl: var(--hl);
+  --color-hl-ink: var(--hl-ink);
+  --color-pen: var(--pen);
+
+  --font-display: var(--font-archivo), "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist), "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --radius-sheet: 10px;
+}
+
+@layer base {
+html {
+  background-color: var(--bg);
+}
+
+body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+}
+
+::selection {
+  background: var(--hl);
+  color: var(--hl-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--pen);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@layer components {
+/* Type ------------------------------------------------------------------------ */
+.display {
+  font-family: var(--font-display);
+  font-weight: 760;
+  font-variation-settings: "wdth" 112;
+  letter-spacing: -0.015em;
+  line-height: 1.02;
+}
+.numeral {
+  font-family: var(--font-display);
+  font-weight: 760;
+  font-variation-settings: "wdth" 70;
+  letter-spacing: -0.01em;
+  line-height: 0.9;
+}
+.label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Surfaces ---------------------------------------------------------------------- */
+.sheet {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sheet);
+  box-shadow: var(--sheet-shadow);
+}
+.hairline {
+  border-color: var(--line);
+}
+.rule {
+  border-top: 1px solid var(--line);
+}
+
+/* The highlighter ------------------------------------------------------------------ */
+.hl {
+  position: relative;
+  isolation: isolate;
+  color: var(--hl-ink);
+  white-space: nowrap;
+}
+.hl::before {
+  content: "";
+  position: absolute;
+  inset: 0.06em -0.16em 0.02em -0.12em;
+  z-index: -1;
+  background: var(--hl);
+  opacity: var(--hl-opacity);
+  mix-blend-mode: var(--hl-blend);
+  border-radius: 0.14em 0.34em 0.2em 0.42em;
+  transform: skewX(-7deg);
+  transform-origin: left center;
+}
+.hl-draw::before {
+  animation: hl-draw 720ms var(--ease-out-strong) both;
+  animation-delay: var(--hl-delay, 280ms);
+}
+@keyframes hl-draw {
+  from {
+    transform: skewX(-7deg) scaleX(0);
+  }
+  to {
+    transform: skewX(-7deg) scaleX(1);
+  }
+}
+
+}
+
+/* SVG highlighter band behind the footprint window */
+.hl-band {
+  fill: var(--hl);
+  opacity: var(--hl-band);
+  mix-blend-mode: var(--hl-blend);
+}
+.hl-band-draw {
+  transform-box: fill-box;
+  transform-origin: 0% 50%;
+  animation: band-draw 760ms var(--ease-out-strong) both;
+  animation-delay: 120ms;
+}
+@keyframes band-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* The price trace inks itself in once per load */
+.ink-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ink-draw 1100ms var(--ease-out-strong) both;
+  animation-delay: 80ms;
+}
+@keyframes ink-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Pressables ---------------------------------------------------------------------- */
+.pressable {
+  transition:
+    transform 160ms var(--ease-out-strong),
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+.pressable:active {
+  transform: scale(0.97);
+}
+
+/* First-paint entrance for lists: rise 6px, staggered via --i */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.rise {
+  animation: rise 380ms var(--ease-out-strong) both;
+  animation-delay: calc(var(--i, 0) * 26ms);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.fade-in {
+  animation: fade-in 260ms ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .hl-band-draw {
+    animation: fade-in 200ms ease both;
+    transform: none;
+  }
+  .hl-draw::before {
+    animation: none;
+  }
+  .ink-draw {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .pressable:active {
+    transform: none;
+  }
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-3) transparent;
+}
