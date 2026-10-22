@@ -47,12 +47,15 @@ export default async function DocsPage() {
       <h2 className="display mt-20 text-[34px] text-ink">Find your way around</h2>
       <ul className="mt-6 grid gap-2 sm:grid-cols-2">
         {[
-          ["/leaderboard", "Past cases", "Every finished case from the last 90 days, ranked by how unusual the betting was, and whether it was right."],
+          ["/leaderboard", "Past cases", "Every finished case, ranked by how unusual the betting was, and whether it was right. The last 90 days or a year."],
           ["/radar", "Coming up", "A calendar of news in the next two weeks, scored day by day as the betting builds."],
           ["/scorecard", "Scorecard", "How often unusual betting has actually been right, against ordinary betting."],
           ["/ticker/TSLA", "Stock pages", "One stock's whole track record. Use the search box at the top to find any company."],
-          ["#mcp", "Ask Claude", "Add Foreshadow to Claude or Cursor as a tool, or ask on any case page."],
+          ["#mcp", "Ask Claude", "Add Foreshadow to Claude or Cursor as a tool, or ask on any case, stock, Coming up or Scorecard page."],
+          ["/guess", "Guess the move", "Five real cases with the result hidden. Call rise or fall, then see if you beat the bets."],
+          ["#score", "Try the score", "Move each measurement with a slider and watch the score add up."],
           ["/feed.xml", "RSS feed", "Get new unusual cases in a feed reader or a Discord channel."],
+          ["/calendar.ics", "Calendar", "Subscribe to upcoming news in Google, Apple or Outlook calendar."],
         ].map(([href, title, body]) => (
           <li key={href}>
             <a href={href} className="tray group block h-full rounded-[18px] p-5 transition-colors hover:bg-surface-3">
