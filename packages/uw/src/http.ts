@@ -137,7 +137,7 @@ export class UwHttp {
     const label = url.slice(this.baseUrl.length);
     for (let attempt = 0; ; attempt++) {
       this.checkDeadline(path);
-      await this.limiter.acquire();
+      if (!(await this.limiter.acquire(this.deadlineAt))) this.checkDeadline(path);
       await this.inFlight.acquire();
       if (this.deadlineAt !== undefined && this.now() > this.deadlineAt) {
         this.inFlight.release();
@@ -155,7 +155,7 @@ export class UwHttp {
         if (attempt >= this.maxRetries) {
           throw new UwApiError({ status: 0, path, message: `Network error: ${describe(err)}` });
         }
-        await this.sleep(backoffMs(attempt));
+        await this.sleepWithinDeadline(backoffMs(attempt));
         continue;
       }
       this.inFlight.release();
@@ -167,11 +167,11 @@ export class UwHttp {
       const retryable = res.status === 429 || res.status >= 500;
       if (!retryable || attempt >= this.maxRetries) throw err;
       if (res.status === 429 && err.code === "concurrent_limit_exceeded") {
-        await this.sleep(250 + backoffMs(attempt));
+        await this.sleepWithinDeadline(250 + backoffMs(attempt));
       } else if (res.status === 429) {
-        await this.sleep(numOpt(res.headers.get("x-uw-req-per-minute-reset")) ?? DEFAULT_429_WAIT_MS);
+        await this.sleepWithinDeadline(numOpt(res.headers.get("x-uw-req-per-minute-reset")) ?? DEFAULT_429_WAIT_MS);
       } else {
-        await this.sleep(backoffMs(attempt));
+        await this.sleepWithinDeadline(backoffMs(attempt));
       }
     }
   }
@@ -180,6 +180,12 @@ export class UwHttp {
   async requestList<T>(path: string, query: Query = {}): Promise<T[]> {
     const data = await this.request<unknown>(path, query);
     return asArray(data) as T[];
+  }
+
+  /** Retry waits never run past the deadline; the next attempt then fails fast. */
+  private sleepWithinDeadline(ms: number): Promise<void> {
+    const left = this.deadlineAt === undefined ? ms : Math.max(0, this.deadlineAt - this.now() + 1);
+    return this.sleep(Math.min(ms, left));
   }
 
   private checkDeadline(path: string): void {

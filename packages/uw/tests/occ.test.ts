@@ -81,6 +81,18 @@ describe("TokenBucket", () => {
     await bucket.acquire();
     expect(sleeps).toEqual([2500]);
   });
+
+  it("drains every waiter at the deadline instead of one per token", async () => {
+    let t = 0;
+    const sleeps: number[] = [];
+    // 60/min = one token per second; the bucket starts with 60.
+    const bucket = new TokenBucket(60, { now: () => t, sleep: async (ms) => { sleeps.push(ms); t += ms; } });
+    const got = await Promise.all(Array.from({ length: 100 }, () => bucket.acquire(5_000)));
+    expect(got.filter(Boolean)).toHaveLength(65);
+    expect(got.slice(65).every((g) => g === false)).toBe(true);
+    // No sleep runs past the deadline (+1ms to cross it).
+    expect(t).toBe(5_001);
+  });
 });
 
 describe("expiry helpers", () => {

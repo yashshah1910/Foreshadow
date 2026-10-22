@@ -31,10 +31,14 @@ export class TokenBucket {
     this.last = clock.now();
   }
 
-  /** Resolves when a token has been taken. Callers are served FIFO. */
-  acquire(): Promise<void> {
-    const next = this.chain.then(() => this.take());
-    this.chain = next.catch(() => undefined);
+  /**
+   * Resolves `true` when a token has been taken. Callers are served FIFO.
+   * With `deadlineAt`, resolves `false` without a token once that time has
+   * passed, so a queue of waiters drains at once instead of one per token.
+   */
+  acquire(deadlineAt?: number): Promise<boolean> {
+    const next = this.chain.then(() => this.take(deadlineAt));
+    this.chain = next.then(() => undefined, () => undefined);
     return next;
   }
 
@@ -56,16 +60,19 @@ export class TokenBucket {
     this.tokens = Math.min(this.perMinute, this.tokens + (elapsed * this.perMinute) / 60_000);
   }
 
-  private async take(): Promise<void> {
+  private async take(deadlineAt?: number): Promise<boolean> {
     for (;;) {
+      if (deadlineAt !== undefined && this.clock.now() > deadlineAt) return false;
       this.refill();
       const pauseWait = this.pauseUntil - this.clock.now();
       if (this.tokens >= 1 && pauseWait <= 0) {
         this.tokens -= 1;
-        return;
+        return true;
       }
       const tokenWait = this.tokens >= 1 ? 0 : ((1 - this.tokens) * 60_000) / this.perMinute;
-      await this.clock.sleep(Math.max(1, Math.ceil(Math.max(pauseWait, tokenWait))));
+      let wait = Math.max(pauseWait, tokenWait);
+      if (deadlineAt !== undefined) wait = Math.min(wait, deadlineAt - this.clock.now() + 1);
+      await this.clock.sleep(Math.max(1, Math.ceil(wait)));
     }
   }
 }
