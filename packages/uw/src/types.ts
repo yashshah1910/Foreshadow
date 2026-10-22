@@ -165,6 +165,8 @@ export interface RawFdaRow {
   source_link?: string | null;
   start_date?: string | null;
   status?: string | null;
+  /** Decision date (PDUFA / meeting). Undocumented but present; `start_date` is when it was announced. */
+  target_date?: string | null;
   ticker?: string | null;
 }
 

@@ -44,6 +44,18 @@ describe("catalyst endpoints", () => {
     expect(out[1].eventDate).toBe("2026-11-09"); // end_date fallback
   });
 
+  it("dates FDA events by target_date, not the announcement date", async () => {
+    const rows = [
+      { catalyst: "PDUFA Date", drug: "Sotatercept", start_date: "2026-05-27", end_date: null, target_date: "2026-11-27", ticker: "BBIO" },
+      { catalyst: "Data", drug: "Z", start_date: "2026-09-23", target_date: "2026-Q4", ticker: "ORKA" },
+    ];
+    const { client } = makeClient(() => ({ body: { data: rows } }));
+    const out = await client.getFdaCalendar({ targetDateMin: "2026-11-01", targetDateMax: "2026-11-30" });
+    expect(out[0].eventDate).toBe("2026-11-27");
+    expect(out[0].payload).toMatchObject({ announced_date: "2026-05-27" });
+    expect(out).toHaveLength(1); // a vague target_date ("2026-Q4") is skipped, not misdated
+  });
+
   it("getEarnings calls both sessions, pages, and maps report_time", async () => {
     const pre = { symbol: "jpm", report_date: "2026-10-14", report_time: "premarket", expected_move_perc: "0.0359", reaction: "0.041", pre_earnings_close: "210.5", post_earnings_close: "219.1", full_name: "JPMorgan", sector: "Financial Services", marketcap: "600000000000", is_s_p_500: true, has_options: true, source: "company" };
     const post = { ...pre, symbol: "NFLX", report_time: "postmarket" };

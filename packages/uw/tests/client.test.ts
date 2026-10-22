@@ -269,6 +269,20 @@ describe("getOhlcDaily", () => {
     expect(bars[1].close).toBe(102); // market_time "po" rows are kept
   });
 
+  it("keeps the regular-session bar when a date has pre, regular and post rows", async () => {
+    const rows = [
+      { close: "345.9", market_time: "po", date: "2026-10-21" },
+      { close: "344.0", market_time: "pr", date: "2026-10-21" },
+      { close: "345.3", market_time: "r", date: "2026-10-21" },
+      { close: "340.1", market_time: "pr", date: "2026-10-20" },
+      { close: "341.7", market_time: "r", date: "2026-10-20" },
+    ];
+    const { client, calls } = makeClient(dataRoute(rows));
+    const bars = await client.getOhlcDaily("AAPL", { startDate: "2026-10-20", endDate: "2026-10-21" });
+    expect(bars.map((b) => [b.date, b.close])).toEqual([["2026-10-20", 341.7], ["2026-10-21", 345.3]]);
+    expect(Number(calls[0].url.searchParams.get("limit"))).toBeGreaterThanOrEqual(6);
+  });
+
   it("caps limit at 2500 and returns [] for an inverted range", async () => {
     const { client, calls } = makeClient(dataRoute([]));
     await client.getOhlcDaily("AAPL", { startDate: "2000-01-03", endDate: "2026-10-16" });

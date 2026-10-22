@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "seed:generate": "tsx scripts/generate-seed.ts",
     "ingest": "tsx scripts/ingest.ts",
-    "supabase": "supabase"
+    "supabase": "supabase",
+    "uw:check": "tsx scripts/depth-check.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.1.0",

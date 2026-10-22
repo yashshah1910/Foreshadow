@@ -26,7 +26,11 @@ function pct(value: unknown): number | null {
 /** FDA calendar row -> kind `fda`. Event date is `start_date` (else `end_date`). */
 export function mapFdaRow(row: RawFdaRow): Catalyst | null {
   const ticker = strOpt(row.ticker)?.toUpperCase();
-  const eventDate = strOpt(row.start_date) ?? strOpt(row.end_date);
+  // target_date is the decision date. A vague one ("2026-Q4", "Late 2026") means the
+  // event can't be pinned to a session, so it can't be scored: skip it rather than
+  // misdate it with the announcement date.
+  const target = strOpt(row.target_date);
+  const eventDate = target ? isoDay(target) : (isoDay(row.end_date) ?? isoDay(row.start_date));
   if (!ticker || !eventDate) return null;
   const catalyst = strOpt(row.catalyst) ?? "FDA";
   const drug = strOpt(row.drug) ?? "";
@@ -49,6 +53,7 @@ export function mapFdaRow(row: RawFdaRow): Catalyst | null {
       source_link: strOrNull(row.source_link),
       has_options: boolOrNull(row.has_options),
       end_date: strOrNull(row.end_date),
+      announced_date: strOrNull(row.start_date),
       description: strOrNull(row.description),
     },
   };
@@ -233,4 +238,10 @@ export function mapEconomicRow(row: RawEconomicEvent): EconomicEvent | null {
     prev: strOrNull(row.prev),
     reportedPeriod: strOrNull(row.reported_period),
   };
+}
+
+/** Accepts "YYYY-MM-DD" or a timestamp; anything else (e.g. "2026-Q4") is not a usable event date. */
+function isoDay(v: string | null | undefined): string | undefined {
+  const s = strOpt(v);
+  return s && /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : undefined;
 }

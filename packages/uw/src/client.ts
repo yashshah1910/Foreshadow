@@ -177,19 +177,26 @@ export class UwClient extends UwHttp {
     const calendarDays = Math.round(
       (parseIso(endDate).getTime() - parseIso(startDate).getTime()) / 86_400_000,
     );
-    const limit = Math.min(MAX_OHLC_LIMIT, Math.max(1, tradingDaysBetween(startDate, endDate).length + 10));
+    // Daily candles come back one row per session part (pr / r / po), newest first,
+    // so ask for three rows per trading day and keep the regular-session bar.
+    const limit = Math.min(MAX_OHLC_LIMIT, Math.max(1, tradingDaysBetween(startDate, endDate).length * 3 + 30));
     const timeframe = `${Math.ceil(calendarDays / 7) + 1}W`;
     const rows = await this.requestList<RawOhlcBar>(`/api/stock/${encode(ticker)}/ohlc/1d`, {
       end_date: endDate,
       limit,
       timeframe,
     });
-    const byDate = new Map<IsoDate, OhlcBar>();
+    // Prefer the regular session ("r"); rows without market_time next; pre/post only as a last resort.
+    const rank = (mt: string | null | undefined) => (mt === "r" ? 0 : mt == null || mt === "" ? 1 : 2);
+    const byDate = new Map<IsoDate, { bar: OhlcBar; rank: number }>();
     for (const row of rows) {
       const bar = mapOhlcRow(row, ticker);
-      if (bar && bar.date >= startDate && bar.date <= endDate) byDate.set(bar.date, bar);
+      if (!bar || bar.date < startDate || bar.date > endDate) continue;
+      const r = rank(row.market_time);
+      const prev = byDate.get(bar.date);
+      if (!prev || r < prev.rank) byDate.set(bar.date, { bar, rank: r });
     }
-    return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+    return [...byDate.values()].map((v) => v.bar).sort((a, b) => a.date.localeCompare(b.date));
   }
 
   /**
