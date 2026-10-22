@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getEvent, getLeaderboard, getRadar } from "@/lib/data";
+import { getEvent, getLeaderboard, getRadar, getStats } from "@/lib/data";
 import { reactionWindowFor } from "@foreshadow/core";
 import { Trace } from "@/components/event/Trace";
 import { CaseList } from "@/components/cases/CaseList";
@@ -13,11 +13,10 @@ import { fmtDate, fmtPct } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [all, radar] = await Promise.all([getLeaderboard({ limit: 500 }), getRadar(10)]);
+  const [all, radar, stats] = await Promise.all([getLeaderboard({ limit: 40 }), getRadar(10), getStats()]);
   const exampleSummary = all.find((s) => s.verdict === "matched" && s.score >= 40) ?? all[0] ?? null;
   const example = exampleSummary ? await getEvent(exampleSummary.catalyst.id) : null;
-  const unusual = all.filter((s) => s.score >= 40);
-  const unusualRight = unusual.filter((s) => s.verdict === "matched").length;
+  const { checked, unusual, unusualRight } = stats.past;
   const upcoming = radar.filter((r) => r.windowOpen).slice(0, 4);
 
   return (
@@ -107,10 +106,10 @@ export default async function Home() {
           </Step>
         </ol>
         <WindowsDiagram />
-        {unusual.length > 0 ? (
+        {unusual > 0 ? (
           <p className="prose-plain mt-10 max-w-[720px] text-[18px]">
-            So far Foreshadow has checked <strong>{all.length} past events</strong> from the last 90 days. The betting was
-            unusual before <strong>{unusual.length}</strong> of them, and in <strong>{unusualRight}</strong> of those the bets
+            So far Foreshadow has checked <strong>{checked.toLocaleString("en-US")} past events</strong> from the last 90 days.
+            The betting was unusual before <strong>{unusual}</strong> of them, and in <strong>{unusualRight}</strong> of those the bets
             turned out right.
           </p>
         ) : null}

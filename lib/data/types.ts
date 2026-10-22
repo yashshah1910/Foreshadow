@@ -113,6 +113,16 @@ export interface Stats {
   tickers: number;
   lastComputedAt: string | null;
   heroCatalystId: string | null;
+  /** Finished, ranked cases in the last 90 days, as the leaderboard counts them. */
+  past: PastCounts;
+}
+
+export interface PastCounts {
+  checked: number;
+  /** Score 40+. */
+  unusual: number;
+  /** Score 40+ and the bets were right. */
+  unusualRight: number;
 }
 
 export interface DataSource {

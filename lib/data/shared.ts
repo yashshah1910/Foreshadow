@@ -6,7 +6,7 @@ import {
   type IsoDate,
   type StoredScore,
 } from "@foreshadow/core";
-import type { Company, EventSummary, HitRate, LeaderboardFilters, RadarItem, StripDay } from "./types";
+import type { Company, EventSummary, HitRate, LeaderboardFilters, PastCounts, RadarItem, StripDay } from "./types";
 
 /** Flow premium for T-10 .. T-1, taken from the stored daily metrics. */
 export function buildStrip(stored: StoredScore): StripDay[] {
@@ -69,6 +69,14 @@ export function leaderboardEligible(s: EventSummary): boolean {
     !s.flags.insufficientHistory &&
     (s.verdict === "matched" || s.verdict === "missed")
   );
+}
+
+/** The home page's headline counts over the leaderboard's default 90 days. */
+export function pastCounts(rows: EventSummary[], today: IsoDate, days = 90): PastCounts {
+  const since = isoDaysAgo(today, days);
+  const past = rows.filter((s) => leaderboardEligible(s) && s.catalyst.eventDate >= since && s.catalyst.eventDate <= today);
+  const unusual = past.filter((s) => s.score >= 40);
+  return { checked: past.length, unusual: unusual.length, unusualRight: unusual.filter((s) => s.verdict === "matched").length };
 }
 
 export function applyLeaderboardFilters(

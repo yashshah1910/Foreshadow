@@ -27,7 +27,7 @@ import type {
   RadarItem,
   Stats,
 } from "./types";
-import { applyLeaderboardFilters, hitRate, sortRadar, toRadarItem, toSummary } from "./shared";
+import { applyLeaderboardFilters, hitRate, pastCounts, sortRadar, toRadarItem, toSummary } from "./shared";
 
 interface Meta {
   today: IsoDate;
@@ -93,7 +93,7 @@ export class FixtureDataSource implements DataSource {
   }
 
   async getStats(): Promise<Stats> {
-    const [meta, scores] = await Promise.all([this.meta(), this.scores()]);
+    const [meta, scores, rows] = await Promise.all([this.meta(), this.scores(), this.summaries()]);
     const last = scores.reduce<string | null>((m, s) => (m === null || s.computedAt > m ? s.computedAt : m), null);
     return {
       mode: "demo",
@@ -103,6 +103,7 @@ export class FixtureDataSource implements DataSource {
       tickers: meta.counts.tickers,
       lastComputedAt: last,
       heroCatalystId: meta.heroCatalystId,
+      past: pastCounts(rows, meta.today),
     };
   }
 

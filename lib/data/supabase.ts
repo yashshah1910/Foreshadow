@@ -130,19 +130,45 @@ export class SupabaseDataSource implements DataSource {
   }
 
   async getStats(): Promise<Stats> {
-    const [{ count: events }, { data: last }, { data: tickers }] = await Promise.all([
-      this.db.from("scores").select("catalyst_id", { count: "exact", head: true }),
-      this.db.from("scores").select("computed_at").order("computed_at", { ascending: false }).limit(1),
-      this.db.from("scores").select("ticker"),
-    ]);
+    const today = todayIso();
+    const since = isoDaysAgo(today, 90);
+    // Light columns only, paged past PostgREST's 1,000-row cap.
+    type Light = Pick<ScoreRow, "ticker" | "event_date" | "score" | "verdict" | "partial_window" | "flags" | "computed_at">;
+    const rows: Light[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await this.db
+        .from("scores")
+        .select("ticker, event_date, score, verdict, partial_window, flags, computed_at")
+        .order("catalyst_id")
+        .range(from, from + 999);
+      if (error) throw error;
+      rows.push(...((data ?? []) as Light[]));
+      if (!data || data.length < 1000) break;
+    }
+    const past = rows.filter(
+      (r) =>
+        !r.partial_window &&
+        !r.flags?.isIndexOrEtf &&
+        !r.flags?.insufficientHistory &&
+        (r.verdict === "matched" || r.verdict === "missed") &&
+        r.event_date >= since &&
+        r.event_date <= today,
+    );
+    const unusual = past.filter((r) => Number(r.score) >= 40);
+    const lastComputedAt = rows.reduce<string | null>((m, r) => (r.computed_at && (m === null || r.computed_at > m) ? r.computed_at : m), null);
     return {
       mode: "supabase",
-      today: todayIso(),
+      today,
       synthetic: false,
-      events: events ?? 0,
-      tickers: new Set((tickers ?? []).map((t: { ticker: string }) => t.ticker)).size,
-      lastComputedAt: last?.[0]?.computed_at ?? null,
+      events: rows.length,
+      tickers: new Set(rows.map((r) => r.ticker)).size,
+      lastComputedAt,
       heroCatalystId: null,
+      past: {
+        checked: past.length,
+        unusual: unusual.length,
+        unusualRight: unusual.filter((r) => r.verdict === "matched").length,
+      },
     };
   }
 
