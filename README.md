@@ -149,7 +149,7 @@ The five tools have REST twins with the same JSON:
 
 | Tool | REST | Returns |
 |---|---|---|
-| `foreshadow_score` | `GET /api/score?ticker=&eventDate=` | The case (`id`, `ticker`, `kind`, `eventDate`, `title`, `score`, `band`, `direction`, `verdict`, `impliedMovePct`, `realizedMovePct`, `flags`), its `url`, the five `signals` (weight, z, contribution, window vs baseline), `trades: { count, totalPremium, largest }` and `verdictDetail` |
+| `foreshadow_score` | `GET /api/score?ticker=&eventDate=` | The case (`id`, `ticker`, `kind`, `eventDate`, `title`, `score` (whole number), `band`, `direction`, `verdict`, `result` (the three outcomes in words), `impliedMovePct`, `realizedMovePct`, `flags`), its `url`, the five `signals` (weight, z, contribution, window vs baseline), `trades: { count, totalPremium, largest }` and `verdictDetail` |
 | `foreshadow_radar` | `GET /api/radar?daysAhead=&minScore=` | `today` and `items`: upcoming cases with the same summary fields plus `windowStart`, `windowOpen`, `daysElapsed`, `daysTotal` |
 | `foreshadow_history` | `GET /api/history?ticker=` | `ticker`, `company`, `hitRate` and `events` (case summaries) |
 | `foreshadow_scorecard` | `GET /api/scorecard` | `cases`, `definition` and per kind of news a `finding` plus `bands` (`scores`, `cases`, `rightPct`, `movedMoreThanExpectedPct`, `movedWithLeanPct`) |

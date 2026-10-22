@@ -8,7 +8,7 @@
 
 import { API_SAMPLE_SIZE, getDataSource, sampleTrades, tradeTotals } from "@/lib/data";
 import type { EventSummary } from "@/lib/data";
-import { scorecardFinding } from "@/lib/plain";
+import { OUTCOME_PLAIN, outcomeOf, scorecardFinding } from "@/lib/plain";
 import { similarCases } from "@/lib/similar";
 
 function summarize(s: EventSummary) {
@@ -19,10 +19,13 @@ function summarize(s: EventSummary) {
     eventDate: s.catalyst.eventDate,
     session: s.catalyst.session,
     title: s.catalyst.title,
-    score: s.score,
+    // Whole numbers, as the site shows them.
+    score: Math.round(s.score),
     band: s.band,
     direction: s.direction,
     verdict: s.verdict,
+    // The verdict in the site's three outcomes, in words: right / right way but a smaller move / wrong way.
+    result: OUTCOME_PLAIN[outcomeOf(s)],
     impliedMovePct: s.impliedMovePct,
     realizedMovePct: s.realizedMovePct,
     partialWindow: s.partialWindow,

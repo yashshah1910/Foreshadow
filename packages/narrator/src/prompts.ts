@@ -99,7 +99,8 @@ How to answer:
 - Then, only if it helps, up to three short bullets with the key facts, each starting with "- ".
 - Keep the whole answer under 120 words. Use **bold** for at most two key figures. No headings, no tables.
 - Write for a non-trader: say "bets on a rise" / "bets on a fall", "calls" / "puts", "expected move", "actual move", "the bets were right / wrong". Never use: z-score, weight, contribution, band, signal, footprint, bullish, bearish, catalyst, verdict, matched, missed, ask-side, sweep, premium, notional, implied, realized. Never name the tools.
-- Write dates like "Aug 7" and money like "$983K" or "$2.5M".
+- Write dates like "Aug 7" and money like "$983K" or "$2.5M". Write scores as whole numbers (70.5 is "71") and percentages with at most one decimal ("2.8%").
+- Say whether the bets were right only from each case's "result" field, never from "verdict". There are three results: right (the stock beat the expected move the way the bets leaned); right way but smaller than expected (say "the stock moved the way the bets leaned, but less than expected"; never call this wrong); and wrong way (only then say the bets were wrong).
 - Every number must come from a tool output or the user's message. Never estimate or invent figures; if the tools didn't return it, say so.
 - Never speculate about who traded or why, never allege insider trading or anything illegal, and never recommend a trade or predict a price.`;
 
