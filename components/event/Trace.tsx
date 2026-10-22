@@ -22,7 +22,7 @@ export interface TraceProps {
 }
 
 const PAD_L = 2;
-const PAD_R = 54;
+const PAD_R = 74;
 const PAD_T = 34;
 const ROW_HEAD = 22;
 const ROW_GAP = 16;
@@ -100,11 +100,13 @@ export function Trace(p: TraceProps) {
         {/* Event line */}
         {m.eventX !== null ? (
           <g>
-            <line x1={m.eventX} x2={m.eventX} y1={PAD_T - 14} y2={m.height - X_AXIS + 2} className="stroke-ink" strokeWidth="2" strokeLinecap="round" />
+            {m.eventOnChart ? (
+              <line x1={m.eventX} x2={m.eventX} y1={PAD_T - 14} y2={m.height - X_AXIS + 2} className="stroke-ink" strokeWidth="2" strokeLinecap="round" />
+            ) : null}
             <text
-              x={m.eventX + (m.eventFlip ? -7 : 7)}
+              x={m.eventOnChart ? m.eventX + (m.eventFlip ? -7 : 7) : PAD_L + m.plotW + PAD_R - 2}
               y={14}
-              textAnchor={m.eventFlip ? "end" : "start"}
+              textAnchor={m.eventFlip || !m.eventOnChart ? "end" : "start"}
               className="fill-ink"
               fontSize="12.5"
               fontWeight={700}
@@ -130,7 +132,7 @@ export function Trace(p: TraceProps) {
               x={m.reaction.bx + m.reaction.dir * 8}
               y={(m.reaction.y0 + m.reaction.y1) / 2 + 4}
               textAnchor={m.reaction.dir > 0 ? "start" : "end"}
-              className="fill-pen"
+              className="fill-pen stroke-surface" strokeWidth={4} paintOrder="stroke" strokeLinejoin="round"
               fontSize="12"
               fontWeight={600}
             >
@@ -142,7 +144,7 @@ export function Trace(p: TraceProps) {
         {/* ---------------- Signal rows ---------------- */}
         {m.rows.map((row) => (
           <g key={row.key}>
-            <text x={PAD_L} y={row.top + 13} className="fill-ink" fontSize="13.5" fontWeight={600}>
+            <text x={PAD_L} y={row.top + 13} className="fill-ink stroke-surface" strokeWidth={4} paintOrder="stroke" strokeLinejoin="round" fontSize="13.5" fontWeight={600}>
               {ROW_SPEC[row.key].label}
               {row.key === "flow" && !m.narrow ? (
                 <tspan className="fill-ink-3" fontSize="11">
@@ -175,7 +177,7 @@ export function Trace(p: TraceProps) {
 
         {/* Peak annotation, in pen */}
         {m.peak ? (
-          <text x={m.peak.x} y={m.peak.y} textAnchor={m.peak.anchor} className="fill-pen" fontSize="11.5" fontWeight={600}>
+          <text x={m.peak.x} y={m.peak.y} textAnchor={m.peak.anchor} className="fill-pen stroke-surface" strokeWidth={4} paintOrder="stroke" strokeLinejoin="round" fontSize="11.5" fontWeight={600}>
             {m.peak.text}
           </text>
         ) : null}
@@ -320,16 +322,17 @@ function layout(p: TraceProps, width: number) {
   // Top labels: keep "5 days before" and "The news" from running into each
   // other when the news day sits right after the highlighted days.
   const narrow = width < 640;
-  const bandText = narrow ? "5 days before" : "The 5 trading days before the news";
+  const partial = !eventOnChart;
+  const bandText = partial ? (narrow ? "So far" : "Counted so far") : narrow ? "5 days before" : "The 5 trading days before the news";
   const textW = (t: string) => t.length * 7.1;
   let bandLabel = { x: (band?.x0 ?? 0) + 8, y: 14, anchor: "start" as "start" | "end", text: bandText };
   if (band && eventX !== null) {
     const evW = textW(eventText);
-    const evStart = eventFlip ? eventX - 7 - evW : eventX + 7;
+    const evStart = !eventOnChart ? PAD_L + plotW + PAD_R - 2 - evW : eventFlip ? eventX - 7 - evW : eventX + 7;
     if (bandLabel.x + textW(bandText) > evStart - 8) {
       const roomRight = PAD_L + plotW + PAD_R - (eventX + 7);
-      if (roomRight >= evW) eventFlip = false;
-      bandLabel = eventFlip
+      if (eventOnChart && roomRight >= evW) eventFlip = false;
+      bandLabel = eventFlip || !eventOnChart
         ? { ...bandLabel, y: 28 }
         : { x: Math.min(band.x1, eventX) - 8, y: 14, anchor: "end", text: bandText };
     }
