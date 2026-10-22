@@ -6,7 +6,7 @@ import {
   type IsoDate,
   type StoredScore,
 } from "@foreshadow/core";
-import type { Company, EventSummary, HitRate, LeaderboardFilters, PastCounts, RadarItem, StripDay } from "./types";
+import type { Company, EventSummary, HitRate, LeaderboardFilters, PastCounts, RadarItem, Scorecard, ScorecardBand, ScorecardCase, StripDay } from "./types";
 
 /** Flow premium for T-10 .. T-1, taken from the stored daily metrics. */
 export function buildStrip(stored: StoredScore): StripDay[] {
@@ -152,4 +152,56 @@ export function sortRadar(items: RadarItem[]): RadarItem[] {
     if (a.windowOpen) return b.score - a.score || a.catalyst.eventDate.localeCompare(b.catalyst.eventDate);
     return a.catalyst.eventDate.localeCompare(b.catalyst.eventDate);
   });
+}
+
+export const SCORECARD_BANDS: { min: number; max: number; label: string }[] = [
+  { min: 0, max: 19, label: "0 to 19" },
+  { min: 20, max: 39, label: "20 to 39" },
+  { min: 40, max: 69, label: "40 to 69" },
+  { min: 70, max: 100, label: "70 and up" },
+];
+
+/** Groups finished cases by kind of news and score band. Kinds with no cases are left out. */
+export function buildScorecard(rows: ScorecardCase[]): Scorecard {
+  const kinds = new Map<ScorecardCase["kind"], ScorecardCase[]>();
+  for (const r of rows) {
+    if (r.verdict !== "matched" && r.verdict !== "missed") continue;
+    const list = kinds.get(r.kind) ?? [];
+    list.push(r);
+    kinds.set(r.kind, list);
+  }
+  const out: Scorecard["kinds"] = [];
+  for (const [kind, list] of kinds) {
+    const bands: ScorecardBand[] = SCORECARD_BANDS.map(({ min, max, label }) => {
+      const inBand = list.filter((r) => Math.round(r.score) >= min && Math.round(r.score) <= max);
+      const leaned = inBand.filter((r) => r.direction !== "mixed" && r.realizedMovePct !== null);
+      return {
+        min,
+        max,
+        label,
+        cases: inBand.length,
+        right: inBand.filter((r) => r.verdict === "matched").length,
+        movedMore: inBand.filter(
+          (r) => r.realizedMovePct !== null && r.impliedMovePct !== null && r.impliedMovePct > 0 && Math.abs(r.realizedMovePct) >= r.impliedMovePct,
+        ).length,
+        leaned: leaned.length,
+        leanedRight: leaned.filter((r) => (r.direction === "bullish") === (r.realizedMovePct! > 0)).length,
+      };
+    });
+    out.push({ kind, cases: list.length, bands });
+  }
+  out.sort((a, b) => b.cases - a.cases);
+  return { cases: out.reduce((n, k) => n + k.cases, 0), kinds: out };
+}
+
+/** Finished, ranked cases as scorecard rows. */
+export function scorecardCases(rows: EventSummary[]): ScorecardCase[] {
+  return rows.filter(leaderboardEligible).map((s) => ({
+    kind: s.catalyst.kind,
+    score: s.score,
+    direction: s.direction,
+    verdict: s.verdict,
+    realizedMovePct: s.realizedMovePct,
+    impliedMovePct: s.impliedMovePct,
+  }));
 }

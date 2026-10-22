@@ -27,7 +27,7 @@ import type {
   RadarItem,
   Stats,
 } from "./types";
-import { applyLeaderboardFilters, hitRate, pastCounts, sortRadar, toRadarItem, toSummary } from "./shared";
+import { applyLeaderboardFilters, buildScorecard, hitRate, pastCounts, scorecardCases, sortRadar, toRadarItem, toSummary } from "./shared";
 
 interface Meta {
   today: IsoDate;
@@ -177,6 +177,10 @@ export class FixtureDataSource implements DataSource {
     return companies
       .filter((c) => c.ticker.startsWith(q) || c.name.toUpperCase().includes(q))
       .slice(0, 8);
+  }
+
+  async getScorecard() {
+    return buildScorecard(scorecardCases(await this.summaries()));
   }
 
   async getNarration(catalystId: string, score: number) {

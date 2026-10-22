@@ -131,6 +131,37 @@ export interface PastCounts {
   unusualRight: number;
 }
 
+/** One finished case, reduced to what the scorecard needs. */
+export interface ScorecardCase {
+  kind: CatalystKind;
+  score: number;
+  direction: Direction;
+  verdict: Verdict;
+  realizedMovePct: number | null;
+  impliedMovePct: number | null;
+}
+
+export interface ScorecardBand {
+  /** Inclusive score range, e.g. 40-69. */
+  min: number;
+  max: number;
+  label: string;
+  cases: number;
+  /** The bets were right: the stock moved at least the expected amount, in the bets' direction. */
+  right: number;
+  /** The stock moved at least as much as options priced in, either way. */
+  movedMore: number;
+  /** Cases with a clear lean, and how many of those the stock moved toward. */
+  leaned: number;
+  leanedRight: number;
+}
+
+export interface Scorecard {
+  /** Finished cases counted, across every kind. */
+  cases: number;
+  kinds: { kind: CatalystKind; cases: number; bands: ScorecardBand[] }[];
+}
+
 export interface DataSource {
   readonly mode: DataMode;
   today(): Promise<IsoDate>;
@@ -143,4 +174,6 @@ export interface DataSource {
   getNarration(catalystId: string, score: number): Promise<Narration | null>;
   saveNarration(catalystId: string, score: number, narration: Narration): Promise<void>;
   getCompany(ticker: string): Promise<Company | null>;
+  /** How often the bets were right, by score band and kind of news, over every finished case. */
+  getScorecard(): Promise<Scorecard>;
 }

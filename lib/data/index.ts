@@ -42,6 +42,7 @@ function slimEvent(ev: EventDetail | null, keep = 60): EventDetail | null {
     footprint: ev.footprint.map((d) => ({ ...d, alerts: d.alerts.filter((a) => top.has(a.id)), oiChanges: [], darkPool: [] })),
   };
 }
+const sharedScorecard = shared("scorecard", 300, () => getDataSource().getScorecard());
 const sharedDossier = shared("dossier", 300, (ticker: string) => getDataSource().getTickerDossier(ticker));
 
 // Per-request memoized readers for Server Components.
@@ -53,4 +54,5 @@ export const getTickerDossier = cache((ticker: string) => sharedDossier(ticker.t
 export const getRadar = cache((daysAhead?: number, minScore?: number) =>
   getDataSource().getRadar({ daysAhead, minScore }),
 );
+export const getScorecard = cache(() => sharedScorecard());
 export const getCompany = cache((ticker: string) => getDataSource().getCompany(ticker));

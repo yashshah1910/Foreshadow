@@ -26,10 +26,13 @@ import type {
   LeaderboardFilters,
   Narration,
   RadarItem,
+  Scorecard,
+  ScorecardCase,
   Stats,
 } from "./types";
 import {
   applyLeaderboardFilters,
+  buildScorecard,
   companyFromCatalyst,
   hitRate,
   isoDaysAgo,
@@ -171,6 +174,39 @@ export class SupabaseDataSource implements DataSource {
         unusualRight: unusual.filter((r) => r.verdict === "matched").length,
       },
     };
+  }
+
+  async getScorecard(): Promise<Scorecard> {
+    type Row = Pick<ScoreRow, "score" | "direction" | "verdict" | "partial_window" | "flags" | "realized_move_pct" | "implied_move_pct"> & {
+      catalysts: { kind: CatalystKind } | { kind: CatalystKind }[] | null;
+    };
+    const rows: Row[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await this.db
+        .from("scores")
+        .select("score, direction, verdict, partial_window, flags, realized_move_pct, implied_move_pct, catalysts!inner(kind)")
+        .eq("partial_window", false)
+        .in("verdict", ["matched", "missed"])
+        .order("catalyst_id")
+        .range(from, from + 999);
+      if (error) throw error;
+      rows.push(...((data ?? []) as unknown as Row[]));
+      if (!data || data.length < 1000) break;
+    }
+    const cases: ScorecardCase[] = rows
+      .filter((r) => !r.flags?.isIndexOrEtf && !r.flags?.insufficientHistory)
+      .map((r) => {
+        const cat = Array.isArray(r.catalysts) ? r.catalysts[0] : r.catalysts;
+        return {
+          kind: cat?.kind ?? "earnings",
+          score: num(r.score) ?? 0,
+          direction: r.direction,
+          verdict: r.verdict,
+          realizedMovePct: num(r.realized_move_pct),
+          impliedMovePct: num(r.implied_move_pct),
+        };
+      });
+    return buildScorecard(cases);
   }
 
   async getLeaderboard(filters: LeaderboardFilters = {}): Promise<EventSummary[]> {
