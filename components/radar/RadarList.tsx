@@ -68,7 +68,12 @@ export function RadarList({
           <span className={`h-2 w-2 rounded-full ${live ? "bg-call motion-safe:animate-pulse" : "bg-ink-3"}`} aria-hidden="true" />
           {live ? "Live: this list updates on its own" : "Sample data: these scores don't change"}
         </span>
-        {latest && now ? <span className="tnum">Last scored {ago(Date.parse(latest), now)}</span> : null}
+        {latest && now ? (
+          <span className="tnum">
+            Last scored {ago(Date.parse(latest), now)}
+            {live && !marketHours(now) ? ". Markets are closed; scores refresh every 15 minutes while US markets are open." : ""}
+          </span>
+        ) : null}
         {lastEvent ? <span className="tnum">Updated {lastEvent}</span> : null}
         <span className="ml-auto flex flex-wrap gap-x-4 gap-y-1">
           <a href="/calendar.ics" className="link text-[14px]" title="Subscribe in Google, Apple or Outlook calendar">
@@ -173,6 +178,14 @@ export function RadarList({
       ) : null}
     </div>
   );
+}
+
+/** Weekdays 9 AM to 5 PM New York time, when the radar refresh runs (holidays aside). */
+function marketHours(now: number): boolean {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", hourCycle: "h23" }).formatToParts(now);
+  const day = parts.find((p) => p.type === "weekday")?.value ?? "";
+  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? 0);
+  return !["Sat", "Sun"].includes(day) && hour >= 9 && hour < 17;
 }
 
 function ago(then: number, now: number): string {
