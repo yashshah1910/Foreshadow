@@ -24,6 +24,7 @@ export default async function LeaderboardPage({ searchParams }: PageProps<"/lead
       matchedOnly: f.matched,
       days: f.days,
       limit: f.show,
+      sort: f.sort,
     }),
     getToday(),
   ]);
@@ -33,8 +34,8 @@ export default async function LeaderboardPage({ searchParams }: PageProps<"/lead
       <header className="mb-10 max-w-[760px]">
         <h1 className="display text-[44px] text-ink sm:text-[60px]">Past cases</h1>
         <p className="prose-plain mt-5">
-          News from the last few months, ranked by how unusual the options betting was in the five days before it, with
-          what the stock did next. Funds and stocks with too little trading history are left out. Updated{" "}
+          News from the last few months: how unusual the options betting was in the five days before it, and what the
+          stock did next. Funds and stocks with too little trading history are left out. Updated{" "}
           {fmtDate(today, { year: true })}.
         </p>
       </header>

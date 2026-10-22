@@ -119,7 +119,11 @@ export function applyLeaderboardFilters(
       (filters.minScore === undefined || s.score >= filters.minScore) &&
       (!filters.matchedOnly || s.verdict === "matched"),
   );
-  out.sort((a, b) => b.score - a.score || (a.catalyst.eventDate < b.catalyst.eventDate ? 1 : -1));
+  const newer = (a: EventSummary, b: EventSummary) => (a.catalyst.eventDate < b.catalyst.eventDate ? 1 : a.catalyst.eventDate > b.catalyst.eventDate ? -1 : 0);
+  const sort = filters.sort ?? "score";
+  if (sort === "new") out.sort((a, b) => newer(a, b) || b.score - a.score);
+  else if (sort === "move") out.sort((a, b) => Math.abs(b.realizedMovePct ?? 0) - Math.abs(a.realizedMovePct ?? 0) || b.score - a.score);
+  else out.sort((a, b) => b.score - a.score || newer(a, b));
   return out.slice(0, filters.limit ?? 20);
 }
 

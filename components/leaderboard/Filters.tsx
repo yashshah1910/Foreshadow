@@ -29,6 +29,8 @@ export function Filters({ initial, total }: { initial: FilterState; total: numbe
     else params.delete("matched");
     if (next.days === 90) params.delete("days");
     else params.set("days", String(next.days));
+    if (next.sort === "score") params.delete("sort");
+    else params.set("sort", next.sort);
     // A new filter starts back at the first page.
     params.delete("show");
     startTransition(() => {
@@ -59,6 +61,16 @@ export function Filters({ initial, total }: { initial: FilterState; total: numbe
         ]}
         value={String(state.days)}
         onChange={(v) => update({ days: Number(v) })}
+      />
+      <Segmented
+        label="Sort"
+        options={[
+          { value: "score", label: "Most unusual" },
+          { value: "new", label: "Newest" },
+          { value: "move", label: "Biggest move" },
+        ]}
+        value={state.sort}
+        onChange={(v) => update({ sort: v as FilterState["sort"] })}
       />
       <span className="ml-auto text-[15px] text-ink-3 tnum" aria-live="polite">
         {pending ? "Updating…" : total >= state.show ? `Top ${total}` : `${total} case${total === 1 ? "" : "s"}`}

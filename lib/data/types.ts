@@ -90,6 +90,8 @@ export interface LeaderboardFilters {
   /** Look-back window in calendar days (default 90). */
   days?: number;
   limit?: number;
+  /** "score" (most unusual first, default), "new" (newest first) or "move" (biggest actual move first). */
+  sort?: "score" | "new" | "move";
 }
 
 export interface HitRate {

@@ -227,19 +227,42 @@ export class SupabaseDataSource implements DataSource {
   async getLeaderboard(filters: LeaderboardFilters = {}): Promise<EventSummary[]> {
     const today = todayIso();
     const since = isoDaysAgo(today, filters.days ?? 90);
-    let q = this.db
-      .from("scores")
-      .select(LIST_COLUMNS)
-      .eq("partial_window", false)
-      .gte("event_date", since)
-      .lte("event_date", today)
-      .in("verdict", ["matched", "missed"])
-      .order("score", { ascending: false })
-      .limit(400);
-    if (filters.kind && filters.kind !== "all") q = q.eq("catalysts.kind", filters.kind);
-    const { data, error } = await q;
-    if (error) throw error;
-    const rows = ((data ?? []) as unknown as ScoreRow[]).map((r) => this.summaryOf(r)).filter((s): s is EventSummary => s !== null);
+    // Fetch the rows the chosen order needs: the 400 highest scores, the 400 newest, or the 200 biggest rises and falls.
+    const base = () => {
+      let q = this.db
+        .from("scores")
+        .select(LIST_COLUMNS)
+        .eq("partial_window", false)
+        .gte("event_date", since)
+        .lte("event_date", today)
+        .in("verdict", ["matched", "missed"]);
+      if (filters.kind && filters.kind !== "all") q = q.eq("catalysts.kind", filters.kind);
+      if (filters.minScore !== undefined) q = q.gte("score", filters.minScore);
+      if (filters.matchedOnly) q = q.eq("verdict", "matched");
+      return q;
+    };
+    const sort = filters.sort ?? "score";
+    const queries =
+      sort === "new"
+        ? [base().order("event_date", { ascending: false }).order("score", { ascending: false }).limit(400)]
+        : sort === "move"
+          ? [
+              base().not("realized_move_pct", "is", null).order("realized_move_pct", { ascending: false }).limit(200),
+              base().not("realized_move_pct", "is", null).order("realized_move_pct", { ascending: true }).limit(200),
+            ]
+          : [base().order("score", { ascending: false }).limit(400)];
+    const results = await Promise.all(queries);
+    const seen = new Set<string>();
+    const rows: EventSummary[] = [];
+    for (const { data, error } of results) {
+      if (error) throw error;
+      for (const r of (data ?? []) as unknown as ScoreRow[]) {
+        if (seen.has(r.catalyst_id)) continue;
+        seen.add(r.catalyst_id);
+        const s = this.summaryOf(r);
+        if (s) rows.push(s);
+      }
+    }
     return applyLeaderboardFilters(rows, filters, today);
   }
 
