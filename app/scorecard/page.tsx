@@ -19,6 +19,8 @@ export default async function ScorecardPage() {
     getScorecard().then((c) => ({ ...c, kinds: kindsLiftFirst(c.kinds) })),
     getLeaderboard({ minScore: 40, matchedOnly: true, limit: 60 }),
   ]);
+  const allBands = card.kinds.flatMap((k) => k.bands);
+  const beatShare = card.cases > 0 ? Math.round((allBands.reduce((n, b) => n + b.movedMore, 0) / card.cases) * 100) : null;
   const biggest = [...rightCalls].sort((a, b) => Math.abs(b.realizedMovePct ?? 0) - Math.abs(a.realizedMovePct ?? 0)).slice(0, 6);
   const maxPct = Math.max(...card.kinds.flatMap((k) => k.bands.filter((b) => b.cases >= 3).map((b) => pct(b.right, b.cases))), 0);
   const scaleMax = Math.max(30, Math.ceil(maxPct / 10) * 10);
@@ -50,6 +52,15 @@ export default async function ScorecardPage() {
           The bets count as right when the stock moved at least as much as options traders expected, in the direction the
           bets leaned. That is a high bar: options prices already include the expected move, so most bets miss it.
         </p>
+        {beatShare !== null ? (
+          <p className="tray mt-5 max-w-[720px] px-5 py-4 text-[15.5px] leading-relaxed text-ink-2">
+            <strong className="font-semibold text-ink">Why most cases aren&apos;t &ldquo;right&rdquo;:</strong> across all{" "}
+            {card.cases.toLocaleString("en-US")} cases, the stock beat its expected move only {beatShare}% of the time, in
+            either direction. Pick a direction at random and you&apos;d be right about half of that, roughly {Math.round(beatShare / 2)}%
+            of the time. That&apos;s the yardstick; on case pages, &ldquo;Right way&rdquo; marks the cases that moved the way the bets
+            leaned but by less than expected.
+          </p>
+        ) : null}
         <div className="mt-8 grid gap-2 lg:grid-cols-2">
           {card.kinds.map((k) => (
             <figure key={k.kind} className="tray p-2">
