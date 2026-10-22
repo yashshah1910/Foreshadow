@@ -80,10 +80,36 @@ export interface OutcomeResult {
 }
 
 const MAX_OPTIONS_VOLUME_LIMIT = 500;
+/**
+ * Dates loaded at once by `loadPerDate`. OI change pages up to 10 times per
+ * date; with every date started together the limiter interleaves their
+ * pages and no date finishes until the very end. Matching UW's in-flight cap
+ * keeps throughput and lets dates complete one after another.
+ */
+const PER_DATE_CONCURRENCY = 3;
 
 function entries<T>(ticker: string, endpoint: CacheEndpoint, rows: Map<IsoDate, T>, today: IsoDate): CacheEntry<T>[] {
   const out: CacheEntry<T>[] = [];
   for (const [tradeDate, payload] of rows) if (tradeDate < today) out.push({ ticker, tradeDate, endpoint, payload });
+  return out;
+}
+
+/** `fn` over `items` with at most `limit` running; settles every item like `Promise.allSettled`. */
+async function settlePool<T>(items: T[], limit: number, fn: (item: T) => Promise<void>): Promise<PromiseSettledResult<void>[]> {
+  const out: PromiseSettledResult<void>[] = [];
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, async () => {
+      while (next < items.length) {
+        const i = next++;
+        try {
+          out[i] = { status: "fulfilled", value: await fn(items[i]) };
+        } catch (reason) {
+          out[i] = { status: "rejected", reason };
+        }
+      }
+    }),
+  );
   return out;
 }
 
@@ -200,18 +226,17 @@ async function loadPerDate<T>(
     fetched.set(missing[lo], await fetchOne(missing[lo]));
   });
   if (firstOk > 0) warnings.push(historicWarning(endpoint, ticker, missing, firstOk));
-  const settled = await Promise.allSettled(
-    missing
-      .slice(firstOk)
-      .filter((d) => !fetched.has(d))
-      .map(async (d) => {
-        try {
-          fetched.set(d, await fetchOne(d));
-        } catch (err) {
-          if (!isHistoricAccessError(err)) throw err;
-          warnings.push(historicWarning(endpoint, ticker, [d], 1));
-        }
-      }),
+  const settled = await settlePool(
+    missing.slice(firstOk).filter((d) => !fetched.has(d)),
+    PER_DATE_CONCURRENCY,
+    async (d) => {
+      try {
+        fetched.set(d, await fetchOne(d));
+      } catch (err) {
+        if (!isHistoricAccessError(err)) throw err;
+        warnings.push(historicWarning(endpoint, ticker, [d], 1));
+      }
+    },
   );
   await cache.setMany(entries(ticker, endpoint, fetched, today));
   const failed = settled.find((s): s is PromiseRejectedResult => s.status === "rejected");
