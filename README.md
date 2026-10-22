@@ -15,10 +15,12 @@ options.
 
 | Page | What it shows |
 | --- | --- |
-| **Past cases** `/leaderboard` | Finished news events from the last 90 days, ranked by how unusual the betting was, with which way the bets leaned, the move options priced in, the actual move, and whether the bets were right. Filters: type of news, very unusual only, bets were right, time range. |
-| **Case page** `/event/[id]` | One case end to end: a day-by-day chart (stock price on top, one row per measurement below, the five counted days highlighted), every large trade behind the score, the score's arithmetic, a Claude summary, and "Ask about this case". Shareable, with a generated preview image. |
+| **Past cases** `/leaderboard` | Finished news events from the last 90 days, ranked by how unusual the betting was, with which way the bets leaned, the move options priced in, the actual move, and whether the bets were right. Filters: FDA or earnings, very unusual only, bets were right, 30 or 90 days. |
+| **Case page** `/event/[id]` | One case end to end: a day-by-day chart (stock price on top, one row per measurement below, the five counted days highlighted), every large trade behind the score, the score's arithmetic, a Claude summary, and "Ask about this case". **Replay the days** steps through the chart one trading day at a time with a plain caption, and **Cases like this one** shows how past cases of the same kind, with a similar score and lean, turned out. Shareable, with a generated preview image. |
 | **Stock page** `/ticker/[t]` | Every case for one stock on a timeline, its track record ("very unusual 3 times, right 2 of those") and a Claude summary. Stocks whose news isn't scored yet show what's queued. |
-| **Coming up** `/radar` | News due in the next two weeks, scored on the part of the five-day window that has already happened, pushed to the browser with Supabase Realtime. |
+| **Coming up** `/radar` | A calendar of news due in the next two weeks, grouped by day, scored on the part of the five-day window that has already happened, with the most unusual betting so far at the top. Updates arrive through Supabase Realtime. |
+| **Scorecard** `/scorecard` | Foreshadow grading itself in public: across every finished case, how often the bets were right by kind of news and score band, against ordinary betting as the yardstick. A lift is only claimed when it clears a significance check at that sample size. |
+| **RSS** `/feed.xml` | Upcoming news once its betting turns unusual, plus recent unusual cases, for any feed reader or a Discord RSS bot. |
 | **How it works** `/docs` | The method in plain words, then the exact formula, data sources, API and MCP setup. |
 | **MCP** `/api/mcp` | Remote MCP (streamable HTTP): `foreshadow_score`, `foreshadow_radar`, `foreshadow_history`. Plus `packages/mcp-stdio` for stdio-only clients. |
 | **Accounts** `/settings` | Supabase Auth (magic link + Google). Bring your own UW key, stored in Supabase Vault. Watchlists. Discord-webhook or email alerts when a Coming-up score crosses your threshold. |
