@@ -21,6 +21,10 @@ export interface TraceProps {
   eventLabel: string;
   /** Show a "Replay the days" control that steps through the chart one day at a time. */
   replay?: boolean;
+  /** Height of the bets row (default 92); smaller for compact cards. */
+  flowHeight?: number;
+  /** Tighter replay bar for small cards. */
+  compact?: boolean;
 }
 
 const PAD_L = 2;
@@ -62,18 +66,18 @@ export function Trace(p: TraceProps) {
   return (
     <div ref={ref} className="relative w-full select-none">
       {p.replay ? (
-        <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className={`flex flex-wrap items-center gap-3 ${p.compact ? "mb-2" : "mb-4"}`}>
           <button
             type="button"
             onClick={() => setStep((s) => (s === null ? 0 : null))}
-            className="pressable btn btn-soft h-9 px-4 text-[14px]"
+            className={`pressable btn btn-soft ${p.compact ? "h-8 px-3.5 text-[13.5px]" : "h-9 px-4 text-[14px]"}`}
             aria-pressed={step !== null}
           >
             <span aria-hidden="true">{step === null ? "▶" : "■"}</span>
             {step === null ? "Replay the days" : "Stop"}
           </button>
-          <p className="min-w-0 flex-1 text-[14.5px] text-ink-2" aria-live="polite">
-            {step !== null ? replayCaption(m, p, step) : "Watch the betting build up, one trading day at a time."}
+          <p className={`min-w-0 flex-1 text-ink-2 ${p.compact ? "text-[13.5px] leading-snug" : "text-[14.5px]"}`} aria-live="polite">
+            {step !== null ? replayCaption(m, p, step) : p.compact ? "Watch the bets build up, day by day." : "Watch the betting build up, one trading day at a time."}
           </p>
         </div>
       ) : null}
@@ -452,7 +456,7 @@ function layout(p: TraceProps, width: number) {
     const spec = ROW_SPEC[key];
     const top = y;
     const plotTop = top + ROW_HEAD;
-    const h = spec.height;
+    const h = key === "flow" && p.flowHeight ? p.flowHeight : spec.height;
     const marks: Mark[] = [];
     let path: string | null = null;
     let base = plotTop + h;

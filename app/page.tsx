@@ -22,7 +22,7 @@ export default async function Home() {
   return (
     <div className="mx-auto max-w-[1120px] px-5 sm:px-8">
       {/* ---------------- Opening ---------------- */}
-      <section className="grid grid-cols-[minmax(0,1fr)] items-center gap-12 pb-8 pt-12 sm:pt-20 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
+      <section className="grid grid-cols-[minmax(0,1fr)] items-center gap-12 pb-8 pt-8 sm:pt-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
         <div className="min-w-0">
           <h1 className="display text-[44px] text-ink sm:text-[64px]">Spot the big bets placed days before the news.</h1>
           <div className="prose-plain mt-7 space-y-4 text-[18px]">
@@ -45,14 +45,25 @@ export default async function Home() {
 
         {example ? (
           <figure className="tray min-w-0 p-2">
-            <div className="px-4 pb-3 pt-4 sm:px-5">
-              <figcaption className="text-[14px] font-medium text-ink-3">A real case</figcaption>
-              <p className="mt-1.5 text-[20px] font-semibold leading-snug text-ink">
-                <span className="ticker">{example.summary.catalyst.ticker}</span> {eventName(example.summary)}
-              </p>
-              <p className="mt-0.5 text-[14.5px] text-ink-3">{fmtDate(example.summary.catalyst.eventDate, { year: true })}</p>
+            <div className="flex items-start justify-between gap-3 px-4 pb-2.5 pt-3 sm:px-5">
+              <div className="min-w-0">
+                <figcaption className="text-[13px] font-medium text-ink-3">A real case</figcaption>
+                <p className="mt-0.5 text-[17px] font-semibold leading-snug text-ink">
+                  <span className="ticker">{example.summary.catalyst.ticker}</span> {eventName(example.summary)}
+                  <span className="block text-[14px] font-normal text-ink-3 sm:inline sm:text-[17px]">
+                    <span className="hidden sm:inline">, </span>
+                    {fmtDate(example.summary.catalyst.eventDate, { year: true })}
+                  </span>
+                </p>
+              </div>
+              <Link
+                href={`/event/${encodeURIComponent(example.summary.catalyst.id)}`}
+                className="pressable btn btn-soft mt-1 h-8 shrink-0 bg-surface px-3.5 text-[13.5px] hover:bg-surface-3"
+              >
+                Open case <span aria-hidden="true">↗</span>
+              </Link>
             </div>
-            <div className="card px-4 pb-2 pt-5 sm:px-5">
+            <div className="card px-4 pb-1 pt-3.5 sm:px-5">
               <Trace
                 bars={example.chartBars}
                 daily={example.stored.breakdown.daily}
@@ -61,9 +72,11 @@ export default async function Home() {
                 reactionDate={example.summary.partialWindow ? null : reactionWindowFor(example.summary.catalyst.eventDate, example.summary.catalyst.session).to}
                 signals={example.stored.breakdown.signals}
                 rows={["flow"]}
-                priceHeight={130}
+                priceHeight={92}
+                flowHeight={56}
                 eventLabel={eventPhrase(example.summary)}
                 replay
+                compact
               />
             </div>
             <dl className="mt-1.5 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
@@ -73,18 +86,11 @@ export default async function Home() {
                 value={fmtPct(example.summary.realizedMovePct)}
                 note={`expected ±${fmtPct(example.summary.impliedMovePct, { sign: false, decimals: 0 })}`}
               />
-              <div className="card col-span-2 px-4 py-3.5 sm:col-span-1">
+              <div className="card col-span-2 px-4 py-2.5 sm:col-span-1">
                 <dt className="text-[13px] font-medium text-ink-3">The bets were</dt>
-                <dd className="mt-2"><VerdictMark verdict={example.summary.verdict} /></dd>
+                <dd className="mt-1.5"><VerdictMark verdict={example.summary.verdict} /></dd>
               </div>
             </dl>
-            <Link
-              href={`/event/${encodeURIComponent(example.summary.catalyst.id)}`}
-              className="mt-1.5 flex items-center justify-between rounded-[14px] px-5 py-3.5 text-[15px] font-semibold text-ink transition-colors hover:bg-surface-3"
-            >
-              Open this case and see every trade
-              <span aria-hidden="true">↗</span>
-            </Link>
           </figure>
         ) : null}
       </section>
@@ -188,10 +194,10 @@ export default async function Home() {
 
 function Fact({ label, value, note }: { label: string; value: string; note: string }) {
   return (
-    <div className="card px-4 py-3.5">
+    <div className="card px-4 py-2.5">
       <dt className="text-[13px] font-medium text-ink-3">{label}</dt>
-      <dd className="numeral mt-2 text-[24px] text-ink">{value}</dd>
-      <dd className="mt-1 text-[13px] text-ink-3">{note}</dd>
+      <dd className="numeral mt-1.5 text-[21px] text-ink">{value}</dd>
+      <dd className="mt-0.5 text-[12.5px] text-ink-3">{note}</dd>
     </div>
   );
 }
