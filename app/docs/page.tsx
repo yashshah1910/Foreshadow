@@ -189,7 +189,7 @@ export default async function DocsPage() {
           story and the tweet-ready caption on each case page from the score&apos;s measurements and its largest trades; every number in the
           story is checked against that input, and the largest trades are shown beside the story so you can verify. The{" "}
           <strong className="text-ink">Catalyst tagger</strong> maps President&apos;s-schedule and economic-calendar rows to tickers with a confidence (for the calendars not shown on the site yet). The{" "}
-          <strong className="text-ink">Investigator</strong> (the &ldquo;Ask about this case&rdquo; box) runs a short tool loop, capped at six calls, over Foreshadow&apos;s
+          <strong className="text-ink">Investigator</strong> (the &ldquo;Ask about this case&rdquo; box) runs a short tool loop, capped at four calls, over Foreshadow&apos;s
           five tools plus the Unusual Whales hosted MCP, and names the sources it used. The{" "}
           <strong className="text-ink">Stock summary</strong> is one paragraph on whether unusual betting keeps showing up before a stock&apos;s news. Narrations are cached by
           (ticker, event date, score). Without <span className="font-mono text-ink">ANTHROPIC_API_KEY</span> every surface still works and shows the
