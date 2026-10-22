@@ -14,37 +14,51 @@ const catalyst: Catalyst = {
   payload: { marketcap: 90_000_000_000, has_options: true },
 };
 
+// Already stored, and its window has not opened yet, so it is not scored.
+const later: Catalyst = { ...catalyst, id: "earnings:NVDA:2026-11-04", ticker: "NVDA", eventDate: "2026-11-04", title: "NVDA earnings" };
+// Not stored yet.
+const fresh: Catalyst = { ...later, id: "earnings:AMD:2026-11-04", ticker: "AMD", title: "AMD earnings" };
+
 vi.mock("@foreshadow/uw", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@foreshadow/uw")>()),
-  fetchCatalysts: vi.fn(async () => [catalyst]),
+  fetchCatalysts: vi.fn(async () => [catalyst, later, fresh]),
   // A ticker whose footprint load never finishes inside the run.
   buildScoreInput: vi.fn(() => new Promise(() => {})),
 }));
 
 const { runIngest, settleBy } = await import("@/lib/ingest");
 
-/** Chainable stand-in for the Supabase query builder; records ingest_runs writes. */
-function fakeDb() {
+/** Chainable stand-in for the Supabase query builder; records writes. */
+function fakeDb(savedCatalystIds: string[] = []) {
   const runUpdates: Record<string, unknown>[] = [];
+  const catalystUpserts: string[][] = [];
   const builder = (table: string) => {
     let op = "select";
+    let columns = "*";
     const q: Record<string, unknown> = {
       then(resolve: (v: unknown) => void) {
-        const data = table === "ingest_runs" && op === "insert" ? { id: 7 } : [];
+        let data: unknown = [];
+        if (table === "ingest_runs" && op === "insert") data = { id: 7 };
+        if (table === "catalysts" && op === "select" && columns === "id") data = savedCatalystIds.map((id) => ({ id }));
         resolve({ data, error: null });
       },
     };
-    for (const m of ["select", "in", "eq", "gte", "lte", "limit", "single", "maybeSingle"]) q[m] = () => q;
+    for (const m of ["in", "eq", "gte", "lte", "limit", "single", "maybeSingle"]) q[m] = () => q;
+    q.select = (cols?: string) => {
+      if (op === "select") columns = cols ?? "*";
+      return q;
+    };
     for (const m of ["insert", "upsert", "update"]) {
-      q[m] = (payload: Record<string, unknown>) => {
+      q[m] = (payload: Record<string, unknown> | { id: string }[]) => {
         op = m;
-        if (table === "ingest_runs" && m === "update") runUpdates.push(payload);
+        if (table === "ingest_runs" && m === "update") runUpdates.push(payload as Record<string, unknown>);
+        if (table === "catalysts" && m === "upsert") catalystUpserts.push((payload as { id: string }[]).map((r) => r.id));
         return q;
       };
     }
     return q;
   };
-  return { db: { from: builder } as unknown as SupabaseClient, runUpdates };
+  return { db: { from: builder } as unknown as SupabaseClient, runUpdates, catalystUpserts };
 }
 
 const uw = { usage: { dailyCount: 42 } } as unknown as UwClient;
@@ -62,6 +76,20 @@ describe("runIngest deadline", () => {
     expect(runUpdates).toHaveLength(1);
     expect(runUpdates[0]).toMatchObject({ status: "error", scored: 0, requests: 42 });
     expect(String(runUpdates[0].error)).toMatch(/run deadline/);
+  });
+});
+
+describe("runIngest radar catalyst writes", () => {
+  it("writes only catalysts not stored yet, then refreshes the ones it is about to score", async () => {
+    const { db, catalystUpserts } = fakeDb([catalyst.id, later.id]);
+    await runIngest(db, uw, { mode: "radar", today: "2026-10-22", tagMacro: false, deadlineMs: 50 });
+    expect(catalystUpserts).toEqual([[fresh.id], [catalyst.id]]);
+  });
+
+  it("still writes every catalyst in daily mode", async () => {
+    const { db, catalystUpserts } = fakeDb([catalyst.id, later.id]);
+    await runIngest(db, uw, { mode: "daily", today: "2026-10-22", tagMacro: false, deadlineMs: 50 });
+    expect(catalystUpserts[0]).toEqual([catalyst.id, later.id, fresh.id]);
   });
 });
 

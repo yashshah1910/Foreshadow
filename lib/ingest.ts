@@ -165,7 +165,14 @@ export async function runIngest(db: SupabaseClient, uw: UwClient, opts: IngestOp
           .map(([k, n]) => `${k} ${n}`)
           .join(", ");
       log(`fetched ${fetched.length} catalysts ${from} → ${to}; ${catalysts.length} in universe (${byKind(catalysts)}) at ${secs()}`);
-      if (!opts.dryRun) await upsertCatalysts(db, catalysts);
+      if (!opts.dryRun) {
+        // Radar runs every 15 minutes over ~1,100 earnings; rewriting them all each time
+        // is slow when the database is busy. Write new ones now, and refresh the
+        // payload of the few about to be scored below.
+        const toWrite = mode === "radar" ? await unsavedCatalysts(db, catalysts) : catalysts;
+        await upsertCatalysts(db, toWrite);
+        log(`saved ${toWrite.length} catalysts at ${secs()}`);
+      }
       if (!opts.dryRun && (opts.tagMacro ?? mode !== "backfill")) {
         try {
           await tagMacroCatalysts(db, uw, { today, log });
@@ -181,6 +188,7 @@ export async function runIngest(db: SupabaseClient, uw: UwClient, opts: IngestOp
       candidates = pickCandidates(catalysts, existing, mode, today).slice(0, maxEvents);
       const tickers = new Set(candidates.map((c) => c.ticker));
       log(`${candidates.length} to score (max ${maxEvents}) across ${tickers.size} tickers at ${secs()}`);
+      if (mode === "radar" && !opts.dryRun) await upsertCatalysts(db, candidates);
       if (opts.dryRun) {
         log(`dry run: about ${tickers.size * 145 + candidates.length * 4} UW requests if every ticker is uncached`);
         return { runId, mode, from, to, catalystsSeen: catalysts.length, candidates: candidates.length, scored: 0, requests: uw.usage.dailyCount, warnings, errors, durationMs: Date.now() - started };
@@ -245,7 +253,8 @@ export async function runIngest(db: SupabaseClient, uw: UwClient, opts: IngestOp
     durationMs: Date.now() - started,
   };
   if (runId !== null) {
-    await db
+    // Bounded too: a stalled database must not hold the response past the function limit.
+    const write = db
       .from("ingest_runs")
       .update({
         finished_at: new Date().toISOString(),
@@ -257,6 +266,7 @@ export async function runIngest(db: SupabaseClient, uw: UwClient, opts: IngestOp
         error: report.errors[0] ?? null,
       })
       .eq("id", runId);
+    if (!(await settleBy(Promise.resolve(write), Date.now() + 15_000)).done) log("could not record the run's status within 15s");
   }
   return report;
 }
@@ -380,6 +390,17 @@ async function upsertCatalysts(db: SupabaseClient, catalysts: Catalyst[]) {
     const { error } = await db.from("catalysts").upsert(rows, { onConflict: "id" });
     if (error) throw new Error(`catalysts upsert: ${error.message}`);
   }
+}
+
+/** Catalysts with no row in `catalysts` yet. */
+export async function unsavedCatalysts(db: SupabaseClient, catalysts: Catalyst[]): Promise<Catalyst[]> {
+  const saved = new Set<string>();
+  for (let i = 0; i < catalysts.length; i += 200) {
+    const { data, error } = await db.from("catalysts").select("id").in("id", catalysts.slice(i, i + 200).map((c) => c.id));
+    if (error) throw new Error(`catalysts read: ${error.message}`);
+    for (const r of (data ?? []) as { id: string }[]) saved.add(r.id);
+  }
+  return catalysts.filter((c) => !saved.has(c.id));
 }
 
 async function loadExistingScores(db: SupabaseClient, ids: string[]): Promise<Map<string, StoredScore>> {
