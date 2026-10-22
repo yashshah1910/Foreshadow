@@ -11,6 +11,7 @@ import {
   todayIso,
   upcomingTradingDays,
   type Catalyst,
+  type CatalystKind,
   type DailyFootprint,
   type IsoDate,
   type OhlcBar,
@@ -229,9 +230,34 @@ export class SupabaseDataSource implements DataSource {
       .limit(60);
     if (error) throw error;
     const events = ((data ?? []) as ScoreRow[]).map((r) => this.summaryOf(r)).filter((s): s is EventSummary => s !== null);
-    if (events.length === 0) return null;
+    if (events.length === 0) return this.queuedDossier(t);
     const company = events.map((e) => e.company).find((c): c is Company => c !== null) ?? null;
     return { ticker: t, company, events, hitRate: hitRate(events) };
+  }
+
+  /** A ticker whose news is on file but not scored yet (e.g. mid-backfill): a page, not a 404. */
+  private async queuedDossier(t: string): Promise<Dossier | null> {
+    const { data, error } = await this.db
+      .from("catalysts")
+      .select("kind, event_date, title, payload")
+      .eq("ticker", t)
+      .order("event_date", { ascending: false })
+      .limit(20);
+    if (error) throw error;
+    const rows = (data ?? []) as { kind: CatalystKind; event_date: string; title: string; payload: Record<string, unknown> | null }[];
+    if (rows.length === 0) return null;
+    const p = rows.find((r) => typeof r.payload?.full_name === "string")?.payload ?? null;
+    const cap = Number(p?.marketcap ?? p?.market_cap);
+    const company: Company | null = p
+      ? { ticker: t, name: String(p.full_name), sector: typeof p.sector === "string" ? p.sector : "", marketcap: Number.isFinite(cap) && cap > 0 ? cap : undefined }
+      : null;
+    return {
+      ticker: t,
+      company,
+      events: [],
+      hitRate: hitRate([]),
+      queued: rows.map((r) => ({ kind: r.kind, eventDate: r.event_date, title: r.title })),
+    };
   }
 
   async getRadar(opts: { daysAhead?: number; minScore?: number } = {}): Promise<RadarItem[]> {

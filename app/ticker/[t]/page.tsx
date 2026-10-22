@@ -4,7 +4,8 @@ import { getTickerDossier, getToday } from "@/lib/data";
 import { Timeline } from "@/components/dossier/Timeline";
 import { DossierSummary } from "@/components/dossier/DossierSummary";
 import { CaseList } from "@/components/cases/CaseList";
-import { fmtMarketcap } from "@/lib/format";
+import { fmtDate, fmtMarketcap } from "@/lib/format";
+import { KindTag } from "@/components/viz/Marks";
 
 export async function generateMetadata({ params }: PageProps<"/ticker/[t]">): Promise<Metadata> {
   const { t } = await params;
@@ -54,6 +55,27 @@ export default async function TickerPage({ params }: PageProps<"/ticker/[t]">) {
         </div>
       </header>
 
+      {dossier.queued ? (
+        <section className="tray mt-12 p-6 sm:p-8" aria-labelledby="queued-h">
+          <h2 id="queued-h" className="display text-[28px] text-ink">Not scored yet</h2>
+          <p className="mt-3 max-w-[640px] text-[16px] leading-relaxed text-ink-2">
+            Foreshadow has {ticker}&apos;s news on file but hasn&apos;t scored the betting before it yet. Scoring runs in the
+            background, so check back soon.
+          </p>
+          <ul className="mt-6 grid gap-1.5">
+            {dossier.queued.map((q) => (
+              <li key={`${q.kind}-${q.eventDate}-${q.title}`} className="card flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3.5">
+                <KindTag kind={q.kind} />
+                <span className="text-[15.5px] text-ink">{q.title}</span>
+                <span className="ml-auto text-[14px] text-ink-3 tnum">{fmtDate(q.eventDate, { year: true })}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {events.length > 0 ? (
+      <>
       <section className="mt-12 grid gap-1.5 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]" aria-label="Track record">
         <div className="tray p-6">
           <p className="mb-3 text-[14px] font-medium text-ink-3">In short</p>
@@ -76,6 +98,8 @@ export default async function TickerPage({ params }: PageProps<"/ticker/[t]">) {
         <h2 id="past-h" className="display mb-6 text-[34px] text-ink">Past cases</h2>
         <CaseList rows={past} animate={false} showYear />
       </section>
+      </>
+      ) : null}
     </div>
   );
 }

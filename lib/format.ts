@@ -91,5 +91,6 @@ export const VERDICT_LABELS: Record<string, string> = {
 
 export function fmtMarketcap(n: number | undefined): string {
   if (!n) return "";
+  if (Math.abs(n) >= 1e12) return `$${(n / 1e12).toFixed(1)}T`;
   return fmtMoney(n, { decimals: 1 });
 }

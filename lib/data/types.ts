@@ -82,11 +82,20 @@ export interface HitRate {
   strongMatched: number;
 }
 
+/** Scheduled news on file for a ticker that hasn't been scored yet. */
+export interface QueuedCatalyst {
+  kind: CatalystKind;
+  eventDate: IsoDate;
+  title: string;
+}
+
 export interface Dossier {
   ticker: string;
   company: Company | null;
   events: EventSummary[];
   hitRate: HitRate;
+  /** Set when the ticker has catalysts on file but none scored yet. */
+  queued?: QueuedCatalyst[];
 }
 
 export interface RadarItem extends EventSummary {
