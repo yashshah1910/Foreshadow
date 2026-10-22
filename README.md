@@ -1,6 +1,6 @@
 # Foreshadow: *Someone knew. Prove it.*
 
-**Live: [foreshadow-six.vercel.app](https://foreshadow-six.vercel.app)**
+**Live: [foreshadow-six.vercel.app](https://foreshadow-six.vercel.app)** · [![ci](https://github.com/yashshah1910/Foreshadow/actions/workflows/ci.yml/badge.svg)](https://github.com/yashshah1910/Foreshadow/actions/workflows/ci.yml)
 
 ![Foreshadow home page: the headline, a short explanation, and a real case with its chart and result](docs/screenshots/home.png)
 
