@@ -1,10 +1,12 @@
 /**
  * The three Foreshadow tools, shared by the remote MCP server, the REST
  * endpoints the stdio wrapper proxies to, and the in-app investigator.
- * Pure reads over the data layer; no UW calls.
+ * Pure reads over the data layer; no UW calls. They return Foreshadow's
+ * results (score, lean, measurements, verdict, totals and a few of the largest
+ * trades as examples), never raw Unusual Whales rows or ids.
  */
 
-import { getDataSource } from "@/lib/data";
+import { API_SAMPLE_SIZE, getDataSource, sampleTrades, tradeTotals } from "@/lib/data";
 import type { EventSummary } from "@/lib/data";
 
 function summarize(s: EventSummary) {
@@ -42,16 +44,8 @@ export async function foreshadowScore(args: { ticker: string; eventDate: string 
   if (!pick) return { error: `No catalyst for ${ticker} near ${args.eventDate}` };
   const detail = await ds.getEvent(pick.catalyst.id);
   if (!detail) return { error: "Event not found" };
-  const top = detail.stored.breakdown.topAlerts.map((a) => ({
-    executedAt: a.executedAt,
-    type: a.type,
-    strike: a.strike,
-    expiry: a.expiry,
-    premium: a.premium,
-    size: a.size,
-    side: a.side,
-    sweep: a.isSweep,
-  }));
+  const all = detail.footprint.flatMap((d) => d.alerts);
+  const totals = tradeTotals(all);
   return {
     ...summarize(pick),
     note: exact[0] ? undefined : `No catalyst exactly on ${args.eventDate}; returning the nearest one.`,
@@ -66,7 +60,7 @@ export async function foreshadowScore(args: { ticker: string; eventDate: string 
       baselineMean: s.baselineMean,
       detail: s.detail,
     })),
-    topAlerts: top,
+    trades: { count: totals.count, totalPremium: totals.premium, largest: sampleTrades(all, API_SAMPLE_SIZE) },
     verdictDetail: detail.stored.breakdown.verdict,
   };
 }

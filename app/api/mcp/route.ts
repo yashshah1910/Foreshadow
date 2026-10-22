@@ -15,7 +15,7 @@ const handler = createMcpHandler(
       {
         title: "Foreshadow score for an event",
         description:
-          "Score (0-100), direction, verdict and the top contributing flow alerts for a ticker's catalyst on or near a date. Scores measure how much informed options positioning appeared in the five trading days before the event, relative to the ticker's own 60-day baseline.",
+          "Score (0-100), direction, verdict, the measurements behind the score, the count and total of flagged trades, and the five largest trades as examples, for a ticker's catalyst on or near a date. Scores measure how much informed options positioning appeared in the five trading days before the event, relative to the ticker's own 60-day baseline.",
         inputSchema: z.object({
           ticker: z.string().min(1).max(12).describe("Ticker symbol, e.g. VXRA"),
           eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe("Event date, YYYY-MM-DD"),

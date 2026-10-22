@@ -28,7 +28,7 @@ server.registerTool(
   "foreshadow_score",
   {
     title: "Foreshadow score for an event",
-    description: "Score (0-100), direction, verdict and top contributing alerts for a ticker's catalyst on or near a date.",
+    description: "Score (0-100), direction, verdict, measurements, trade totals and the five largest trades as examples, for a ticker's catalyst on or near a date.",
     inputSchema: z.object({
       ticker: z.string().min(1).max(12),
       eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),

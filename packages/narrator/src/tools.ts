@@ -11,7 +11,7 @@ export const FORESHADOW_TOOL_DEFINITIONS: readonly Anthropic.Tool[] = [
   {
     name: "foreshadow_score",
     description:
-      "Foreshadow score (0-100), direction, band, signal breakdown, top alerts and verdict for one catalyst, identified by ticker and event date (YYYY-MM-DD). Use for any question about a specific event or its score.",
+      "Foreshadow score (0-100), direction, band, signal breakdown, trade count and total, the five largest trades and verdict for one catalyst, identified by ticker and event date (YYYY-MM-DD). Use for any question about a specific event or its score.",
     strict: true,
     input_schema: {
       type: "object",
