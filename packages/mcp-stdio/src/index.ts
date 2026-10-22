@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * foreshadow-mcp: a stdio MCP server for clients that cannot speak
- * streamable HTTP. It proxies the three tools to a Foreshadow deployment's
+ * streamable HTTP. It proxies the five tools to a Foreshadow deployment's
  * REST endpoints.
  *
- *   FORESHADOW_URL=https://foreshadow.app npx foreshadow-mcp
+ *   FORESHADOW_URL=https://foreshadow-six.vercel.app npx foreshadow-mcp
  */
 
 import { McpServer } from "@modelcontextprotocol/server";
@@ -22,7 +22,7 @@ async function get(path: string, params: Record<string, string | number | undefi
   return text;
 }
 
-const server = new McpServer({ name: "foreshadow", version: "0.1.0" });
+const server = new McpServer({ name: "foreshadow", version: "0.2.0" });
 
 server.registerTool(
   "foreshadow_score",
@@ -58,6 +58,26 @@ server.registerTool(
     inputSchema: z.object({ ticker: z.string().min(1).max(12) }),
   },
   async ({ ticker }) => ({ content: [{ type: "text", text: await get("/api/history", { ticker }) }] }),
+);
+
+server.registerTool(
+  "foreshadow_scorecard",
+  {
+    title: "Scorecard",
+    description: "How often unusual betting was right, by kind of news and score band, against ordinary betting.",
+    inputSchema: z.object({}),
+  },
+  async () => ({ content: [{ type: "text", text: await get("/api/scorecard", {}) }] }),
+);
+
+server.registerTool(
+  "foreshadow_similar",
+  {
+    title: "Cases like this one",
+    description: "Finished cases like one catalyst and how often their bets were right.",
+    inputSchema: z.object({ ticker: z.string().min(1).max(12), eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }),
+  },
+  async ({ ticker, eventDate }) => ({ content: [{ type: "text", text: await get("/api/similar", { ticker, eventDate }) }] }),
 );
 
 const transport = new StdioServerTransport();

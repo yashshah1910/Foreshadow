@@ -1,12 +1,12 @@
 /**
  * Remote MCP server (streamable HTTP). Add `https://<host>/api/mcp` to Claude
- * or Cursor as one URL. Exposes the three Foreshadow tools over the scored
+ * or Cursor as one URL. Exposes the five Foreshadow tools over the scored
  * dataset; read-only, no auth required (the data is the public leaderboard).
  */
 
 import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
-import { foreshadowHistory, foreshadowRadar, foreshadowScore } from "@/lib/tools/foreshadow";
+import { foreshadowHistory, foreshadowRadar, foreshadowScore, foreshadowScorecard, foreshadowSimilar } from "@/lib/tools/foreshadow";
 
 const handler = createMcpHandler(
   (server) => {
@@ -50,9 +50,34 @@ const handler = createMcpHandler(
       },
       async ({ ticker }) => json(await foreshadowHistory({ ticker })),
     );
+
+    server.registerTool(
+      "foreshadow_scorecard",
+      {
+        title: "Scorecard: does unusual betting know something?",
+        description:
+          "Across every finished case: for each kind of news (FDA, earnings) and score band, how many cases, how often the bets were right, how often the stock moved more than options priced in, and how often it moved the way the bets leaned, with a one-line finding per kind. The 0-19 band (ordinary betting) is the yardstick.",
+        inputSchema: z.object({}),
+      },
+      async () => json(await foreshadowScorecard()),
+    );
+
+    server.registerTool(
+      "foreshadow_similar",
+      {
+        title: "Cases like this one",
+        description:
+          "Finished cases like one catalyst (same kind of news, similar score, same lean) and how often their bets were right, closest first. Answers 'has betting like this been right before?'.",
+        inputSchema: z.object({
+          ticker: z.string().min(1).max(12).describe("Ticker symbol"),
+          eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe("Event date, YYYY-MM-DD"),
+        }),
+      },
+      async ({ ticker, eventDate }) => json(await foreshadowSimilar({ ticker, eventDate })),
+    );
   },
   {
-    serverInfo: { name: "foreshadow", version: "0.1.0" },
+    serverInfo: { name: "foreshadow", version: "0.2.0" },
   },
 );
 
