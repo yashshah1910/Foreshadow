@@ -21,7 +21,7 @@ export function readFilters(sp: URLSearchParams | Record<string, string | string
     kind: ["fda", "earnings"].includes(get("kind") ?? "") ? (get("kind") as string) : "all",
     min70: get("min") === "70",
     matched: get("matched") === "1",
-    days: Number(get("days")) === 30 ? 30 : 90,
+    days: [30, 365].includes(Number(get("days"))) ? Number(get("days")) : 90,
     sort: get("sort") === "new" ? "new" : get("sort") === "move" ? "move" : "score",
     show: Math.min(MAX_SHOW, Math.max(PAGE, Math.round((Number(get("show")) || PAGE) / PAGE) * PAGE)),
   };

@@ -60,6 +60,7 @@ export function Filters({ initial, total }: { initial: FilterState; total: numbe
         options={[
           { value: "30", label: "30 days" },
           { value: "90", label: "90 days" },
+          { value: "365", label: "1 year" },
         ]}
         value={String(state.days)}
         onChange={(v) => update({ days: Number(v) })}
