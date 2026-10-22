@@ -5,7 +5,7 @@
  *   pnpm ingest --mode radar
  *   pnpm ingest --mode backfill --days 90 --kinds fda,earnings --dry-run
  *
- * Flags: --kinds fda,earnings,…  --min-cap 2000000000  --max N  --concurrency N
+ * Flags: --kinds fda,earnings,…  --tickers AAPL,MSFT  --min-cap 2000000000  --max N  --concurrency N
  *        --rpm N (UW requests/minute, default 120)  --dry-run  --loop  --verbose
  *
  * Reads .env (Node 20.12+). `--loop` keeps running batches until nothing is
@@ -46,6 +46,7 @@ const mode = (args.get("mode") ?? "daily") as IngestMode;
 const loop = args.get("loop") === "true";
 const maxEvents = Number(args.get("max")) || (mode === "radar" ? 12 : 8);
 const lookbackDays = Number(args.get("days")) || undefined;
+const tickers = args.get("tickers")?.split(",").map((t) => t.trim()).filter(Boolean);
 const kinds = args.get("kinds")?.split(",").map((k) => k.trim()).filter(Boolean) as CatalystKind[] | undefined;
 const minEarningsMarketCap = args.get("min-cap") ? Number(args.get("min-cap")) : undefined;
 const dryRun = args.get("dry-run") === "true";
@@ -59,6 +60,7 @@ async function main() {
       maxEvents,
       lookbackDays,
       kinds,
+      tickers,
       minEarningsMarketCap,
       dryRun,
       concurrency,

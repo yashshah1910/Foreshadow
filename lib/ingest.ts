@@ -44,6 +44,8 @@ export interface IngestOptions {
   /** Events scored per run; the rest wait for the next run. */
   maxEvents?: number;
   kinds?: CatalystKind[];
+  /** Only score these tickers (e.g. to fill in the stocks people look up first). */
+  tickers?: string[];
   /** Run the Claude catalyst tagger over POTUS + economic rows (default: all modes but backfill). */
   tagMacro?: boolean;
   log?: (msg: string) => void;
@@ -185,7 +187,10 @@ export async function runIngest(db: SupabaseClient, uw: UwClient, opts: IngestOp
       for (const c of tagged) if (!seen.has(c.id)) catalysts.push(c);
 
       const existing = await loadExistingScores(db, catalysts.map((c) => c.id));
-      candidates = pickCandidates(catalysts, existing, mode, today).slice(0, maxEvents);
+      const only = opts.tickers ? new Set(opts.tickers.map((t) => t.toUpperCase())) : null;
+      candidates = pickCandidates(catalysts, existing, mode, today)
+        .filter((c) => !only || only.has(c.ticker))
+        .slice(0, maxEvents);
       const tickers = new Set(candidates.map((c) => c.ticker));
       log(`${candidates.length} to score (max ${maxEvents}) across ${tickers.size} tickers at ${secs()}`);
       if (mode === "radar" && !opts.dryRun) await upsertCatalysts(db, candidates);
