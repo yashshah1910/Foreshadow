@@ -2,6 +2,8 @@
 
 **Live: [foreshadow-six.vercel.app](https://foreshadow-six.vercel.app)**
 
+![Foreshadow home page: the headline, a short explanation, and a real case with its chart and result](docs/screenshots/home.png)
+
 Before scheduled company news, like an FDA decision or an earnings report, some traders pile into options that only
 pay off if the stock jumps, or only if it drops. Foreshadow finds that betting in **Unusual Whales** data, rates how
 unusual it was from 0 to 100 against the stock's own normal, then checks what the stock actually did.
@@ -24,6 +26,17 @@ options.
 | **How it works** `/docs` | The method in plain words, then the exact formula, data sources, API and MCP setup. |
 | **MCP** `/api/mcp` | Remote MCP (streamable HTTP): `foreshadow_score`, `foreshadow_radar`, `foreshadow_history`, `foreshadow_scorecard`, `foreshadow_similar`. Plus `packages/mcp-stdio` for stdio-only clients. |
 | **Accounts** `/settings` | Supabase Auth (magic link + Google). Bring your own UW key, stored in Supabase Vault. Watchlists. Discord-webhook or email alerts when a Coming-up score crosses your threshold. |
+
+## Screenshots
+
+| | |
+| --- | --- |
+| ![A case page: what happened, the score, the expected and actual move, and the result](docs/screenshots/case.png) | ![Replay the days: the chart reveals one trading day at a time, with each day in words below](docs/screenshots/replay.png) |
+| **Case page**: what happened and whether the bets were right | **Replay the days** and the counted days in words |
+| ![Scorecard: how often unusual betting was right, against ordinary betting](docs/screenshots/scorecard.png) | ![Coming up: a calendar of news in the next two weeks, scored as the betting builds](docs/screenshots/coming-up.png) |
+| **Scorecard**: Foreshadow grading itself in public | **Coming up**: the next two weeks, scored day by day |
+| ![Ask about this case: a short answer with bullets, from the case's data](docs/screenshots/ask.png) | |
+| **Ask about this case**: Claude with Foreshadow's tools and the UW MCP | |
 
 ## Run it locally
 
