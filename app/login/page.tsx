@@ -34,10 +34,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <Shell>
       <p className="mb-2 text-[14px] font-medium text-ink-3">Sign in</p>
-      <h1 className="display text-[34px]">Bring your own key.</h1>
+      <h1 className="display text-[34px]">Get alerts for your stocks.</h1>
       <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
-        An account stores your Unusual Whales API key encrypted in Supabase Vault, used only server-side for Live
-        Radar, fresh scoring and the Ask panel. Foreshadow never re-serves UW data.
+        With an account, Foreshadow posts to your Discord channel when the betting before one of your stocks&apos; news turns
+        unusual. You can also add your own Unusual Whales API key for Ask; it is stored encrypted and only used on the
+        server.
       </p>
       {sent ? (
         <div className="card mt-6 p-4 text-[15px] text-ink">
