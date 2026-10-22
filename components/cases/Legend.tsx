@@ -1,12 +1,12 @@
 export function Legend({ live = false }: { live?: boolean }) {
   return (
-    <p className="mt-4 max-w-3xl text-[13.5px] leading-relaxed text-ink-3">
-      <strong className="font-medium text-ink-2">How to read this:</strong> the little chart shows money put into large
-      options bets each day, with bets on a rise (<span className="text-call">calls</span>) above the line and bets on a fall
-      (<span className="text-put">puts</span>) below. The shaded part is the five days just before the news.{" "}
+    <p className="mt-4 max-w-3xl px-1 text-[14px] leading-relaxed text-ink-3">
+      <span className="font-semibold text-ink-2">Reading the small chart:</span> each bar is a day of large options bets.
+      Bets on a rise (<span className="font-medium text-call">calls</span>) go up, bets on a fall (
+      <span className="font-medium text-put">puts</span>) go down, and the yellow part is the five days just before the news.{" "}
       {live
-        ? "Empty dots are days still to come."
-        : "“Expected” is how big a move options traders were pricing in; “actual” is what the stock did."}
+        ? "Grey dots are days still to come."
+        : "“Expected” is the move options traders were pricing in. “Actual” is what the stock did."}
     </p>
   );
 }

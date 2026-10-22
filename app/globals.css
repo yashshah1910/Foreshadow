@@ -1,91 +1,30 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
-
 /* ---------------------------------------------------------------------------
-   Foreshadow — "marked-up evidence"
-   Cool graph paper, ink, and one highlighter. Calls teal, puts red (validated
-   for colour-blind separation in both themes). Pen blue is for annotations.
+   Foreshadow — "case files on a tray"
+   Light only. A white page; related things sit together on soft blue-grey
+   trays instead of being fenced off with rules. One signature: the yellow
+   highlighter marks the five days that count and 70+ scores. Calls teal,
+   puts red (validated for colour-blind separation). Pen blue annotates charts.
    --------------------------------------------------------------------------- */
 
 :root {
   color-scheme: light;
   --bg: #ffffff;
   --surface: #ffffff;
-  --surface-2: #f6f6f4;
-  --surface-3: #ebebe8;
-  --line: rgba(20, 20, 18, 0.1);
-  --line-strong: rgba(20, 20, 18, 0.22);
-  --grid: transparent;
-  --ink: #16161a;
-  --ink-2: #4b4b52;
-  --ink-3: #7c7c84;
+  --surface-2: #f2f4f7;
+  --surface-3: #e6e9ef;
+  --ink: #131722;
+  --ink-2: #464e5e;
+  --ink-3: #626a7b;
   --call: #0e8a7a;
   --put: #d23a52;
   --call-soft: rgba(14, 138, 122, 0.12);
   --put-soft: rgba(210, 58, 82, 0.1);
   --hl: #ffe14a;
-  --hl-ink: #121826;
-  --hl-opacity: 0.9;
-  --hl-blend: multiply;
-  --hl-band: 0.42;
-  --hl-band-color: #ffe14a;
+  --hl-ink: #131722;
+  --hl-band: 0.55;
   --pen: #2346d0;
-  --sheet-shadow: none;
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #111113;
-  --surface: #111113;
-  --surface-2: #19191c;
-  --surface-3: #26262a;
-  --line: rgba(255, 255, 255, 0.09);
-  --line-strong: rgba(255, 255, 255, 0.2);
-  --grid: transparent;
-  --ink: #ececee;
-  --ink-2: #a8a8b0;
-  --ink-3: #74747c;
-  --call: #1ea5ad;
-  --put: #e8604c;
-  --call-soft: rgba(30, 165, 173, 0.16);
-  --put-soft: rgba(232, 96, 76, 0.14);
-  --hl: #ffe14a;
-  --hl-ink: #15130a;
-  --hl-opacity: 0.94;
-  --hl-blend: normal;
-  --hl-band: 0.07;
-    --hl-band-color: #ffffff;
-  --pen: #8ea4ff;
-  --sheet-shadow: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --bg: #111113;
-    --surface: #111113;
-    --surface-2: #19191c;
-    --surface-3: #26262a;
-    --line: rgba(255, 255, 255, 0.09);
-    --line-strong: rgba(255, 255, 255, 0.2);
-    --grid: transparent;
-    --ink: #ececee;
-    --ink-2: #a8a8b0;
-    --ink-3: #74747c;
-    --call: #1ea5ad;
-    --put: #e8604c;
-    --call-soft: rgba(30, 165, 173, 0.16);
-    --put-soft: rgba(232, 96, 76, 0.14);
-    --hl: #ffe14a;
-    --hl-ink: #15130a;
-    --hl-opacity: 0.94;
-    --hl-blend: normal;
-    --hl-band: 0.07;
-    --hl-band-color: #ffffff;
-    --pen: #8ea4ff;
-    --sheet-shadow: none;
-  }
 }
 
 @theme inline {
@@ -93,8 +32,6 @@
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-surface-3: var(--surface-3);
-  --color-line: var(--line);
-  --color-line-strong: var(--line-strong);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
@@ -106,31 +43,26 @@
   --color-hl-ink: var(--hl-ink);
   --color-pen: var(--pen);
 
-  --font-display: var(--font-newsreader), "Newsreader", Georgia, serif;
-  --font-sans: var(--font-plex-sans), "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-instrument), "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
 
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
-  --radius-sheet: 6px;
 }
 
 @layer base {
-html {
-  background-color: var(--bg);
-}
+  html {
+    background-color: var(--bg);
+  }
 
-body {
-  background-color: var(--bg);
-  background-image:
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 24px 24px;
-  background-position: -1px -1px;
-  color: var(--ink);
-  font-family: var(--font-sans);
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-}
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
 }
 
 ::selection {
@@ -141,100 +73,147 @@ body {
 :focus-visible {
   outline: 2px solid var(--pen);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 @layer components {
-/* Type ------------------------------------------------------------------------ */
-.display {
-  font-family: var(--font-display);
-  font-weight: 560;
-  font-optical-sizing: auto;
-  letter-spacing: -0.012em;
-  line-height: 1.08;
-}
-.numeral {
-  font-family: var(--font-mono);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-.label {
-  font-family: var(--font-sans);
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--ink-3);
-}
-.prose-plain {
-  font-size: 17px;
-  line-height: 1.65;
-  color: var(--ink-2);
-}
-.prose-plain strong {
-  color: var(--ink);
-  font-weight: 600;
-}
-.term {
-  text-decoration: underline dotted var(--ink-3);
-  text-underline-offset: 3px;
-  cursor: help;
-}
-.tnum {
-  font-variant-numeric: tabular-nums;
-}
-
-/* Surfaces ---------------------------------------------------------------------- */
-.sheet {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sheet);
-}
-.hairline {
-  border-color: var(--line);
-}
-.rule {
-  border-top: 1px solid var(--line);
-}
-
-/* The highlighter ------------------------------------------------------------------ */
-.hl {
-  position: relative;
-  isolation: isolate;
-  color: var(--hl-ink);
-  white-space: nowrap;
-}
-.hl::before {
-  content: "";
-  position: absolute;
-  inset: 0.06em -0.16em 0.02em -0.12em;
-  z-index: -1;
-  background: var(--hl);
-  opacity: var(--hl-opacity);
-  mix-blend-mode: var(--hl-blend);
-  border-radius: 0.14em 0.34em 0.2em 0.42em;
-  transform: skewX(-7deg);
-  transform-origin: left center;
-}
-.hl-draw::before {
-  animation: hl-draw 720ms var(--ease-out-strong) both;
-  animation-delay: var(--hl-delay, 280ms);
-}
-@keyframes hl-draw {
-  from {
-    transform: skewX(-7deg) scaleX(0);
+  /* Type ---------------------------------------------------------------------- */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-optical-sizing: auto;
+    letter-spacing: -0.025em;
+    line-height: 1.04;
+    text-wrap: balance;
   }
-  to {
-    transform: skewX(-7deg) scaleX(1);
+  .numeral {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .ticker {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+  .prose-plain {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    text-wrap: pretty;
+  }
+  .prose-plain strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .term {
+    text-decoration: underline dotted var(--ink-3);
+    text-underline-offset: 3px;
+    cursor: help;
+  }
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+  .link {
+    color: var(--ink);
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--ink) 30%, transparent);
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 4px;
+    transition: text-decoration-color 150ms ease;
+  }
+  .link:hover {
+    text-decoration-color: var(--ink);
+  }
+
+  /* Surfaces: grouping by tint, never by rules -------------------------------- */
+  .tray {
+    background: var(--surface-2);
+    border-radius: 22px;
+  }
+  .card {
+    background: var(--surface);
+    border-radius: 14px;
+  }
+  .well {
+    background: var(--surface-2);
+    border-radius: 12px;
+  }
+  .pop {
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow:
+      0 1px 2px rgba(19, 23, 34, 0.06),
+      0 8px 24px rgba(19, 23, 34, 0.12);
+  }
+
+  /* Buttons ------------------------------------------------------------------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.75rem;
+    padding: 0 1.25rem;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--surface);
+  }
+  .btn-primary:hover {
+    background: #2a3142;
+  }
+  .btn-soft {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  .btn-soft:hover {
+    background: var(--surface-3);
+  }
+
+  /* The highlighter ----------------------------------------------------------- */
+  .hl {
+    position: relative;
+    isolation: isolate;
+    color: var(--hl-ink);
+    white-space: nowrap;
+  }
+  .hl::before {
+    content: "";
+    position: absolute;
+    inset: 0.04em -0.18em 0 -0.14em;
+    z-index: -1;
+    background: var(--hl);
+    mix-blend-mode: multiply;
+    border-radius: 0.14em 0.34em 0.2em 0.42em;
+    transform: skewX(-7deg);
+    transform-origin: left center;
+  }
+  .hl-draw::before {
+    animation: hl-draw 720ms var(--ease-out-strong) both;
+    animation-delay: var(--hl-delay, 280ms);
+  }
+  @keyframes hl-draw {
+    from {
+      transform: skewX(-7deg) scaleX(0);
+    }
+    to {
+      transform: skewX(-7deg) scaleX(1);
+    }
   }
 }
 
-}
-
-/* SVG highlighter band behind the footprint window */
+/* SVG highlighter band behind the five counted days */
 .hl-band {
-  fill: var(--hl-band-color, var(--hl));
+  fill: var(--hl);
   opacity: var(--hl-band);
-  mix-blend-mode: var(--hl-blend);
+  mix-blend-mode: multiply;
 }
 .hl-band-draw {
   transform-box: fill-box;
@@ -251,7 +230,7 @@ body {
   }
 }
 
-/* The price trace inks itself in once per load */
+/* The price line inks itself in once per load */
 .ink-draw {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
@@ -264,32 +243,15 @@ body {
   }
 }
 
-/* Pressables ---------------------------------------------------------------------- */
+/* Pressables ------------------------------------------------------------------- */
 .pressable {
   transition:
     transform 160ms var(--ease-out-strong),
     background-color 150ms ease,
-    border-color 150ms ease,
     color 150ms ease;
 }
 .pressable:active {
   transform: scale(0.97);
-}
-
-/* First-paint entrance for lists: rise 6px, staggered via --i */
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.rise {
-  animation: rise 380ms var(--ease-out-strong) both;
-  animation-delay: calc(var(--i, 0) * 26ms);
 }
 
 @keyframes fade-in {
@@ -305,7 +267,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rise,
   .hl-band-draw {
     animation: fade-in 200ms ease both;
     transform: none;

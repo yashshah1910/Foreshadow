@@ -10,8 +10,8 @@ export function NavLink({ href, children }: { href: string; children: React.Reac
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`rounded px-2.5 py-1.5 text-[14.5px] transition-colors duration-150 ${
-        active ? "text-ink underline decoration-2 underline-offset-[6px]" : "text-ink-2 hover:text-ink"
+      className={`shrink-0 rounded-full px-3.5 py-2 text-[15px] font-medium transition-colors duration-150 ${
+        active ? "bg-surface-2 text-ink" : "text-ink-2 hover:bg-surface-2 hover:text-ink"
       }`}
     >
       {children}

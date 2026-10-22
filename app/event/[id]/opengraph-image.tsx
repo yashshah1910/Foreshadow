@@ -6,11 +6,11 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "Foreshadow case card";
 
-const PAPER = "#eceef2";
-const SHEET = "#fbfbfc";
-const INK = "#121826";
+const PAPER = "#f2f4f7";
+const SHEET = "#ffffff";
+const INK = "#131722";
 const INK2 = "#4a5468";
-const INK3 = "#7a8396";
+const INK3 = "#626a7b";
 const CALL = "#0e8a7a";
 const PUT = "#d23a52";
 const HL = "#ffe14a";
@@ -31,13 +31,13 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const max = Math.max(1, ...days.map((d) => Math.max(d.call, d.put)));
   const firstWin = days.findIndex((d) => d.inWindow);
   const strong = s.score >= 70;
-  const dirText = s.direction === "bullish" ? "Bullish" : s.direction === "bearish" ? "Bearish" : "Mixed";
+  const dirText = s.direction === "bullish" ? "Bets on a rise" : s.direction === "bearish" ? "Bets on a fall" : "Mixed bets";
   const dirColor = s.direction === "bullish" ? CALL : s.direction === "bearish" ? PUT : INK3;
-  const verdictText = s.verdict === "matched" ? "Matched" : s.verdict === "missed" ? "Missed" : s.verdict === "pending" ? "Pending" : "No data";
+  const verdictText = s.verdict === "matched" ? "Bets were right" : s.verdict === "missed" ? "Bets were wrong" : s.verdict === "pending" ? "Waiting for the news" : "No result";
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", background: PAPER, padding: 40, fontFamily: "sans-serif" }}>
-        <div style={{ display: "flex", flexDirection: "column", flex: 1, background: SHEET, borderRadius: 18, border: "1px solid rgba(18,24,38,0.1)", padding: "40px 48px" }}>
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, background: SHEET, borderRadius: 24, padding: "40px 48px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 22, color: INK3 }}>
             <div style={{ display: "flex", width: 26, height: 18, background: HL, transform: "skewX(-8deg)", borderRadius: 3 }} />
             <span style={{ color: INK, fontWeight: 700 }}>Foreshadow</span>
@@ -52,7 +52,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
                   <div style={{ display: "flex", width: 14, height: 14, borderRadius: 3, background: dirColor }} />
                   <span>{dirText}</span>
                 </div>
-                <div style={{ display: "flex", padding: "4px 14px", borderRadius: 8, background: s.verdict === "matched" ? INK : "transparent", color: s.verdict === "matched" ? SHEET : INK2, border: s.verdict === "matched" ? "none" : `2px solid ${INK3}` }}>
+                <div style={{ display: "flex", padding: "4px 14px", borderRadius: 999, background: s.verdict === "matched" ? INK : PAPER, color: s.verdict === "matched" ? SHEET : INK2, border: "none" }}>
                   {verdictText}
                 </div>
                 <span>{`±${fmtPct(s.impliedMovePct, { sign: false })} implied → ${s.verdict === "pending" ? "pending" : fmtPct(s.realizedMovePct)}`}</span>

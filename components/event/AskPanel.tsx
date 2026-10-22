@@ -47,10 +47,10 @@ export function AskPanel({ ticker, eventDate, summary }: { ticker: string; event
   }
 
   return (
-    <section aria-labelledby="ask-h" className="border-t hairline pt-6">
+    <section aria-labelledby="ask-h" className="tray p-6">
       <header>
-        <h2 id="ask-h" className="display text-[22px] text-ink">Ask a question</h2>
-        <p className="mt-1 text-[14px] text-ink-3">Claude answers using Foreshadow&apos;s data and Unusual Whales, and shows what it looked up.</p>
+        <h2 id="ask-h" className="display text-[24px] text-ink">Ask about this case</h2>
+        <p className="mt-1.5 text-[15px] leading-relaxed text-ink-3">Claude answers using Foreshadow&apos;s data and Unusual Whales, and shows what it looked up.</p>
       </header>
       <form
         className="pt-4"
@@ -66,7 +66,7 @@ export function AskPanel({ ticker, eventDate, summary }: { ticker: string; event
           onChange={(e) => setQ(e.target.value)}
           rows={2}
           placeholder={`Ask about ${ticker}…`}
-          className="w-full resize-none rounded-md border border-line-strong bg-surface px-3 py-2.5 text-[13.5px] text-ink placeholder:text-ink-3 focus:border-ink focus:outline-none"
+          className="w-full resize-none rounded-xl bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-ink-3"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
@@ -83,41 +83,41 @@ export function AskPanel({ ticker, eventDate, summary }: { ticker: string; event
                 setQ(s);
                 void ask(s);
               }}
-              className="pressable rounded-full border hairline bg-surface-2 px-3 py-1 text-[12px] text-ink-2 hover:text-ink"
+              className="pressable rounded-full bg-surface px-3 py-1.5 text-[13.5px] text-ink-2 hover:text-ink"
             >
               {s}
             </button>
           ))}
         </div>
         <div className="mt-3 flex justify-end">
-          <button type="submit" disabled={busy || !q.trim()} className="pressable h-9 rounded-md bg-ink px-4 text-[13px] font-medium text-surface disabled:opacity-35">
-            {busy ? "Investigating…" : "Ask"}
+          <button type="submit" disabled={busy || !q.trim()} className="pressable btn btn-primary h-10 disabled:opacity-35">
+            {busy ? "Looking it up…" : "Ask Claude"}
           </button>
         </div>
       </form>
       {busy ? (
-        <p className="pt-4 text-[13.5px] text-ink-3" aria-live="polite">
-          Looking things up…
+        <p className="pt-4 text-[14.5px] text-ink-3" aria-live="polite">
+          Claude is checking the data. This can take up to a minute.
         </p>
       ) : null}
       {err ? (
-        <p className="pt-4 text-[13.5px] text-ink-2" role="alert">
+        <p className="pt-4 text-[14.5px] text-put" role="alert">
           {err}
         </p>
       ) : null}
       {res ? (
-        <div className="fade-in pt-5">
-          <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-ink">{res.answer}</p>
+        <div className="card fade-in mt-5 p-4">
+          <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-ink">{res.answer}</p>
           {res.toolCalls.length > 0 ? (
-            <details className="mt-3 text-[12px]">
+            <details className="mt-3 text-[13px]">
               <summary className="cursor-pointer text-ink-3 hover:text-ink-2">
                 What Claude looked up ({res.toolCalls.length})
               </summary>
               <ol className="mt-2 space-y-2">
                 {res.toolCalls.map((t, i) => (
-                  <li key={i} className="rounded-md border hairline bg-surface-2 p-2.5">
-                    <p className="font-mono text-ink">
-                      <span className="text-ink-3">{t.source === "uw-mcp" ? "uw · " : "foreshadow · "}</span>
+                  <li key={i} className="well p-3">
+                    <p className="font-medium text-ink">
+                      <span className="text-ink-3">{t.source === "uw-mcp" ? "Unusual Whales: " : "Foreshadow: "}</span>
                       {t.name}
                       {!t.ok ? <span className="ml-2 text-put">error</span> : null}
                     </p>

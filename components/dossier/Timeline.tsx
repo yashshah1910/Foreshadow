@@ -25,24 +25,23 @@ export function Timeline({ events }: { events: EventSummary[] }) {
   return (
     <div ref={ref} className="w-full">
       <svg width={width} height={H} viewBox={`0 0 ${width} ${H}`} role="img" aria-label="Score of every catalyst over time" className="block">
-        <rect x={PL} y={y(100)} width={width - PL - PR} height={y(70) - y(100)} className="hl-band" />
+        <rect x={PL} y={y(100)} width={width - PL - PR} height={y(70) - y(100)} rx={8} className="hl-band" />
         {[0, 40, 70, 100].map((v) => (
           <g key={v}>
-            <line x1={PL} x2={width - PR} y1={y(v)} y2={y(v)} className={v === 0 ? "stroke-line-strong" : "stroke-line"} />
-            <text x={PL - 8} y={y(v) + 3.5} textAnchor="end" className="fill-ink-3 font-mono" fontSize="10.5">
+            <text x={PL - 8} y={y(v) + 4} textAnchor="end" className="fill-ink-3 tnum" fontSize="11.5">
               {v}
             </text>
           </g>
         ))}
-        <text x={width - PR - 4} y={y(100) + 13} textAnchor="end" className="fill-ink-2" fontSize="12">
+        <text x={width - PR - 4} y={y(100) + 13} textAnchor="end" className="fill-ink" fontSize="12.5" fontWeight={600}>
           very unusual
         </text>
         {sorted.length ? (
           <>
-            <text x={PL + 10} y={H - 8} className="fill-ink-3 font-mono" fontSize="10.5">
+            <text x={PL + 10} y={H - 8} className="fill-ink-3" fontSize="11.5">
               {fmtDate(sorted[0].catalyst.eventDate, { year: true })}
             </text>
-            <text x={width - PR - 10} y={H - 8} textAnchor="end" className="fill-ink-3 font-mono" fontSize="10.5">
+            <text x={width - PR - 10} y={H - 8} textAnchor="end" className="fill-ink-3" fontSize="11.5">
               {fmtDate(sorted[sorted.length - 1].catalyst.eventDate, { year: true })}
             </text>
           </>
@@ -54,8 +53,8 @@ export function Timeline({ events }: { events: EventSummary[] }) {
           return (
             <Link key={e.catalyst.id} href={`/event/${encodeURIComponent(e.catalyst.id)}`} aria-label={`${fmtDate(e.catalyst.eventDate, { year: true })}, ${e.catalyst.title}, score ${e.score.toFixed(0)}, ${e.verdict}`}>
               <g>
-                <title>{`${fmtDate(e.catalyst.eventDate, { year: true })} · ${e.catalyst.title} · ${e.score.toFixed(0)} · ${e.direction} · ${e.verdict}`}</title>
-                <line x1={cx} x2={cx} y1={cy} y2={y(0)} className="stroke-line-strong" />
+                <title>{`${fmtDate(e.catalyst.eventDate, { year: true })}: ${e.catalyst.title}, score ${e.score.toFixed(0)}`}</title>
+                <rect x={cx - 1} y={cy} width={2} height={Math.max(0, y(0) - cy)} rx={1} className="fill-surface-3" />
                 {e.verdict === "matched" ? <circle cx={cx} cy={cy} r="9.5" className="fill-none stroke-ink" strokeWidth="1.5" /> : null}
                 <circle cx={cx} cy={cy} r={e.partialWindow ? 4 : 5.5} className={e.partialWindow ? "fill-surface stroke-ink-2" : `${tone} stroke-surface`} strokeWidth="2" />
                 <rect x={cx - 14} y={cy - 14} width="28" height="28" fill="transparent" />

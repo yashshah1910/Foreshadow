@@ -17,7 +17,6 @@ export function MoveGauge({ implied, realized, width = 104, height = 14 }: { imp
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label} className="block">
       <title>{label}</title>
-      <rect x={0} y={height / 2 - 0.5} width={width} height={1} className="fill-line-strong" />
       {implied ? <rect x={c - band} y={1} width={band * 2} height={height - 2} rx={2} className="fill-surface-3" /> : null}
       {realized !== null ? (
         <rect

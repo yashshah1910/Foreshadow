@@ -11,7 +11,9 @@ function isRadar(r: Row): r is RadarItem {
   return "daysElapsed" in r;
 }
 
-/** One row per case, shared by every list on the site. */
+const COLS = "lg:grid-cols-[minmax(0,1fr)_7.5rem_9.5rem_9.5rem_7rem]";
+
+/** One white row per case on a soft tray, shared by every list on the site. */
 export function CaseList({
   rows,
   mode = "past",
@@ -26,11 +28,11 @@ export function CaseList({
 }) {
   if (rows.length === 0) {
     return (
-      <div className="border-y hairline py-12 text-center">
+      <div className="tray px-6 py-14 text-center">
         {empty ?? (
           <>
-            <p className="text-[16px] text-ink">Nothing matches these filters.</p>
-            <p className="mt-1 text-[14px] text-ink-3">Try a longer time range, or turn off a filter.</p>
+            <p className="text-[16px] font-medium text-ink">Nothing matches these filters.</p>
+            <p className="mt-1 text-[15px] text-ink-3">Try a longer time range, or turn off a filter.</p>
           </>
         )}
       </div>
@@ -38,58 +40,54 @@ export function CaseList({
   }
   const live = mode === "live";
   return (
-    <div className="border-t hairline">
-      <div className="hidden grid-cols-[minmax(0,1fr)_7rem_9.5rem_10rem_6.5rem] gap-6 border-b hairline py-2.5 text-[13px] text-ink-3 lg:grid">
+    <div className="tray p-2 sm:p-2.5">
+      <div className={`hidden gap-6 px-5 pb-2 pt-2 text-[13px] font-medium text-ink-3 lg:grid ${COLS}`}>
         <span>Stock and news</span>
         <span>Unusual betting</span>
         <span>Betting, 10 days before</span>
-        <span>{live ? "Expected move" : "Expected → actual"}</span>
-        <span>{live ? "Days in" : "Bets were"}</span>
+        <span>{live ? "Expected move" : "Expected, then actual"}</span>
+        <span>{live ? "Days in" : "The bets were"}</span>
       </div>
-      <ol>
+      <ol className="grid gap-1.5">
         {rows.map((r) => (
           <li key={r.catalyst.id}>
             <Link
               href={`/event/${encodeURIComponent(r.catalyst.id)}`}
-              className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-2 border-b hairline py-4 transition-colors duration-150 hover:bg-surface-2 lg:grid-cols-[minmax(0,1fr)_7rem_9.5rem_10rem_6.5rem] lg:-mx-3 lg:px-3"
+              className={`card group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-3 px-4 py-4 transition-shadow duration-200 hover:shadow-[0_2px_12px_rgba(19,23,34,0.08)] sm:px-5 ${COLS}`}
             >
               <span className="min-w-0">
                 <span className="flex items-baseline gap-2">
-                  <span className="font-mono text-[15px] font-semibold text-ink">{r.catalyst.ticker}</span>
-                  <span className="truncate text-[15px] text-ink group-hover:underline group-hover:underline-offset-2">{eventName(r)}</span>
+                  <span className="ticker text-[16px] text-ink">{r.catalyst.ticker}</span>
+                  <span className="truncate text-[16px] text-ink group-hover:underline group-hover:decoration-ink/30 group-hover:underline-offset-4">{eventName(r)}</span>
                 </span>
-                <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[13px] text-ink-3">
-                  <span className="tnum">{fmtDate(r.catalyst.eventDate, { weekday: live, year: showYear })}</span>
-                  <span aria-hidden="true">·</span>
+                <span className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13.5px] text-ink-3">
                   <KindTag kind={r.catalyst.kind} />
-                  {r.company ? (
-                    <>
-                      <span aria-hidden="true" className="hidden sm:inline">·</span>
-                      <span className="hidden truncate sm:inline">{r.company.name}</span>
-                    </>
-                  ) : null}
+                  <span className="tnum">{fmtDate(r.catalyst.eventDate, { weekday: live, year: showYear })}</span>
+                  {r.company ? <span className="hidden truncate sm:inline">{r.company.name}</span> : null}
                 </span>
               </span>
               <span className="text-right lg:text-left">
                 {r.partialWindow && r.flags.footprintDaysUsed === 0 ? (
-                  <span className="text-[13px] text-ink-3">not yet</span>
+                  <span className="text-[14px] text-ink-3">not yet</span>
                 ) : (
-                  <span className="flex items-baseline gap-1.5 lg:flex-col lg:gap-0">
+                  <span className="flex items-baseline gap-2 lg:flex-col lg:gap-1">
                     <ScoreFigure score={r.score} />
-                    <span className="text-[12.5px] text-ink-3"><DirectionMark direction={r.direction} short /> {r.direction === "bullish" ? "rise" : r.direction === "bearish" ? "fall" : "mixed"}</span>
+                    <span className="text-[13px] text-ink-3">
+                      <DirectionMark direction={r.direction} short /> {r.direction === "bullish" ? "rise" : r.direction === "bearish" ? "fall" : "mixed"}
+                    </span>
                   </span>
                 )}
               </span>
               <span className="hidden lg:block">
-                <TellStrip days={r.strip} width={132} height={30} />
+                <TellStrip days={r.strip} width={132} height={32} />
               </span>
-              <span className="col-span-2 flex items-center justify-between gap-4 text-[14px] lg:col-span-1 lg:block">
-                <span className="font-mono text-[13.5px] text-ink-2 tnum">
+              <span className="col-span-2 flex items-center justify-between gap-4 lg:col-span-1 lg:block">
+                <span className="text-[14.5px] text-ink-2 tnum">
                   ±{fmtPct(r.impliedMovePct, { sign: false, decimals: 0 })}
                   {live ? null : (
                     <>
-                      <span className="mx-1.5 text-ink-3">→</span>
-                      <span className="text-ink">{fmtPct(r.realizedMovePct)}</span>
+                      <span className="mx-1.5 text-ink-3" aria-label="then">→</span>
+                      <span className="font-semibold text-ink">{fmtPct(r.realizedMovePct)}</span>
                     </>
                   )}
                 </span>
@@ -97,7 +95,7 @@ export function CaseList({
                   {live && isRadar(r) ? <WindowMeter elapsed={r.daysElapsed} total={r.daysTotal} /> : <VerdictMark verdict={r.verdict} />}
                 </span>
               </span>
-              <span className="hidden text-[14px] lg:block">
+              <span className="hidden lg:block">
                 {live && isRadar(r) ? <WindowMeter elapsed={r.daysElapsed} total={r.daysTotal} /> : <VerdictMark verdict={r.verdict} />}
               </span>
             </Link>

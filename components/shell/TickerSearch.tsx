@@ -63,8 +63,8 @@ export function TickerSearch() {
       <label className="sr-only" htmlFor="ticker-search">
         Open a ticker dossier
       </label>
-      <div className="flex h-8 items-center gap-2 rounded-md border hairline bg-surface pl-2.5 pr-1.5 focus-within:border-line-strong">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="text-ink-3" aria-hidden="true">
+      <div className="flex h-10 items-center gap-2 rounded-full bg-surface-2 pl-3.5 pr-2 transition-colors focus-within:bg-surface-3">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="shrink-0 text-ink-3" aria-hidden="true">
           <circle cx="11" cy="11" r="7" />
           <path d="m20 20-3.5-3.5" strokeLinecap="round" />
         </svg>
@@ -78,7 +78,7 @@ export function TickerSearch() {
           autoComplete="off"
           spellCheck={false}
           value={q}
-          placeholder="Ticker"
+          placeholder="Find a stock"
           onChange={(e) => {
             setQ(e.target.value);
             if (!e.target.value.trim()) setHits([]);
@@ -101,12 +101,12 @@ export function TickerSearch() {
               inputRef.current?.blur();
             }
           }}
-          className="w-16 bg-transparent font-mono text-[13px] uppercase text-ink outline-none placeholder:font-sans placeholder:normal-case placeholder:text-ink-3 sm:w-24"
+          className="w-20 bg-transparent text-[15px] font-semibold uppercase text-ink outline-none placeholder:font-normal placeholder:normal-case placeholder:text-ink-3 sm:w-36"
         />
-        <kbd className="hidden rounded border hairline px-1 font-mono text-[10px] text-ink-3 sm:inline">⌘K</kbd>
+        <kbd className="hidden rounded-md bg-surface px-1.5 py-0.5 text-[11px] font-medium text-ink-3 sm:inline">⌘K</kbd>
       </div>
       {open && hits.length > 0 ? (
-        <ul id={listId} role="listbox" className="sheet absolute right-0 mt-1.5 w-64 overflow-hidden py-1">
+        <ul id={listId} role="listbox" className="pop absolute right-0 z-20 mt-2 w-72 overflow-hidden p-1.5">
           {hits.map((h, i) => (
             <li
               key={h.ticker}
@@ -117,9 +117,9 @@ export function TickerSearch() {
                 go(h.ticker);
               }}
               onMouseEnter={() => setActive(i)}
-              className={`flex cursor-pointer items-baseline gap-2.5 px-3 py-2 text-[13px] ${i === active ? "bg-surface-2 text-ink" : "text-ink-2"}`}
+              className={`flex cursor-pointer items-baseline gap-3 rounded-lg px-3 py-2 text-[14px] ${i === active ? "bg-surface-2 text-ink" : "text-ink-2"}`}
             >
-              <span className="w-12 font-mono font-medium text-ink">{h.ticker}</span>
+              <span className="ticker w-14 text-ink">{h.ticker}</span>
               <span className="truncate">{h.name}</span>
             </li>
           ))}

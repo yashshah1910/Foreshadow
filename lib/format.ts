@@ -52,7 +52,7 @@ export function fmtDateTimeEt(iso: string): string {
   const d = new Date(iso);
   return (
     d.toLocaleDateString("en-US", { timeZone: "America/New_York", month: "short", day: "numeric" }) +
-    " · " +
+    ", " +
     fmtTimeEt(iso) +
     " ET"
   );

@@ -20,7 +20,7 @@ export default function DocsPage() {
   const base = env.siteUrl.replace(/\/$/, "");
   return (
     <div className="mx-auto max-w-[760px] px-5 py-12 sm:px-8 lg:py-16">
-      <h1 className="display text-[40px] text-ink sm:text-[52px]">How it works</h1>
+      <h1 className="display text-[44px] text-ink sm:text-[60px]">How it works</h1>
       <div className="prose-plain mt-6 space-y-4">
         <p>
           Companies often have news on a known date: the FDA ruling on a drug, a quarterly earnings report. In the days
@@ -39,8 +39,8 @@ export default function DocsPage() {
         </p>
       </div>
 
-      <h2 className="display mt-14 text-[28px] text-ink">Words you&apos;ll see</h2>
-      <dl className="mt-5 divide-y divide-line border-y hairline text-[15.5px]">
+      <h2 className="display mt-20 text-[34px] text-ink">Words you&apos;ll see</h2>
+      <dl className="tray mt-6 grid gap-1.5 p-2 text-[16px]">
         {[
           ["Unusual betting (score)", "0 to 100. How far the options activity in the five days before the news was above this stock's normal level. 40 and up is unusual; 70 and up is very unusual."],
           ["Bets on a rise / a fall", "Which way the money leaned. Mostly calls bought at the asking price means bets on a rise; mostly puts means bets on a fall."],
@@ -49,18 +49,18 @@ export default function DocsPage() {
           ["Bets were right / wrong", "Right means the stock moved at least as much as expected, and in the direction the bets leaned. Otherwise, wrong."],
           ["Large options trade", "A single trade or burst of trades that Unusual Whales flagged for its size."],
         ].map(([term, def]) => (
-          <div key={term} className="grid gap-1 py-4 sm:grid-cols-[13rem_minmax(0,1fr)] sm:gap-6">
-            <dt className="font-medium text-ink">{term}</dt>
+          <div key={term} className="card grid gap-1 px-5 py-4 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-6">
+            <dt className="font-semibold text-ink">{term}</dt>
             <dd className="leading-relaxed text-ink-2">{def}</dd>
           </div>
         ))}
       </dl>
 
-      <h2 className="display mt-14 text-[28px] text-ink">The details</h2>
-      <p className="mt-3 text-[15.5px] leading-relaxed text-ink-2">
+      <h2 className="display mt-20 text-[34px] text-ink">The details</h2>
+      <p className="mt-3 text-[16px] leading-relaxed text-ink-2">
         For people who want the exact method, data sources and API.
       </p>
-      <nav className="mt-5 flex flex-wrap gap-x-4 gap-y-1 text-[14.5px] text-ink-2" aria-label="Sections">
+      <nav className="mt-6 flex flex-wrap gap-2 text-[14.5px]" aria-label="Sections">
         {[
           ["#score", "The score"],
           ["#windows", "Time windows"],
@@ -73,7 +73,7 @@ export default function DocsPage() {
           ["#byok", "Your own key"],
           ["#run", "Run it yourself"],
         ].map(([href, label]) => (
-          <a key={href} href={href} className="underline decoration-line-strong underline-offset-4 hover:text-ink">{label}</a>
+          <a key={href} href={href} className="pressable rounded-full bg-surface-2 px-3.5 py-1.5 font-medium text-ink-2 hover:bg-surface-3 hover:text-ink">{label}</a>
         ))}
       </nav>
 
@@ -82,7 +82,7 @@ export default function DocsPage() {
           Every signal becomes a z-score of the footprint window against the ticker&apos;s own baseline, so a sleepy
           biotech and a mega-cap are comparable. Each z is clipped to [0, 4], scaled to 0–1, weighted and summed:
         </p>
-        <pre className="mt-3 overflow-x-auto rounded-md border hairline bg-surface-2 p-3 font-mono text-[12.5px] text-ink">{`Score = Σ_i  w_i · min( max(z_i, 0) / 4, 1 ) · 100`}</pre>
+        <pre className="mt-3 overflow-x-auto well p-4 font-mono text-[13px] text-ink">{`Score = Σ_i  w_i · min( max(z_i, 0) / 4, 1 ) · 100`}</pre>
         <p className="mt-3">
           Below 40 is quiet, 40–70 is notable, 70+ is &ldquo;someone knew&rdquo;. Direction is the sign of
           <span className="font-mono text-ink"> z(directional premium) + 2·OI imbalance − z(skew shift)</span>; within ±0.5 it is
@@ -102,23 +102,23 @@ export default function DocsPage() {
       </Section>
 
       <Section id="signals" title="Signals">
-        <div className="overflow-x-auto rounded-md border hairline">
-          <table className="w-full text-[13px]">
-            <thead className="label">
-              <tr className="border-b hairline text-left">
-                <th className="px-3 py-2 font-normal">Signal</th>
-                <th className="px-3 py-2 font-normal">UW source</th>
-                <th className="px-3 py-2 font-normal">What is computed</th>
-                <th className="px-3 py-2 font-normal text-right">Weight</th>
+        <div className="tray overflow-x-auto p-2">
+          <table className="w-full border-separate border-spacing-y-1 text-[14px]">
+            <thead className="text-[13px] text-ink-3">
+              <tr className="text-left">
+                <th className="px-3 py-2 font-medium">Signal</th>
+                <th className="px-3 py-2 font-medium">UW source</th>
+                <th className="px-3 py-2 font-medium">What is computed</th>
+                <th className="px-3 py-2 font-medium text-right">Weight</th>
               </tr>
             </thead>
             <tbody>
               {SIGNALS.map(([a, b, c, d]) => (
-                <tr key={a} className="border-b hairline last:border-b-0 align-top">
-                  <td className="px-3 py-2 text-ink">{a}</td>
-                  <td className="px-3 py-2 font-mono text-[11.5px] text-ink-2">{b}</td>
-                  <td className="px-3 py-2 text-ink-2">{c}</td>
-                  <td className="px-3 py-2 text-right tnum text-ink">{d}</td>
+                <tr key={a} className="bg-surface align-top [&>td:first-child]:rounded-l-xl [&>td:last-child]:rounded-r-xl">
+                  <td className="px-3 py-3 font-medium text-ink">{a}</td>
+                  <td className="px-3 py-3 font-mono text-[12px] text-ink-2">{b}</td>
+                  <td className="px-3 py-3 text-ink-2">{c}</td>
+                  <td className="px-3 py-3 text-right font-semibold tnum text-ink">{d}</td>
                 </tr>
               ))}
             </tbody>
@@ -173,8 +173,8 @@ export default function DocsPage() {
 
       <Section id="mcp" title="Add Foreshadow to Claude or Cursor (MCP)">
         <p>Foreshadow ships a remote MCP server over streamable HTTP. One URL, three tools, no auth.</p>
-        <pre className="mt-3 overflow-x-auto rounded-md border hairline bg-surface-2 p-3 font-mono text-[12.5px] text-ink">{`claude mcp add --transport http foreshadow ${base}/api/mcp`}</pre>
-        <pre className="mt-2 overflow-x-auto rounded-md border hairline bg-surface-2 p-3 font-mono text-[12.5px] text-ink">{`{
+        <pre className="mt-3 overflow-x-auto well p-4 font-mono text-[13px] text-ink">{`claude mcp add --transport http foreshadow ${base}/api/mcp`}</pre>
+        <pre className="mt-2 overflow-x-auto well p-4 font-mono text-[13px] text-ink">{`{
   "mcpServers": {
     "foreshadow": { "type": "url", "url": "${base}/api/mcp" }
   }
@@ -203,7 +203,7 @@ export default function DocsPage() {
 
       <Section id="byok" title="Bring your own key">
         <p>
-          Sign in (email magic link or Google) and paste your Unusual Whales API key in <Link href="/settings" className="underline underline-offset-4">Settings</Link>. It is
+          Sign in (email magic link or Google) and paste your Unusual Whales API key in <Link href="/settings" className="link">Settings</Link>. It is
           stored in Supabase Vault and only decrypted server-side for your own requests: the Ask panel&apos;s UW tools use it,
           and Foreshadow never re-serves UW data to anyone else. Watchlists and alerts (Discord webhook or email) fire from
           the cron when a Live Radar score crosses your threshold.
@@ -211,7 +211,7 @@ export default function DocsPage() {
       </Section>
 
       <Section id="run" title="Run it locally">
-        <pre className="overflow-x-auto rounded-md border hairline bg-surface-2 p-3 font-mono text-[12.5px] text-ink">{`git clone <repo> && cd foreshadow && pnpm install
+        <pre className="overflow-x-auto well p-4 font-mono text-[13px] text-ink">{`git clone <repo> && cd foreshadow && pnpm install
 cp .env.example .env     # leave Supabase empty for demo mode, or add a free project
 pnpm dev                 # http://localhost:3000 — seeded demo data, no keys needed
 
@@ -226,7 +226,7 @@ pnpm ingest --mode backfill --days 90 --loop`}</pre>
         </p>
       </Section>
 
-      <p className="mt-10 text-[12px] text-ink-3">
+      <p className="mt-14 text-[14px] text-ink-3">
         Not financial advice. Foreshadow detects positioning, not intent; a high score is a statistical anomaly, never an
         allegation.
       </p>
@@ -236,9 +236,9 @@ pnpm ingest --mode backfill --days 90 --loop`}</pre>
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="mt-12 scroll-mt-8 border-t hairline pt-8">
-      <h2 className="display text-[24px] text-ink">{title}</h2>
-      <div className="mt-3 text-[15px] leading-relaxed text-ink-2">{children}</div>
+    <section id={id} className="mt-16 scroll-mt-8">
+      <h2 className="display text-[26px] text-ink">{title}</h2>
+      <div className="mt-3 text-[16px] leading-relaxed text-ink-2">{children}</div>
     </section>
   );
 }

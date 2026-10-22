@@ -74,7 +74,7 @@ export function Trace(p: TraceProps) {
         {m.band ? (
           <g>
             <path d={bandPath(m.band.x0, m.band.x1, PAD_T - 10, m.height - X_AXIS + 2)} className="hl-band hl-band-draw" />
-            <text x={m.band.x0 + 8} y={14} className="fill-ink-2" fontSize="12">
+            <text x={m.band.x0 + 8} y={14} className="fill-ink" fontSize="12.5" fontWeight={600}>
               {m.narrow ? "5 days before" : "The 5 trading days before the news"}
             </text>
           </g>
@@ -82,15 +82,14 @@ export function Trace(p: TraceProps) {
 
         {/* Active column */}
         {active !== null ? (
-          <rect x={PAD_L + active * m.slot} y={PAD_T - 10} width={m.slot} height={m.height - X_AXIS - PAD_T + 12} className="fill-ink" opacity={0.05} />
+          <rect x={PAD_L + active * m.slot} y={PAD_T - 10} width={m.slot} height={m.height - X_AXIS - PAD_T + 12} className="fill-ink" opacity={0.045} rx={6} />
         ) : null}
 
         {/* ---------------- Price ---------------- */}
         {m.priceTicks.map((t) => (
           <g key={t}>
-            <line x1={PAD_L} x2={PAD_L + m.plotW} y1={m.yPrice(t)} y2={m.yPrice(t)} className="stroke-line" />
-            <text x={PAD_L + m.plotW + 10} y={m.yPrice(t) + 3.5} className="fill-ink-3 font-mono" fontSize="10.5">
-              {t >= 100 ? t.toFixed(0) : t.toFixed(t >= 10 ? 1 : 2)}
+            <text x={PAD_L + m.plotW + 10} y={m.yPrice(t) + 4} className="fill-ink-3 tnum" fontSize="11.5">
+              ${t >= 100 ? t.toFixed(0) : t.toFixed(t >= 10 ? 1 : 2)}
             </text>
           </g>
         ))}
@@ -101,14 +100,14 @@ export function Trace(p: TraceProps) {
         {/* Event line */}
         {m.eventX !== null ? (
           <g>
-            <line x1={m.eventX} x2={m.eventX} y1={PAD_T - 14} y2={m.height - X_AXIS + 2} className="stroke-ink" strokeWidth="1.5" />
+            <line x1={m.eventX} x2={m.eventX} y1={PAD_T - 14} y2={m.height - X_AXIS + 2} className="stroke-ink" strokeWidth="2" strokeLinecap="round" />
             <text
               x={m.eventX + (m.eventFlip ? -7 : 7)}
               y={14}
               textAnchor={m.eventFlip ? "end" : "start"}
               className="fill-ink"
-              fontSize="12"
-              fontWeight={600}
+              fontSize="12.5"
+              fontWeight={700}
             >
               {m.eventOnChart ? "The news" : `News on ${fmtDateShort(p.eventDate)} →`}
             </text>
@@ -131,7 +130,7 @@ export function Trace(p: TraceProps) {
               x={m.reaction.bx + m.reaction.dir * 8}
               y={(m.reaction.y0 + m.reaction.y1) / 2 + 4}
               textAnchor={m.reaction.dir > 0 ? "start" : "end"}
-              className="fill-pen font-mono"
+              className="fill-pen"
               fontSize="12"
               fontWeight={600}
             >
@@ -143,7 +142,7 @@ export function Trace(p: TraceProps) {
         {/* ---------------- Signal rows ---------------- */}
         {m.rows.map((row) => (
           <g key={row.key}>
-            <text x={PAD_L} y={row.top + 13} className="fill-ink" fontSize="13" fontWeight={500}>
+            <text x={PAD_L} y={row.top + 13} className="fill-ink" fontSize="13.5" fontWeight={600}>
               {ROW_SPEC[row.key].label}
               {row.key === "flow" && !m.narrow ? (
                 <tspan className="fill-ink-3" fontSize="11">
@@ -152,12 +151,12 @@ export function Trace(p: TraceProps) {
               ) : null}
             </text>
             {row.contribution ? (
-              <text x={PAD_L + m.plotW + PAD_R - 2} y={row.top + 13} textAnchor="end" className="fill-ink font-mono" fontSize="11.5" fontWeight={600}>
+              <text x={PAD_L + m.plotW + PAD_R - 2} y={row.top + 13} textAnchor="end" className="fill-ink tnum" fontSize="12.5" fontWeight={600}>
                 {`${row.contribution.value.toFixed(0)}`}
                 <tspan className="fill-ink-3" fontWeight={400}>{` of ${row.contribution.max} pts`}</tspan>
               </text>
             ) : null}
-            <line x1={PAD_L} x2={PAD_L + m.plotW} y1={row.base} y2={row.base} className="stroke-line-strong" />
+            {row.key === "flow" ? <rect x={PAD_L} y={row.base - 0.5} width={m.plotW} height={1} className="fill-ink-3" opacity={0.25} /> : null}
             {row.marks.map((mk, i) =>
               mk.kind === "bar" ? (
                 <rect key={i} x={mk.x} y={mk.y} width={mk.w} height={Math.max(0.8, mk.h)} rx={2} className={mk.cls} opacity={mk.op} />
@@ -167,7 +166,7 @@ export function Trace(p: TraceProps) {
             )}
             {row.path ? <path d={row.path} className="stroke-ink-2" fill="none" strokeWidth="1.75" strokeLinejoin="round" /> : null}
             {row.afterX !== null && row.key === "flow" && PAD_L + m.plotW - row.afterX > 190 ? (
-              <text x={row.afterX + 8} y={row.base + 4} className="fill-ink-3" fontSize="11">
+              <text x={row.afterX + 10} y={row.base - 6} className="fill-ink-3" fontSize="11.5">
                 after the news (not counted)
               </text>
             ) : null}
@@ -176,7 +175,7 @@ export function Trace(p: TraceProps) {
 
         {/* Peak annotation, in pen */}
         {m.peak ? (
-          <text x={m.peak.x} y={m.peak.y} textAnchor={m.peak.anchor} className="fill-pen font-mono" fontSize="11.5" fontWeight={600}>
+          <text x={m.peak.x} y={m.peak.y} textAnchor={m.peak.anchor} className="fill-pen" fontSize="11.5" fontWeight={600}>
             {m.peak.text}
           </text>
         ) : null}
@@ -189,8 +188,8 @@ export function Trace(p: TraceProps) {
               x={m.xOf(i)}
               y={m.height - 6}
               textAnchor="middle"
-              className={d === p.eventDate ? "fill-ink font-mono" : "fill-ink-3 font-mono"}
-              fontSize="10.5"
+              className={d === p.eventDate ? "fill-ink" : "fill-ink-3"}
+              fontSize="11.5"
               fontWeight={d === p.eventDate ? 600 : 400}
             >
               {fmtDateShort(d)}
@@ -233,12 +232,14 @@ function TraceTooltip(props: {
   return (
     <div
       role="status"
-      className="sheet pointer-events-none absolute top-8 z-10 w-60 p-3 text-[12px]"
+      className="pop pointer-events-none absolute top-8 z-10 w-64 p-3.5 text-[13px]"
       style={flip ? { right: width - left + 14 } : { left: left + 14 }}
     >
       <div className="mb-2 flex items-center justify-between">
-        <span className="font-mono font-semibold text-ink">{fmtDateShort(day)}</span>
-        {isEvent ? <span className="label text-ink">news day</span> : inWindow ? <span className="label text-ink">counted</span> : <span className="label">normal period</span>}
+        <span className="font-semibold text-ink">{fmtDateShort(day)}</span>
+        <span className={`rounded-full px-2 py-0.5 text-[11.5px] font-medium ${isEvent ? "bg-ink text-surface" : inWindow ? "bg-hl text-ink" : "bg-surface-2 text-ink-3"}`}>
+          {isEvent ? "news day" : inWindow ? "counted" : "normal period"}
+        </span>
       </div>
       <TipRow label="Close" value={close !== null ? `$${close.toFixed(2)}` : "—"} />
       {metrics ? (
@@ -261,10 +262,10 @@ function TipRow({ label, value, swatch }: { label: string; value: string; swatch
   return (
     <div className="flex items-center justify-between gap-3 py-[3px]">
       <span className="flex items-center gap-1.5 text-ink-2">
-        {swatch ? <span className={`h-[2px] w-3 rounded ${swatch === "call" ? "bg-call" : "bg-put"}`} aria-hidden="true" /> : null}
+        {swatch ? <span className={`h-2 w-2 rounded-full ${swatch === "call" ? "bg-call" : "bg-put"}`} aria-hidden="true" /> : null}
         {label}
       </span>
-      <span className="font-mono text-ink tnum">{value}</span>
+      <span className="font-medium text-ink tnum">{value}</span>
     </div>
   );
 }

@@ -47,3 +47,6 @@ supabase/.branches/
 
 # built packages
 packages/*/dist/
+
+# local backfill logs
+.backfill/

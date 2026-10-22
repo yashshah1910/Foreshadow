@@ -83,6 +83,41 @@ interface FootprintRow {
 
 const IN_CHUNK = 200;
 const UPSERT_CHUNK = 500;
+/** Keep each upsert well under Postgres' statement timeout: big tickers carry thousands of contracts per day. */
+const UPSERT_MAX_BYTES = 1_500_000;
+
+/** Supabase errors worth retrying: gateway hiccups and statement timeouts. */
+function isTransient(message: string): boolean {
+  return /bad gateway|gateway|timeout|timed out|<!doctype html|fetch failed|ECONNRESET|503|502|504/i.test(message);
+}
+
+async function withRetry<T>(label: string, fn: () => Promise<{ data: T; error: { message: string } | null }>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    const { data, error } = await fn();
+    if (!error) return data;
+    if (attempt >= 4 || !isTransient(error.message)) throw new Error(`${label}: ${error.message.slice(0, 200)}`);
+    await new Promise((r) => setTimeout(r, 500 * 2 ** attempt));
+  }
+}
+
+/** Batches of rows, each under `maxBytes` of JSON (and at most `maxRows`). */
+function chunkBySize<T>(items: T[], maxRows: number, maxBytes: number): T[][] {
+  const out: T[][] = [];
+  let cur: T[] = [];
+  let bytes = 0;
+  for (const item of items) {
+    const size = JSON.stringify(item).length;
+    if (cur.length && (cur.length >= maxRows || bytes + size > maxBytes)) {
+      out.push(cur);
+      cur = [];
+      bytes = 0;
+    }
+    cur.push(item);
+    bytes += size;
+  }
+  if (cur.length) out.push(cur);
+  return out;
+}
 
 function chunk<T>(items: T[], size: number): T[][] {
   const out: T[][] = [];
@@ -103,14 +138,15 @@ export class SupabaseCache implements FootprintCache {
   ) {}
 
   async get<T>(ticker: string, tradeDate: IsoDate, endpoint: CacheEndpoint): Promise<T | undefined> {
-    const { data, error } = await this.supabase
-      .from(this.table)
-      .select("payload")
-      .eq("ticker", ticker.toUpperCase())
-      .eq("trade_date", tradeDate)
-      .eq("endpoint", endpoint)
-      .maybeSingle();
-    if (error) throw new Error(`footprint cache read failed: ${error.message}`);
+    const data = await withRetry("footprint cache read failed", async () =>
+      this.supabase
+        .from(this.table)
+        .select("payload")
+        .eq("ticker", ticker.toUpperCase())
+        .eq("trade_date", tradeDate)
+        .eq("endpoint", endpoint)
+        .maybeSingle(),
+    );
     const row = data as Pick<FootprintRow, "payload"> | null;
     return row ? (row.payload as T) : undefined;
   }
@@ -119,13 +155,14 @@ export class SupabaseCache implements FootprintCache {
     const out = new Map<IsoDate, T>();
     if (tradeDates.length === 0) return out;
     for (const dates of chunk([...new Set(tradeDates)], IN_CHUNK)) {
-      const { data, error } = await this.supabase
-        .from(this.table)
-        .select("trade_date, payload")
-        .eq("ticker", ticker.toUpperCase())
-        .eq("endpoint", endpoint)
-        .in("trade_date", dates);
-      if (error) throw new Error(`footprint cache read failed: ${error.message}`);
+      const data = await withRetry("footprint cache read failed", async () =>
+        this.supabase
+          .from(this.table)
+          .select("trade_date, payload")
+          .eq("ticker", ticker.toUpperCase())
+          .eq("endpoint", endpoint)
+          .in("trade_date", dates),
+      );
       const rows = (data ?? []) as Pick<FootprintRow, "trade_date" | "payload">[];
       for (const row of rows) out.set(String(row.trade_date).slice(0, 10), row.payload as T);
     }
@@ -146,11 +183,10 @@ export class SupabaseCache implements FootprintCache {
       payload: e.payload,
       fetched_at: fetchedAt,
     }));
-    for (const batch of chunk(rows, UPSERT_CHUNK)) {
-      const { error } = await this.supabase
-        .from(this.table)
-        .upsert(batch, { onConflict: "ticker,trade_date,endpoint" });
-      if (error) throw new Error(`footprint cache write failed: ${error.message}`);
+    for (const batch of chunkBySize(rows, UPSERT_CHUNK, UPSERT_MAX_BYTES)) {
+      await withRetry("footprint cache write failed", async () =>
+        this.supabase.from(this.table).upsert(batch, { onConflict: "ticker,trade_date,endpoint" }),
+      );
     }
   }
 }

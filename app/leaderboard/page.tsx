@@ -9,8 +9,8 @@ import { Legend } from "@/components/cases/Legend";
 import { fmtDate } from "@/lib/format";
 
 export const metadata: Metadata = {
-  title: "Leaderboard",
-  description: "The highest-scoring catalysts: where informed options positioning showed up before the news, and whether it matched the move.",
+  title: "Past cases",
+  description: "Company news from the last few months, ranked by how unusual the options betting was in the five days before it, and whether the bets were right.",
 };
 
 export default async function LeaderboardPage({ searchParams }: PageProps<"/leaderboard">) {
@@ -28,16 +28,16 @@ export default async function LeaderboardPage({ searchParams }: PageProps<"/lead
   ]);
 
   return (
-    <div className="mx-auto max-w-[1080px] px-5 py-12 sm:px-8 lg:py-16">
+    <div className="mx-auto max-w-[1120px] px-5 py-12 sm:px-8 lg:py-16">
       <header className="mb-10 max-w-[760px]">
-        <h1 className="display text-[40px] text-ink sm:text-[52px]">Past cases</h1>
-        <p className="prose-plain mt-4">
+        <h1 className="display text-[44px] text-ink sm:text-[60px]">Past cases</h1>
+        <p className="prose-plain mt-5">
           News from the last few months, ranked by how unusual the options betting was in the five days before it, with
           what the stock did next. Funds and stocks with too little trading history are left out. Updated{" "}
           {fmtDate(today, { year: true })}.
         </p>
       </header>
-      <div className="mb-4">
+      <div className="mb-5">
         <Suspense>
           <Filters initial={f} total={rows.length} />
         </Suspense>

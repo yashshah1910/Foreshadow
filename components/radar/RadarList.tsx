@@ -36,40 +36,48 @@ export function RadarList({ items, live }: { items: RadarItem[]; live: boolean }
 
   return (
     <div>
-      <div className="mb-3 flex items-center gap-3 text-[12.5px] text-ink-3">
-        <span className="inline-flex items-center gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-3 text-[14px] text-ink-3">
+        <span className="inline-flex items-center gap-2 rounded-full bg-surface-2 px-3 py-1.5 font-medium text-ink-2">
           <span className={`h-2 w-2 rounded-full ${live ? "bg-call motion-safe:animate-pulse" : "bg-ink-3"}`} aria-hidden="true" />
           {live ? "Live: this list updates on its own" : "Sample data: these scores don't change"}
         </span>
-        {lastEvent ? <span className="font-mono tnum">updated {lastEvent}</span> : null}
+        {lastEvent ? <span className="tnum">Updated {lastEvent}</span> : null}
       </div>
       <CaseList
         rows={open}
         mode="live"
-        empty={<p className="text-[15px] text-ink-2">Nothing is inside its five-day window right now.</p>}
+        empty={
+          <>
+            <p className="text-[16px] font-medium text-ink">Nothing is inside its five-day window right now.</p>
+            <p className="mt-1 text-[15px] text-ink-3">
+              Scores start as soon as the next piece of news is five trading days away. Until then,{" "}
+              <Link href="/leaderboard" className="link">browse past cases</Link>.
+            </p>
+          </>
+        }
       />
-      <Legend live />
+      {open.length ? <Legend live /> : null}
 
       {upcoming.length > 0 ? (
-        <section className="mt-14" aria-labelledby="upcoming-h">
-          <h2 id="upcoming-h" className="display mb-1 text-[28px] text-ink">Later this month</h2>
-          <p className="mb-5 text-[15px] text-ink-3">Scheduled news whose five-day window hasn&apos;t started yet.</p>
-          <ul className="grid gap-x-8 border-t hairline sm:grid-cols-2">
+        <section className="mt-24" aria-labelledby="upcoming-h">
+          <h2 id="upcoming-h" className="display mb-2 text-[34px] text-ink">Later this month</h2>
+          <p className="mb-6 text-[16px] text-ink-2">Scheduled news whose five-day window hasn&apos;t started yet.</p>
+          <ul className="tray grid gap-1.5 p-2 sm:grid-cols-2 sm:p-2.5">
             {upcoming.map((r) => (
               <li key={r.catalyst.id}>
                 <Link
                   href={`/event/${encodeURIComponent(r.catalyst.id)}`}
-                  className="flex items-center gap-3 border-b hairline py-3.5 hover:bg-surface-2"
+                  className="card flex items-center gap-3 px-4 py-3.5 transition-shadow duration-200 hover:shadow-[0_2px_12px_rgba(19,23,34,0.08)]"
                 >
-                  <span className="w-12 font-mono text-[13.5px] font-semibold text-ink">{r.catalyst.ticker}</span>
+                  <span className="ticker w-14 shrink-0 text-[15px] text-ink">{r.catalyst.ticker}</span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13px] text-ink">{r.catalyst.title}</span>
-                    <span className="mt-1 flex items-center gap-2 text-[12px] text-ink-3">
+                    <span className="block truncate text-[15px] text-ink">{r.catalyst.title}</span>
+                    <span className="mt-1.5 flex items-center gap-2.5 text-[13.5px] text-ink-3">
                       <KindTag kind={r.catalyst.kind} />
                       <span className="tnum">{fmtDate(r.catalyst.eventDate, { weekday: true })}</span>
                     </span>
                   </span>
-                  <span className="text-right text-[13px] text-ink-3 tnum">from {fmtDate(r.windowStart)}</span>
+                  <span className="shrink-0 text-right text-[13.5px] text-ink-3 tnum">counting from<br />{fmtDate(r.windowStart)}</span>
                 </Link>
               </li>
             ))}

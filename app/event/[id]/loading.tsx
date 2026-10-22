@@ -1,11 +1,12 @@
 export default function Loading() {
   return (
-    <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 lg:py-10" aria-busy="true">
-      <div className="h-3 w-56 rounded bg-surface-3" />
-      <div className="mt-10 h-14 w-40 rounded bg-surface-3" />
-      <div className="mt-4 h-10 w-2/3 rounded bg-surface-3" />
-      <div className="sheet mt-8 h-[88px]" />
-      <div className="sheet mt-6 h-[560px]" />
+    <div className="mx-auto max-w-[1120px] px-5 sm:px-8" aria-busy="true">
+      <div className="mt-6 h-4 w-48 rounded-full bg-surface-2" />
+      <div className="mt-12 h-6 w-64 rounded-full bg-surface-2" />
+      <div className="mt-5 h-14 w-2/3 rounded-2xl bg-surface-2" />
+      <div className="mt-6 h-5 w-[44rem] max-w-full rounded-full bg-surface-2" />
+      <div className="tray mt-10 h-[112px]" />
+      <div className="tray mt-24 h-[520px]" />
     </div>
   );
 }

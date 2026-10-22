@@ -5,8 +5,8 @@ import { RadarList } from "@/components/radar/RadarList";
 import { fmtDate } from "@/lib/format";
 
 export const metadata: Metadata = {
-  title: "Live Radar",
-  description: "Upcoming catalysts in the next ten trading days, scored on today's partial footprint window.",
+  title: "Coming up",
+  description: "Company news due in the next two weeks, with the options betting scored day by day as it builds.",
 };
 
 export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
@@ -14,10 +14,10 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
   const min = Number(Array.isArray(sp.min) ? sp.min[0] : sp.min) || undefined;
   const [items, today] = await Promise.all([getRadar(10, min), getToday()]);
   return (
-    <div className="mx-auto max-w-[1080px] px-5 py-12 sm:px-8 lg:py-16">
+    <div className="mx-auto max-w-[1120px] px-5 py-12 sm:px-8 lg:py-16">
       <header className="mb-10 max-w-[760px]">
-        <h1 className="display text-[40px] text-ink sm:text-[52px]">Coming up</h1>
-        <p className="prose-plain mt-4">
+        <h1 className="display text-[44px] text-ink sm:text-[60px]">Coming up</h1>
+        <p className="prose-plain mt-5">
           News scheduled in the next two weeks. Once a stock enters the five trading days before its news, Foreshadow starts
           scoring the betting, and the score updates through the day. The dots show how many of the five days have passed.
           As of {fmtDate(today, { year: true, weekday: true })}.

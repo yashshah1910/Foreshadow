@@ -29,28 +29,28 @@ export function Narration({ catalystId, score, initial }: { catalystId: string; 
   }, [catalystId, score, initial]);
 
   return (
-    <section aria-labelledby="story-h" className="border-t hairline pt-6">
+    <section aria-labelledby="story-h" className="tray p-6">
       <header className="flex items-baseline justify-between gap-3">
-        <h2 id="story-h" className="display text-[22px] text-ink">Summary for sharing</h2>
+        <h2 id="story-h" className="display text-[24px] text-ink">In plain words</h2>
         {state.status === "ready" && state.source !== "fallback" ? (
-          <span className="text-[12.5px] text-ink-3">written by Claude</span>
+          <span className="text-[13px] text-ink-3">written by Claude</span>
         ) : null}
       </header>
       <div className="pt-4">
         {state.status === "loading" ? (
           <div className="space-y-3" aria-busy="true">
-            <div className="h-4 w-11/12 rounded bg-surface-3" />
-            <div className="h-4 w-10/12 rounded bg-surface-3" />
-            <div className="h-4 w-7/12 rounded bg-surface-3" />
+            <div className="h-4 w-11/12 rounded-full bg-surface-3" />
+            <div className="h-4 w-10/12 rounded-full bg-surface-3" />
+            <div className="h-4 w-7/12 rounded-full bg-surface-3" />
           </div>
         ) : state.status === "offline" ? (
-          <p className="text-[14px] text-ink-2">The summary isn&apos;t available right now. Everything above still tells the full story.</p>
+          <p className="text-[15px] text-ink-2">The summary isn&apos;t available right now. Everything above still tells the full story.</p>
         ) : (
           <div className="fade-in">
-            <p className="text-[15.5px] leading-[1.65] text-ink-2">{state.narration.story}</p>
-            <div className="mt-5 rounded border hairline bg-surface-2 p-4">
+            <p className="text-[16px] leading-[1.65] text-ink-2">{state.narration.story}</p>
+            <div className="card mt-5 p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="label">Short version</p>
+                <p className="text-[13px] font-semibold text-ink-3">Short version to share</p>
                 <button
                   type="button"
                   onClick={async () => {
@@ -62,14 +62,14 @@ export function Narration({ catalystId, score, initial }: { catalystId: string; 
                       // clipboard blocked; the caption is selectable
                     }
                   }}
-                  className="pressable rounded-[5px] border hairline bg-surface px-2.5 py-1 text-[12px] text-ink-2 hover:text-ink"
+                  className="pressable rounded-full bg-surface-2 px-3 py-1 text-[13px] font-medium text-ink hover:bg-surface-3"
                 >
                   {copied ? "Copied" : "Copy"}
                 </button>
               </div>
-              <p className="mt-2 text-[14px] leading-relaxed text-ink">{state.narration.caption}</p>
+              <p className="mt-2 text-[15px] leading-relaxed text-ink">{state.narration.caption}</p>
             </div>
-            <p className="mt-3 text-[12px] text-ink-3">
+            <p className="mt-3 text-[13px] text-ink-3">
               {state.source === "fallback"
                 ? "Written automatically from the numbers on this page."
                 : state.narration.numbersVerified
