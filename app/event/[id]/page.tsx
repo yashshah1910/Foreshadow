@@ -153,6 +153,11 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
               <ScoreReceipt signals={stored.breakdown.signals} score={s.score} />
             </div>
           </details>
+          <p className="-mt-12 px-1 text-[14px] leading-relaxed text-ink-3">
+            Built from seven kinds of Unusual Whales data for {s.catalyst.ticker}: large options trades (flow alerts), new open
+            interest, options volume, the put and call price gap (skew), dark-pool prints, daily prices and the expected move.{" "}
+            <Link href="/docs#signals" className="link">What each one measures</Link>
+          </p>
         </div>
         <div className="grid content-start gap-4">
           <Narration catalystId={s.catalyst.id} score={s.score} initial={null} />
