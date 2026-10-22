@@ -125,6 +125,19 @@ claude mcp add --transport http foreshadow https://<your-host>/api/mcp
 or for stdio-only clients `FORESHADOW_URL=https://<your-host> npx foreshadow-mcp` (see `packages/mcp-stdio`).
 Try: *"was there unusual options betting before Tesla's Oct 21 earnings?"*
 
+The three tools have REST twins with the same JSON:
+
+| Tool | REST | Returns |
+|---|---|---|
+| `foreshadow_score` | `GET /api/score?ticker=&eventDate=` | The case (`id`, `ticker`, `kind`, `eventDate`, `title`, `score`, `band`, `direction`, `verdict`, `impliedMovePct`, `realizedMovePct`, `flags`), its `url`, the five `signals` (weight, z, contribution, window vs baseline), `trades: { count, totalPremium, largest }` and `verdictDetail` |
+| `foreshadow_radar` | `GET /api/radar?daysAhead=&minScore=` | `today` and `items`: upcoming cases with the same summary fields plus `windowStart`, `windowOpen`, `daysElapsed`, `daysTotal` |
+| `foreshadow_history` | `GET /api/history?ticker=` | `ticker`, `company`, `hitRate` and `events` (case summaries) |
+
+These are Foreshadow's results, not a copy of Unusual Whales data. `trades.largest` holds at most five example trades,
+each only `{ tradeDate, type, strike, expiry, premium, isSweep }`: no alert ids, timestamps, contract counts or other raw
+fields. Case pages show the ten largest the same way, and `/api/ask` returns only the answer and the names of the sources
+it used. The raw cached responses in the `footprints` table are readable by the service role only.
+
 ## Architecture
 
 ```

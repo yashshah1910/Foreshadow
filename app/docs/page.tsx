@@ -160,11 +160,11 @@ export default function DocsPage() {
       <Section id="claude" title="Where Claude fits">
         <p>
           Claude does the parts that need language, never the arithmetic. The <strong className="text-ink">Narrator</strong> writes the three-sentence
-          story and the tweet-ready caption on each case page from the raw trade rows; every number in the story is checked
-          against the input rows and the rows are rendered beside the story so you can verify. The{" "}
+          story and the tweet-ready caption on each case page from the score&apos;s measurements and its largest trades; every number in the
+          story is checked against that input, and the largest trades are shown beside the story so you can verify. The{" "}
           <strong className="text-ink">Catalyst tagger</strong> maps President&apos;s-schedule and economic-calendar rows to tickers with a confidence. The{" "}
           <strong className="text-ink">Investigator</strong> (&ldquo;Ask Foreshadow&rdquo;) runs a short tool loop, capped at six calls, over Foreshadow&apos;s
-          three tools plus the Unusual Whales hosted MCP, and shows its tool calls inline. The{" "}
+          three tools plus the Unusual Whales hosted MCP, and names the sources it used. The{" "}
           <strong className="text-ink">Stock summary</strong> is one paragraph on whether unusual betting keeps showing up before a stock&apos;s news. Narrations are cached by
           (ticker, event date, score). Without <span className="font-mono text-ink">ANTHROPIC_API_KEY</span> every surface still works and shows the
           deterministic template instead.
@@ -180,7 +180,7 @@ export default function DocsPage() {
   }
 }`}</pre>
         <ul className="mt-3 list-disc space-y-1 pl-5">
-          <li><span className="font-mono text-ink">foreshadow_score</span> (ticker, eventDate) → score, direction, verdict, signals, top 5 alerts.</li>
+          <li><span className="font-mono text-ink">foreshadow_score</span> (ticker, eventDate) → score, direction, verdict, measurements, the trade count and total, and the 5 largest trades as examples.</li>
           <li><span className="font-mono text-ink">foreshadow_radar</span> (daysAhead = 10, minScore) → ranked upcoming catalysts.</li>
           <li><span className="font-mono text-ink">foreshadow_history</span> (ticker) → every scored catalyst and the hit rate.</li>
         </ul>
@@ -199,6 +199,10 @@ export default function DocsPage() {
           <li>POST /api/ask {"{ question, context }"}</li>
           <li>GET /api/cron/ingest?mode=radar|daily|backfill (Bearer CRON_SECRET)</li>
         </ul>
+        <p className="mt-3">
+          The API and MCP return Foreshadow&apos;s own results, not raw Unusual Whales rows: example trades carry only the day, call or put,
+          strike, expiry, amount and whether it was a sweep. For every trade, look the stock up on Unusual Whales.
+        </p>
       </Section>
 
       <Section id="byok" title="Bring your own key">
