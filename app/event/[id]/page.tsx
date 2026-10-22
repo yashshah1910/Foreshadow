@@ -28,8 +28,7 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
   const { id } = await params;
   const [ev, today] = await Promise.all([getEvent(decodeURIComponent(id)), getToday()]);
   if (!ev) notFound();
-  const { summary: s, stored, footprint, windowDays, chartBars, related } = ev;
-  const alerts = footprint.flatMap((d) => d.alerts);
+  const { summary: s, stored, windowDays, chartBars, related } = ev;
   const rw = reactionWindowFor(s.catalyst.eventDate, s.catalyst.session);
   const facts = factsFromStored(stored);
   const session =
@@ -129,7 +128,7 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
       {/* ---------------- Trades + Claude ---------------- */}
       <div className="mt-24 grid gap-14 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-12">
         <div className="grid content-start gap-16">
-          <AlertsPanel alerts={alerts} ticker={s.catalyst.ticker} stats={ev.alertStats} />
+          <AlertsPanel trades={ev.sampleTrades ?? []} ticker={s.catalyst.ticker} stats={ev.alertStats ?? { count: 0, premium: 0 }} />
           <details className="group tray p-6">
             <summary className="flex cursor-pointer list-none flex-wrap items-baseline justify-between gap-3">
               <span className="display text-[24px] text-ink">How the score adds up</span>

@@ -65,11 +65,29 @@ export interface EventDetail {
   /** Other scored events for the same ticker, newest first. */
   related: EventSummary[];
   /**
-   * Totals over every flagged trade in the window. Set when `footprint` has
-   * been trimmed to the largest trades (pages never need all of them; a busy
-   * stock like TSLA has 9,000+).
+   * Totals over every flagged trade in the window. Set, with `sampleTrades`,
+   * when the cached case drops the raw trades (pages never need all of them; a
+   * busy stock like TSLA has 9,000+).
    */
-  alertStats?: { count: number; premium: number };
+  alertStats?: TradeTotals;
+  /** The largest trades as examples, without UW ids or other raw fields. */
+  sampleTrades?: SampleTrade[];
+}
+
+export interface TradeTotals {
+  count: number;
+  premium: number;
+}
+
+/** One flagged trade shown as an example of the betting behind a score. */
+export interface SampleTrade {
+  tradeDate: IsoDate;
+  type: "call" | "put";
+  strike: number;
+  expiry: IsoDate;
+  /** Total amount paid, USD. */
+  premium: number;
+  isSweep: boolean;
 }
 
 export interface LeaderboardFilters {

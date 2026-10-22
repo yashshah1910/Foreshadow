@@ -4,9 +4,11 @@ import { dataMode } from "@/lib/env";
 import { createSupabaseDataClient } from "@/lib/supabase/server";
 import { FixtureDataSource } from "./fixtures";
 import { SupabaseDataSource } from "./supabase";
+import { CASE_SAMPLE_SIZE, sampleTrades, tradeTotals } from "./sample";
 import type { DataSource, EventDetail, LeaderboardFilters } from "./types";
 
 export type * from "./types";
+export { API_SAMPLE_SIZE, CASE_SAMPLE_SIZE, sampleTrades, tradeTotals } from "./sample";
 
 let source: DataSource | null = null;
 
@@ -31,15 +33,18 @@ const sharedStats = shared("stats", 120, () => getDataSource().getStats());
 const sharedLeaderboard = shared("leaderboard", 120, (filters?: LeaderboardFilters) => getDataSource().getLeaderboard(filters));
 const sharedEvent = shared("event", 300, async (id: string) => slimEvent(await getDataSource().getEvent(id)));
 
-/** Keep pages (and the cache entry) small: the largest trades plus totals. */
-function slimEvent(ev: EventDetail | null, keep = 60): EventDetail | null {
+/**
+ * Keep pages (and the cache entry) small and free of raw UW rows: a handful of
+ * the largest trades as examples, plus totals over all of them.
+ */
+function slimEvent(ev: EventDetail | null): EventDetail | null {
   if (!ev) return ev;
   const all = ev.footprint.flatMap((d) => d.alerts);
-  const top = new Set([...all].sort((a, b) => b.premium - a.premium).slice(0, keep).map((a) => a.id));
   return {
     ...ev,
-    alertStats: { count: all.length, premium: all.reduce((sum, a) => sum + a.premium, 0) },
-    footprint: ev.footprint.map((d) => ({ ...d, alerts: d.alerts.filter((a) => top.has(a.id)), oiChanges: [], darkPool: [] })),
+    alertStats: tradeTotals(all),
+    sampleTrades: sampleTrades(all, CASE_SAMPLE_SIZE),
+    footprint: [],
   };
 }
 const sharedScorecard = shared("scorecard", 300, () => getDataSource().getScorecard());
