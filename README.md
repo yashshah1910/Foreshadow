@@ -217,8 +217,9 @@ vercel.json              cron schedules
 
 Supabase holds every row (Postgres), every user (Auth), every user's UW key (Vault, via `set_uw_key` /
 `get_uw_key` functions; the key never sits in a table column) and pushes Radar updates to the browser (Realtime on
-`scores`). RLS: data tables are readable by everyone (`footprints` by signed-in users only, never re-served
-anonymously) and written only by the service role from the cron; everything user-owned is owner-only.
+`scores`). RLS: scores and catalysts are readable by everyone, while the raw cached UW responses (`footprints`) are
+readable by the service role only; everything is written only by the service role from the cron, and everything
+user-owned is owner-only.
 
 ## The demo dataset is synthetic
 
