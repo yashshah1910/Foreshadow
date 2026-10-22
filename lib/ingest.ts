@@ -60,6 +60,12 @@ export interface IngestOptions {
    * Work already fetched is cached, so the next run picks up from there.
    */
   budgetMs?: number;
+  /**
+   * Return this many ms after the start even if events are still loading,
+   * so a serverless run always reports back and records its status. Work
+   * still in flight carries on in the background; its writes are upserts.
+   */
+  deadlineMs?: number;
   /** Called after each upsert, e.g. to dispatch alerts. */
   onScored?: (change: { prev: StoredScore | null; next: StoredScore; catalyst: Catalyst }) => Promise<void>;
 }
@@ -145,67 +151,84 @@ export async function runIngest(db: SupabaseClient, uw: UwClient, opts: IngestOp
   };
 
   const cache = new SupabaseCache(db);
+  const secs = () => `${((Date.now() - started) / 1000).toFixed(1)}s`;
   let catalysts: Catalyst[] = [];
   let scored = 0;
+  let inFlight = 0;
   let candidates: Catalyst[] = [];
-  try {
-    const fetched = await fetchCatalysts(uw, { from, to, kinds });
-    catalysts = fetched.filter((c) => inUniverse(c, universe));
-    const byKind = (xs: Catalyst[]) =>
-      Object.entries(xs.reduce<Record<string, number>>((m, c) => ((m[c.kind] = (m[c.kind] ?? 0) + 1), m), {}))
-        .map(([k, n]) => `${k} ${n}`)
-        .join(", ");
-    log(`fetched ${fetched.length} catalysts ${from} → ${to}; ${catalysts.length} in universe (${byKind(catalysts)})`);
-    if (!opts.dryRun) await upsertCatalysts(db, catalysts);
-    if (!opts.dryRun && (opts.tagMacro ?? mode !== "backfill")) {
-      try {
-        await tagMacroCatalysts(db, uw, { today, log });
-      } catch (err) {
-        warnings.push(`tagger: ${err instanceof Error ? err.message : String(err)}`);
+  const pipeline = async (): Promise<IngestReport | undefined> => {
+    try {
+      const fetched = await fetchCatalysts(uw, { from, to, kinds });
+      catalysts = fetched.filter((c) => inUniverse(c, universe));
+      const byKind = (xs: Catalyst[]) =>
+        Object.entries(xs.reduce<Record<string, number>>((m, c) => ((m[c.kind] = (m[c.kind] ?? 0) + 1), m), {}))
+          .map(([k, n]) => `${k} ${n}`)
+          .join(", ");
+      log(`fetched ${fetched.length} catalysts ${from} → ${to}; ${catalysts.length} in universe (${byKind(catalysts)}) at ${secs()}`);
+      if (!opts.dryRun) await upsertCatalysts(db, catalysts);
+      if (!opts.dryRun && (opts.tagMacro ?? mode !== "backfill")) {
+        try {
+          await tagMacroCatalysts(db, uw, { today, log });
+        } catch (err) {
+          warnings.push(`tagger: ${err instanceof Error ? err.message : String(err)}`);
+        }
       }
-    }
-    const tagged = await loadTaggedCatalysts(db, from, to);
-    const seen = new Set(catalysts.map((c) => c.id));
-    for (const c of tagged) if (!seen.has(c.id)) catalysts.push(c);
+      const tagged = await loadTaggedCatalysts(db, from, to);
+      const seen = new Set(catalysts.map((c) => c.id));
+      for (const c of tagged) if (!seen.has(c.id)) catalysts.push(c);
 
-    const existing = await loadExistingScores(db, catalysts.map((c) => c.id));
-    candidates = pickCandidates(catalysts, existing, mode, today).slice(0, maxEvents);
-    const tickers = new Set(candidates.map((c) => c.ticker));
-    log(`${candidates.length} to score (max ${maxEvents}) across ${tickers.size} tickers`);
-    if (opts.dryRun) {
-      log(`dry run: about ${tickers.size * 145 + candidates.length * 4} UW requests if every ticker is uncached`);
-      return { runId, mode, from, to, catalystsSeen: catalysts.length, candidates: candidates.length, scored: 0, requests: uw.usage.dailyCount, warnings, errors, durationMs: Date.now() - started };
-    }
+      const existing = await loadExistingScores(db, catalysts.map((c) => c.id));
+      candidates = pickCandidates(catalysts, existing, mode, today).slice(0, maxEvents);
+      const tickers = new Set(candidates.map((c) => c.ticker));
+      log(`${candidates.length} to score (max ${maxEvents}) across ${tickers.size} tickers at ${secs()}`);
+      if (opts.dryRun) {
+        log(`dry run: about ${tickers.size * 145 + candidates.length * 4} UW requests if every ticker is uncached`);
+        return { runId, mode, from, to, catalystsSeen: catalysts.length, candidates: candidates.length, scored: 0, requests: uw.usage.dailyCount, warnings, errors, durationMs: Date.now() - started };
+      }
 
-    const queue = [...candidates];
-    const workers = Array.from({ length: Math.max(1, opts.concurrency ?? 1) }, async () => {
-      for (let catalyst = queue.shift(); catalyst; catalyst = queue.shift()) {
-      if (opts.budgetMs !== undefined && Date.now() - started > opts.budgetMs) {
-        queue.length = 0;
-        warnings.push(`time budget reached; ${candidates.length - scored} events left for the next run`);
-        break;
-      }
-      try {
-        const others = catalysts.filter(
-          (c) => c.id !== catalyst.id && c.ticker === catalyst.ticker && footprintWindow(catalyst.eventDate).includes(c.eventDate),
-        ).length;
-        const { stored, footprintDays, ohlc, warnings: w } = await scoreCatalyst(uw, cache, catalyst, today, others);
-        warnings.push(...w);
-        await upsertScore(db, stored);
-        await upsertFootprints(db, catalyst.ticker, footprintDays, ohlc);
-        scored += 1;
-        log(`${catalyst.ticker} ${catalyst.eventDate} → ${stored.score} ${stored.direction} ${stored.verdict}`);
-        if (opts.onScored) await opts.onScored({ prev: existing.get(catalyst.id) ?? null, next: stored, catalyst });
-      } catch (err) {
-        const msg = `${catalyst.id}: ${err instanceof Error ? err.message : String(err)}`;
-        errors.push(msg);
-        log(`error ${msg}`);
-      }
-      }
-    });
-    await Promise.all(workers);
-  } catch (err) {
-    errors.push(err instanceof Error ? err.message : String(err));
+      const queue = [...candidates];
+      const workers = Array.from({ length: Math.max(1, opts.concurrency ?? 1) }, async () => {
+        for (let catalyst = queue.shift(); catalyst; catalyst = queue.shift()) {
+        if (opts.budgetMs !== undefined && Date.now() - started > opts.budgetMs) {
+          queue.length = 0;
+          warnings.push(`time budget reached; ${candidates.length - scored} events left for the next run`);
+          break;
+        }
+        inFlight += 1;
+        try {
+          const others = catalysts.filter(
+            (c) => c.id !== catalyst.id && c.ticker === catalyst.ticker && footprintWindow(catalyst.eventDate).includes(c.eventDate),
+          ).length;
+          const { stored, footprintDays, ohlc, warnings: w } = await scoreCatalyst(uw, cache, catalyst, today, others);
+          warnings.push(...w);
+          await upsertScore(db, stored);
+          await upsertFootprints(db, catalyst.ticker, footprintDays, ohlc);
+          scored += 1;
+          log(`${catalyst.ticker} ${catalyst.eventDate} → ${stored.score} ${stored.direction} ${stored.verdict} at ${secs()}`);
+          if (opts.onScored) await opts.onScored({ prev: existing.get(catalyst.id) ?? null, next: stored, catalyst });
+        } catch (err) {
+          const msg = `${catalyst.id}: ${err instanceof Error ? err.message : String(err)}`;
+          errors.push(msg);
+          log(`error ${msg}`);
+        } finally {
+          inFlight -= 1;
+        }
+        }
+      });
+      await Promise.all(workers);
+    } catch (err) {
+      errors.push(err instanceof Error ? err.message : String(err));
+    }
+    return undefined;
+  };
+
+  const outcome = await settleBy(pipeline(), opts.deadlineMs === undefined ? undefined : started + opts.deadlineMs);
+  if (outcome.done && outcome.value) return outcome.value;
+  if (!outcome.done) {
+    const msg = `stopped at the ${Math.round((opts.deadlineMs ?? 0) / 1000)}s run deadline with ${inFlight} events in flight; cached work carries over to the next run`;
+    warnings.push(msg);
+    if (scored === 0) errors.push(msg);
+    log(msg);
   }
 
   const report: IngestReport = {
@@ -218,7 +241,7 @@ export async function runIngest(db: SupabaseClient, uw: UwClient, opts: IngestOp
     scored,
     requests: uw.usage.dailyCount,
     warnings: [...new Set(warnings)].slice(0, 50),
-    errors,
+    errors: [...errors],
     durationMs: Date.now() - started,
   };
   if (runId !== null) {
@@ -226,16 +249,30 @@ export async function runIngest(db: SupabaseClient, uw: UwClient, opts: IngestOp
       .from("ingest_runs")
       .update({
         finished_at: new Date().toISOString(),
-        status: errors.length && scored === 0 ? "error" : "ok",
+        status: report.errors.length && report.scored === 0 ? "error" : "ok",
         catalysts_seen: report.catalystsSeen,
-        scored,
+        scored: report.scored,
         requests: report.requests ?? 0,
         warnings: report.warnings,
-        error: errors[0] ?? null,
+        error: report.errors[0] ?? null,
       })
       .eq("id", runId);
   }
   return report;
+}
+
+/** Waits for `work` until epoch ms `at` (forever without it); `done: false` means time ran out first. */
+export async function settleBy<T>(work: Promise<T>, at: number | undefined): Promise<{ done: true; value: T } | { done: false }> {
+  if (at === undefined) return { done: true, value: await work };
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<{ done: false }>((resolve) => {
+    timer = setTimeout(() => resolve({ done: false }), Math.max(0, at - Date.now()));
+  });
+  try {
+    return await Promise.race([work.then((value) => ({ done: true as const, value })), late]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function pickCandidates(catalysts: Catalyst[], existing: Map<string, StoredScore>, mode: IngestMode, today: IsoDate): Catalyst[] {
