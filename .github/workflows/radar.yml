@@ -9,6 +9,11 @@ on:
     - cron: "*/15 13-21 * * 1-5"
   workflow_dispatch: {}
 
+# A manual run and a scheduled one would split the UW rate limit; queue them.
+concurrency:
+  group: radar-refresh
+  cancel-in-progress: false
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
