@@ -15,26 +15,46 @@ remote MCP server, so Claude can query Foreshadow directly.
 The live site covers FDA news from the past year and earnings from the last 90 days (a full year for about 45 of the
 largest companies) for US companies worth over $2B with listed options, and scores news coming up in the next five trading days every 15 minutes.
 
+### What the record shows (Oct 23, 2026)
+
+Foreshadow grades itself on every finished case: 1,643 of them, 1,056 earnings and 587 FDA. "Right" means the stock
+moved at least as much as options priced in, the way the bets leaned. Only cases where the bets leaned count. A lift
+is claimed only past a one-sided two-sample test.
+
+| Before… | Unusual betting (40+) was right | Ordinary betting (under 20) | Lift? |
+| --- | --- | --- | --- |
+| FDA news | 26% (6 of 23) | 7% | Yes, about 3.5× (z ≈ 3.2) |
+| FDA decisions and trial readouts only | 38% (5 of 13) | 9% | Yes, but only 13 cases |
+| Routine FDA updates only | 10% (1 of 10) | 7% | No |
+| Earnings | 15% (6 of 39) | 14% | No |
+
+Before FDA news the edge is in the size of the move: after unusual betting the stock moved more than options expected
+27% of the time, against 14%. Which way it moved was close to a coin flip. The live numbers are on `/scorecard` and
+`GET /api/scorecard`.
+
 ### A two-minute tour
 
-1. **[Home](https://foreshadow-six.vercel.app)**: a real case at the top. Press **Replay the days** to watch the betting
-   build day by day before the news.
-2. **[A case](https://foreshadow-six.vercel.app/event/fda%3ATENX%3A2026-08-10%3Atop-line-results-tnx-103)**: every large trade
-   behind the score, the score's arithmetic, a summary by Claude, and **Ask about this case**.
+1. **[Home](https://foreshadow-six.vercel.app)**: a real case at the top and what the record shows. Press **Replay the
+   days** to watch the betting build day by day before the news.
+2. **[A case](https://foreshadow-six.vercel.app/event/fda%3ATENX%3A2026-08-10%3Atop-line-results-tnx-103)**: how its betting
+   ranks against past cases, every large trade behind the score (bought or sold), the score's arithmetic, a summary by
+   Claude, and **Ask about this case**.
 3. **[Scorecard](https://foreshadow-six.vercel.app/scorecard)**: does unusual betting actually know something? Foreshadow
    grades itself against ordinary betting, and only claims a lift that passes a significance check.
 4. **[Guess the move](https://foreshadow-six.vercel.app/guess)**: five real cases with the result hidden. Can you read the
    bets better than the bets themselves?
-5. **[Use it from Claude](https://foreshadow-six.vercel.app/docs#mcp)**: add the MCP server with one line, or run any of
+5. **[Coming up](https://foreshadow-six.vercel.app/radar)**: news in the next five trading days, scored live as the betting
+   builds, with "what happened after betting like this" on each case.
+6. **[Use it from Claude](https://foreshadow-six.vercel.app/docs#mcp)**: add the MCP server with one line, or run any of
    the five tools right on the page.
 
 | Page | What it shows |
 | --- | --- |
 | **Past cases** `/leaderboard` | Finished news events (the last 90 days unless you pick another window), ranked by how unusual the betting was, with which way the bets leaned, the move options priced in, the actual move, and whether the bets were right. Filters: FDA or earnings, very unusual only, bets were right, 30 days, 90 days or a year; sort by most unusual, newest or biggest move. |
-| **Case page** `/event/[id]` | One case end to end: a day-by-day chart (stock price on top, one row per measurement below, the five counted days highlighted), every large trade behind the score, the score's arithmetic, a Claude summary, and "Ask about this case". **Replay the days** steps through the chart one trading day at a time with a plain caption, and **Cases like this one** shows how past cases of the same kind, with a similar score and lean, turned out. Shareable, with a generated preview image. |
+| **Case page** `/event/[id]` | One case end to end: how its betting ranks ("busier than 99% of 1,056 finished earnings cases", and against the stock's own cases), a day-by-day chart (stock price on top, one row per measurement below, the five counted days highlighted), every large trade behind the score marked bought or sold, the score's arithmetic, a Claude summary, and "Ask about this case". **Replay the days** steps through the chart one trading day at a time with a plain caption, and **Cases like this one** shows how past cases of the same kind, with a similar score and lean, turned out. For news still to come, **What happened after betting like this** gives how often those stocks moved more than options expected, which way, and the typical actual move against the expected one. Shareable, with a generated preview image. |
 | **Stock page** `/ticker/[t]` | Every case for one stock on a timeline, its track record ("very unusual 3 times, right 2 of those") and a Claude summary. It also says when the stock's next news is and when scoring starts, with an RSS feed and a calendar for that stock. Stocks whose news isn't scored yet show what's queued. |
-| **Coming up** `/radar` | A calendar of news due in the next five trading days, grouped by day, scored on the part of the five-day window that has already happened, with the most unusual betting so far at the top. Updates arrive through Supabase Realtime. Ask Claude "which news coming up has the most unusual betting?" right on the page. |
-| **Scorecard** `/scorecard` | Foreshadow grading itself in public: across every finished case, how often the bets were right by kind of news and score band, against ordinary betting as the yardstick. A lift is only claimed when it clears a significance check at that sample size. Ask Claude "does this actually work?" on the page. |
+| **Coming up** `/radar` | A calendar of news due in the next five trading days, grouped by day (the 12 most unusual first), scored on the part of the five-day window that has already happened, with the most unusual betting so far at the top and a "top 3%" rank on busy cases. Updates arrive through Supabase Realtime. Ask Claude "which news coming up has the most unusual betting?" right on the page. |
+| **Scorecard** `/scorecard` | Foreshadow grading itself in public: across every finished case, how often the bets were right by kind of news and score band, against ordinary betting as the yardstick, counting only cases where the bets leaned. A lift is only claimed past a one-sided two-sample test, and FDA news is also tested apart as decisions and readouts versus routine updates. Ask Claude "does this actually work?" on the page. |
 | **Guess the move** `/guess` | A five-round game on real finished cases: see the ten days of betting before the news with the result hidden, call rise or fall, then compare your record with simply following the bets. Play all cases, FDA news only or earnings only; ↑/↓ on the keyboard work too. |
 | **RSS** `/feed.xml` | Upcoming news once its betting turns unusual, plus recent unusual cases, for any feed reader or a Discord RSS bot. |
 | **Calendar** `/calendar.ics` | Subscribe in Google, Apple or Outlook calendar: upcoming news whose betting is already unusual, or with `?tickers=AAPL,TSLA` everything coming up for your stocks, each with its live score and a link to the case. |
@@ -74,14 +94,14 @@ With a UW key, replace the seed with real data:
 
 ```bash
 pnpm ingest --mode backfill --days 90 --kinds fda,earnings   # scores the last 90 days; resumable, safe to rerun
-pnpm ingest --mode radar                                     # scores the next 10 trading days
+pnpm ingest --mode radar                                     # scores news in the next five trading days
 ```
 
 Useful flags: `--min-cap 2e9` (earnings market-cap floor, the default), `--concurrency 3` (the hackathon key allows
 3 requests in flight), `--max N`, `--dry-run`, `--loop`. `pnpm uw:check AAPL` reports how far back your UW plan's
 history goes.
 
-Checks: `pnpm test` (203 tests: scorer, UW client, narrator, plain-English wording, similar cases, rate limits), `pnpm typecheck`, `pnpm lint`. CI runs all three plus a demo-mode build on every push.
+Checks: `pnpm test` (204 tests: scorer, UW client, narrator, plain-English wording, similar cases, rate limits), `pnpm typecheck`, `pnpm lint`. CI runs all three plus a demo-mode build on every push.
 
 ## Keys
 
@@ -184,15 +204,15 @@ The five tools have REST twins with the same JSON:
 
 | Tool | REST | Returns |
 |---|---|---|
-| `foreshadow_score` | `GET /api/score?ticker=&eventDate=` | The case (`id`, `ticker`, `kind`, `eventDate`, `title`, `score` (whole number), `band`, `direction`, `verdict`, `result` (the three outcomes in words), `impliedMovePct`, `realizedMovePct`, `flags`), its `url`, the six `signals` (weight, z, contribution, window vs baseline), `trades: { count, totalPremium, largest }` and `verdictDetail` |
-| `foreshadow_radar` | `GET /api/radar?daysAhead=&minScore=` | `today` and `items`: upcoming cases with the same summary fields plus `windowStart`, `windowOpen`, `daysElapsed`, `daysTotal` |
+| `foreshadow_score` | `GET /api/score?ticker=&eventDate=` | The case (`id`, `ticker`, `kind`, `eventDate`, `title`, `score` (whole number), `band`, `direction`, `verdict`, `result` (the three outcomes in words), `impliedMovePct`, `realizedMovePct`, `flags`), its `rank` (`busierThanPct` of `outOf` finished cases of the same kind), `money` (`betsOnRise`, `betsOnFall`, `bothSides`, `soldOrUnclear`), its `url`, the six `signals` (weight, z, contribution, window vs baseline), `trades: { count, totalPremium, largest }` and `verdictDetail`. The nearest case within 10 days if none is on that date |
+| `foreshadow_radar` | `GET /api/radar?daysAhead=&minScore=` | `today` and `items`: upcoming cases with the same summary fields plus `windowStart`, `windowOpen`, `daysElapsed`, `daysTotal`. `daysAhead` is 1–30 trading days; only news within five trading days is scored yet |
 | `foreshadow_history` | `GET /api/history?ticker=` | `ticker`, `company`, `hitRate` and `events` (case summaries) |
-| `foreshadow_scorecard` | `GET /api/scorecard` | `cases`, `definition` and per kind of news a `finding` plus `bands` (`scores`, `cases`, `rightPct`, `movedMoreThanExpectedPct`, `movedWithLeanPct`) |
+| `foreshadow_scorecard` | `GET /api/scorecard` | `cases`, `definition` and per kind of news a `finding` plus `bands` (`scores`, `cases`, `leanedCases`, `rightPct` among leaned cases, `movedMoreThanExpectedPct`, `movedWithLeanPct`); FDA also has `groups` (decisions and readouts, routine updates) with their own finding |
 | `foreshadow_similar` | `GET /api/similar?ticker=&eventDate=` | The `case`, what it was `matchedOn` (kind, lean, score range), `similarCases`, `betsRight`, `rightPct`, `movedTheirWay`, `movedTheirWayPct` and the `closest` case summaries |
 
-These are Foreshadow's results, not a copy of Unusual Whales data. `trades.largest` holds at most five example trades,
-each only `{ tradeDate, type, strike, expiry, premium, isSweep }`: no alert ids, timestamps, contract counts or other raw
-fields. Case pages show the ten largest the same way, and `/api/ask` returns only the answer and the names of the sources
+A missing stock or case returns 404, a bad parameter 400. These are Foreshadow's results, not a copy of Unusual Whales
+data. `trades.largest` holds at most five example trades, each only `{ tradeDate, type, strike, expiry, premium, isSweep,
+side }` (`side`: `ask` = bought, `bid` = sold): no alert ids, timestamps, contract counts or other raw fields. Case pages show the ten largest the same way, and `/api/ask` returns only the answer and the names of the sources
 it used. Stored scores keep the same trimmed trades, and the raw cached responses (`footprints`) and catalyst
 calendar rows (`catalysts.payload`) are readable by the service role only; pages get the company name, sector and
 size from those rows, never the rows themselves.
@@ -216,7 +236,9 @@ packages/uw/             typed client for the UW endpoints, rate limiter, Supaba
 packages/narrator/       Claude Messages API: story, tagger, investigator loop, dossier + tests
 packages/mcp-stdio/      stdio wrapper that proxies to the REST endpoints
 supabase/                migrations (schema + RLS + Vault functions), seed.sql, fixtures/
-scripts/                 generate-seed.ts (synthetic demo data), ingest.ts (local backfill), depth-check.ts
+scripts/                 generate-seed.ts (synthetic demo data), ingest.ts (local backfill), depth-check.ts, and one-off
+                         repairs: backfill-bought.ts (bought/sold split for stored scores), realign-directions.ts
+                         (re-apply the money check on leans), compact-oi-cache.ts and cache-export.ts (keep the cache small)
 vercel.json              cron schedules
 ```
 
@@ -232,6 +254,19 @@ user-owned is owner-only.
 **fictional** tickers, 72 catalysts, ~4,000 ticker-days of UW-shaped alerts, OI changes, dark pool prints and
 OHLC, scored by the real scorer. Nothing in it is real market data, and a banner across the top of every page says
 so. The live site runs on Supabase with real Unusual Whales data; the fixtures exist so the app runs with no keys.
+
+## Known limits
+
+- **The 70+ band is rare.** Only one finished case has scored 70 or more, because each measurement's z is capped at
+  4. Pages lead with the rank against past cases instead.
+- **After-hours earnings.** The counted window is the five trading days before the report date, so trading on the
+  report day itself (before an after-the-close release) isn't counted.
+- **FDA dates.** Some FDA calendar rows have no target date; those are dated by the calendar's own start or end date,
+  which can be when the news was announced. The scorecard's decisions-and-readouts split is the cleaner test.
+- **Coming up only scores news within five trading days.** Its window has to open first. UW's FDA calendar had no firm
+  dates in late October 2026, so Coming up is all earnings right now.
+- **Small samples.** The FDA lift rests on a few dozen unusual cases; the scorecard says so and updates as cases finish.
+- `foreshadow-mcp` (stdio) isn't on npm yet: build it from the repo. Ask's rate limit is per server instance.
 
 ## Not financial advice
 
