@@ -81,7 +81,7 @@ Useful flags: `--min-cap 2e9` (earnings market-cap floor, the default), `--concu
 3 requests in flight), `--max N`, `--dry-run`, `--loop`. `pnpm uw:check AAPL` reports how far back your UW plan's
 history goes.
 
-Checks: `pnpm test` (180 tests: scorer, UW client, narrator, plain-English wording, similar cases, rate limits), `pnpm typecheck`, `pnpm lint`. CI runs all three plus a demo-mode build on every push.
+Checks: `pnpm test` (195 tests: scorer, UW client, narrator, plain-English wording, similar cases, rate limits), `pnpm typecheck`, `pnpm lint`. CI runs all three plus a demo-mode build on every push.
 
 ## Keys
 
@@ -161,7 +161,8 @@ only run local stdio servers, `pnpm --filter foreshadow-mcp build`, then run
 `FORESHADOW_URL=https://<your-host> node packages/mcp-stdio/dist/index.js` (see `packages/mcp-stdio`).
 Try: *"was there unusual options betting before Tesla's Oct 21 earnings?"*
 
-A real exchange with the live server (Claude Sonnet 5.5 through the MCP connector, Oct 23 2026):
+A real exchange with the live server (Claude Sonnet 5.5 through the MCP connector, Oct 23 2026; the similar-case
+counts change as new cases finish):
 
 > **You:** Was there unusual options betting before TENX's FDA news in August, and has betting like that been right before?
 >

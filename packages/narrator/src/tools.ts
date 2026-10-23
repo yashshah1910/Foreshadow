@@ -16,7 +16,7 @@ export const FORESHADOW_TOOL_DEFINITIONS: readonly Anthropic.Tool[] = [
     input_schema: {
       type: "object",
       properties: {
-        ticker: { type: "string", description: "Uppercase US-listed symbol, e.g. XYZ" },
+        ticker: { type: "string", description: "Uppercase US-listed symbol, e.g. TSLA" },
         eventDate: { type: "string", description: "Catalyst date, YYYY-MM-DD" },
       },
       required: ["ticker", "eventDate"],
@@ -67,7 +67,7 @@ export const FORESHADOW_TOOL_DEFINITIONS: readonly Anthropic.Tool[] = [
     input_schema: {
       type: "object",
       properties: {
-        ticker: { type: "string", description: "Uppercase US-listed symbol, e.g. XYZ" },
+        ticker: { type: "string", description: "Uppercase US-listed symbol, e.g. TSLA" },
         eventDate: { type: "string", description: "Catalyst date, YYYY-MM-DD" },
       },
       required: ["ticker", "eventDate"],

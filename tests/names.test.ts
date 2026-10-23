@@ -10,6 +10,8 @@ describe("prettyCompanyName", () => {
     ["O'REILLY AUTOMOTIVE", "O'Reilly Automotive"],
     ["T-MOBILE US", "T-Mobile US"],
     ["F5", "F5"],
+    ["GSK", "GSK"],
+    ["NXP SEMICONDUCTORS", "NXP Semiconductors"],
   ])("title-cases %s", (raw, want) => {
     expect(prettyCompanyName(raw)).toBe(want);
   });

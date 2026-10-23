@@ -19,7 +19,7 @@ export function TellStrip({ days, width = 140, height = 34 }: { days: StripDay[]
   const first = days.findIndex((d) => d.inWindow);
   const last = days.length - 1;
   const winTotal = days.filter((d) => d.inWindow).reduce((s, d) => s + d.call + d.put, 0);
-  const label = `Flow premium in the ten sessions before the event. Footprint window total ${fmtMoney(winTotal)}.`;
+  const label = `Money in large options bets on each of the ten trading days before the news. The five counted days total ${fmtMoney(winTotal)}.`;
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label} className="block overflow-visible">
       <title>{label}</title>

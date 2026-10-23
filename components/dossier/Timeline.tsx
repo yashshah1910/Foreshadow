@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { EventSummary } from "@/lib/data";
 import { useMeasure } from "@/lib/hooks/useMeasure";
 import { fmtDate } from "@/lib/format";
+import { OUTCOME_SHORT, outcomeOf } from "@/lib/plain";
 
 /**
  * Every case for a ticker on one axis: x = date, y = score. The 70–100 zone
@@ -60,7 +61,7 @@ export function Timeline({ events }: { events: EventSummary[] }) {
           const cy = y(e.score);
           const tone = e.direction === "bullish" ? "fill-call" : e.direction === "bearish" ? "fill-put" : "fill-ink-3";
           return (
-            <Link key={e.catalyst.id} href={`/event/${encodeURIComponent(e.catalyst.id)}`} aria-label={`${fmtDate(e.catalyst.eventDate, { year: true })}, ${e.catalyst.title}, score ${e.score.toFixed(0)}, ${e.verdict}`}>
+            <Link key={e.catalyst.id} href={`/event/${encodeURIComponent(e.catalyst.id)}`} aria-label={`${fmtDate(e.catalyst.eventDate, { year: true })}, ${e.catalyst.title}, score ${e.score.toFixed(0)}, ${OUTCOME_SHORT[outcomeOf(e)].toLowerCase()}`}>
               <g>
                 <title>{`${fmtDate(e.catalyst.eventDate, { year: true })}: ${e.catalyst.title}, score ${e.score.toFixed(0)}`}</title>
                 <rect x={cx - 1} y={cy} width={2} height={Math.max(0, y(0) - cy)} rx={1} className="fill-surface-3" />
