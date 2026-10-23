@@ -245,13 +245,13 @@ export default async function DocsPage() {
           </p>
           <p className="card px-4 py-3 text-[15px] leading-relaxed text-ink-2">
             <span className="mb-1 block text-[13px] font-medium text-ink-3">Claude</span>
-            Yes. The betting before TENX&apos;s Aug 10 TNX-103 results scored 53/100. Puts dominated: about $2.5M against $0.7M in
-            calls, and the largest trade was a roughly $983K put bought Aug 7, the last trading day before the news. The bets were
-            right: the stock fell about 90%, past the roughly 81% move options had priced in. Of seven similar finished cases, the
-            stock moved the bets&apos; way in 5 and beat the expected move in 2. It&apos;s a small sample.
+            Yes, there was notable betting against TENX before its August 10 trial results. It scored 53 out of 100, busier than
+            99% of 587 comparable cases. Traders bet about $1.5M on a fall, against $374K on a rise. The biggest single trade was a
+            $983K bet on a drop, placed August 7. The stock then fell about 90%, more than the roughly 81% move options had priced
+            in. Of 5 comparable cases, the bets were fully right in 2; the stock moved the bets&apos; way in 4.
           </p>
         </div>
-        <p className="mt-2 text-[13px] text-ink-3">A real exchange with the live server (Claude Sonnet 5.5, Oct 23, 2026), shortened.</p>
+        <p className="mt-2 text-[13px] text-ink-3">A real exchange with the live server (Claude Sonnet 5.5 through the MCP connector, Oct 23, 2026), lightly shortened.</p>
         <h3 className="mt-6 text-[18px] font-semibold text-ink">Try the tools here</h3>
         <p className="mt-1">Each tool has a REST twin that returns the same thing. Run one to see exactly what Claude gets.</p>
         <ToolPlayground ticker={top?.catalyst.ticker ?? "TSLA"} eventDate={top?.catalyst.eventDate ?? "2026-10-21"} />

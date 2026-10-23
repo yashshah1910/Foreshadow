@@ -81,7 +81,7 @@ Useful flags: `--min-cap 2e9` (earnings market-cap floor, the default), `--concu
 3 requests in flight), `--max N`, `--dry-run`, `--loop`. `pnpm uw:check AAPL` reports how far back your UW plan's
 history goes.
 
-Checks: `pnpm test` (201 tests: scorer, UW client, narrator, plain-English wording, similar cases, rate limits), `pnpm typecheck`, `pnpm lint`. CI runs all three plus a demo-mode build on every push.
+Checks: `pnpm test` (203 tests: scorer, UW client, narrator, plain-English wording, similar cases, rate limits), `pnpm typecheck`, `pnpm lint`. CI runs all three plus a demo-mode build on every push.
 
 ## Keys
 
@@ -117,7 +117,10 @@ on the card.
 
 - **Formula.** `Score = Σ wᵢ · min(max(zᵢ, 0) / 4, 1) · 100`. Dollar metrics are log1p-transformed before the z-score.
   Direction = sign of `z(directional premium) + 2·OI imbalance − z(skew shift)`; |·| < 0.5 is "mixed".
-  Under 40 is ordinary, 40 to 70 is unusual, 70+ is very unusual (the site highlights these).
+  Under 40 is ordinary, 40 to 70 is unusual, 70+ is very unusual (the site highlights these). Every page also ranks a
+  score against finished cases of the same kind ("busier than 97% of 1,056 earnings cases").
+- **Bets.** "Bets on a rise / a fall" are calls / puts bought at the asking price (UW's ask-side premium). Trades sold
+  at the bid are listed as sold and not counted. A lean that the bought money contradicts reads "mixed".
 - **Verdict.** Close-to-close move on the reaction day (T for pre-market/intraday, T+1 for after-hours) vs the implied
   move (UW earnings expected move, else the 1-day interpolated implied move at T-1, else a stated 4% fallback).
   Matched = ≥ 1× implied and the sign agrees with the direction.
@@ -161,18 +164,17 @@ only run local stdio servers, `pnpm --filter foreshadow-mcp build`, then run
 `FORESHADOW_URL=https://<your-host> node packages/mcp-stdio/dist/index.js` (see `packages/mcp-stdio`).
 Try: *"was there unusual options betting before Tesla's Oct 21 earnings?"*
 
-A real exchange with the live server (Claude Sonnet 5.5 through the MCP connector, Oct 23 2026; the similar-case
-counts change as new cases finish):
+A real exchange with the live server (Claude Sonnet 5.5 through the MCP connector, Oct 23 2026, lightly shortened;
+the similar-case counts change as new cases finish):
 
 > **You:** Was there unusual options betting before TENX's FDA news in August, and has betting like that been right before?
 >
 > *Claude calls `foreshadow_history`, `foreshadow_score` and `foreshadow_similar`.*
 >
-> **Claude:** Yes. The betting before TENX's Aug 10 TNX-103 results scored 53/100. Puts dominated: about $2.5M
-> against $0.7M in calls, and the largest trade was a roughly $983K put bought Aug 7, the last trading day before the
-> news. The bets were right: the stock fell about 90%, past the roughly 81% move options had priced in.
-> Has it been right before? Of seven similar finished cases (FDA news, betting leaning toward a fall, score 37–69),
-> the stock moved the bets' way in 5 and beat the expected move in 2. It's a small sample.
+> **Claude:** Yes, there was notable betting against TENX before its August 10 trial results. It scored 53 out of 100,
+> busier than 99% of 587 comparable cases. Traders bet about $1.5M on a fall, against $374K on a rise. The biggest
+> single trade was a $983K bet on a drop, placed August 7. The stock then fell about 90%, more than the roughly 81%
+> move options had priced in. Of 5 comparable cases, the bets were fully right in 2; the stock moved the bets' way in 4.
 
 All five tools are marked read-only. The server also offers three prompts, which Claude shows as slash commands:
 `investigate_case` (ticker, date), `week_ahead` and `stock_track_record` (ticker). Each one chains the tools and asks
