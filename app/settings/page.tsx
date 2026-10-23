@@ -57,7 +57,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
           <p className="mb-2 text-[14px] font-medium text-ink-3">Settings</p>
-          <h1 className="display text-[34px]">{user.email ?? (user.is_anonymous ? "Guest account" : "Your account")}</h1>
+          <h1 className="display text-[34px]">{user.email || (user.is_anonymous ? "Guest account" : "Your account")}</h1>
         </div>
         <form action="/auth/signout" method="post">
           <button type="submit" className="pressable rounded-full bg-surface-2 px-3 py-1.5 text-[13px] text-ink-2 hover:text-ink">Sign out</button>
@@ -67,7 +67,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
       {saved ? <p className="mb-4 rounded-xl bg-surface-2 px-3 py-2 text-[13px] text-ink" role="status">Saved.</p> : null}
       {error ? <p className="mb-4 rounded-xl bg-put-soft px-3 py-2 text-[13px] text-ink" role="alert">Could not save: {error === "key" ? "that doesn't look like a UW key" : error === "alert" ? "check the Discord webhook URL" : error}.</p> : null}
 
-      <Section title="Unusual Whales API key" blurb="Stored in Supabase Vault, decrypted only on the server for your requests. Used for Coming up, fresh scoring and the Ask panel's Unusual Whales lookups.">
+      <Section title="Unusual Whales API key" blurb="Stored in Supabase Vault, decrypted only on the server for your requests. Used for the Ask panel's Unusual Whales lookups.">
         {keyRow ? (
           <p className="mb-3 text-[13px] text-ink-2">
             A key ending in <span className="font-mono text-ink">…{keyRow.key_hint}</span> is on file (updated {String(keyRow.updated_at).slice(0, 10)}).
