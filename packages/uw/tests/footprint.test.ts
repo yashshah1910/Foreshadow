@@ -386,3 +386,23 @@ describe("loadOutcome", () => {
     expect(await cache.get(TICKER, TODAY, "ohlc")).toBeUndefined();
   });
 });
+
+describe("compactOiChanges", () => {
+  it("keeps the totals the scorer reads, in at most four rows", async () => {
+    const { dailyMetrics } = await import("../../core/src/scorer");
+    const { compactOiChanges } = await import("../src/footprint");
+    const rows: OiChange[] = [
+      { ticker: TICKER, tradeDate: "2026-10-20", strike: 100, expiry: "2026-11-20", type: "call", oiChange: 500, prevOi: 100, curOi: 600 },
+      { ticker: TICKER, tradeDate: "2026-10-20", strike: 105, expiry: "2026-11-20", type: "call", oiChange: -200, prevOi: 300, curOi: 100 },
+      { ticker: TICKER, tradeDate: "2026-10-20", strike: 95, expiry: "2026-11-20", type: "put", oiChange: 900, prevOi: 0, curOi: 900 },
+      { ticker: TICKER, tradeDate: "2026-10-20", strike: 90, expiry: "2026-12-18", type: "put", oiChange: -50, prevOi: 60, curOi: 10 },
+      { ticker: TICKER, tradeDate: "2026-10-20", strike: 110, expiry: "2026-12-18", type: "call", oiChange: 300, prevOi: 0, curOi: 300 },
+    ];
+    const compact = compactOiChanges(rows);
+    expect(compact).toHaveLength(4);
+    const day = (oiChanges: OiChange[]) => dailyMetrics({ date: "2026-10-20", alerts: [], oiChanges, darkPool: [] });
+    expect(day(compact).oiAbs).toBe(day(rows).oiAbs);
+    expect(day(compact).oiCallMinusPut).toBe(day(rows).oiCallMinusPut);
+    expect(compactOiChanges([])).toEqual([]);
+  });
+});

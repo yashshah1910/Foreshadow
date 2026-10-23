@@ -226,6 +226,32 @@ async function loadDarkPoolRanges(
  * ones that did arrive are still cached before the error is rethrown, so the
  * next run only fetches the rest.
  */
+/**
+ * The scorer only sums a day's open-interest changes (total absolute change,
+ * net calls, net puts), so the cache keeps those sums instead of every
+ * contract: at most four rows a day (gains and drops, per side) give the same
+ * totals in a fraction of the space.
+ */
+export function compactOiChanges(rows: OiChange[]): OiChange[] {
+  const first = rows[0];
+  if (!first) return [];
+  const sums = new Map<string, number>();
+  for (const r of rows) {
+    const key = `${r.type}:${r.oiChange >= 0 ? "up" : "down"}`;
+    sums.set(key, (sums.get(key) ?? 0) + r.oiChange);
+  }
+  return [...sums].map(([key, oiChange]) => ({
+    ticker: first.ticker,
+    tradeDate: first.tradeDate,
+    strike: 0,
+    expiry: "",
+    type: key.startsWith("call") ? "call" : "put",
+    oiChange,
+    prevOi: 0,
+    curOi: 0,
+  }));
+}
+
 async function loadPerDate<T>(
   cache: FootprintCache,
   ticker: string,
@@ -349,7 +375,7 @@ export async function loadDailyFootprints(
   const skewExpiry = opts.skewExpiry ?? nextMonthlyExpiry(addCalendarDays(fetchable[fetchable.length - 1], 1));
   const [alerts, oi, darkPool, volumeHistory, skew] = await Promise.all([
     loadFlowAlerts(client, cache, symbol, fetchable, today, opts.minFlowPremium, warnings),
-    loadPerDate<OiChange>(cache, symbol, fetchable, "oi-change", today, (d) => client.getOiChange(symbol, d), warnings),
+    loadPerDate<OiChange>(cache, symbol, fetchable, "oi-change", today, async (d) => compactOiChanges(await client.getOiChange(symbol, d)), warnings),
     client.getDarkPoolRange
       ? loadDarkPoolRanges(
           { getDarkPoolRange: client.getDarkPoolRange.bind(client) },
