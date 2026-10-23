@@ -114,7 +114,8 @@ export interface IngestReport {
 
 const DEFAULT_KINDS: Record<IngestMode, CatalystKind[]> = {
   radar: ["fda", "earnings"],
-  daily: ["fda", "earnings", "congress", "insider"],
+  // Insider and Congress trades aren't scheduled news with a clear "before"; the site doesn't show them.
+  daily: ["fda", "earnings"],
   backfill: ["fda", "earnings", "congress", "insider"],
 };
 

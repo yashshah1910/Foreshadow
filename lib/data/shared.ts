@@ -86,8 +86,12 @@ export function isoDaysAgo(today: IsoDate, days: number): IsoDate {
 }
 
 /** Leaderboard eligibility: finished window, verified outcome, not an index, enough history. */
+/** The kinds of news the site shows: scheduled, dated, and scored in volume. Insider and Congress rows stay internal. */
+export const SITE_KINDS: ReadonlySet<string> = new Set(["fda", "earnings"]);
+
 export function leaderboardEligible(s: EventSummary): boolean {
   return (
+    SITE_KINDS.has(s.catalyst.kind) &&
     !s.partialWindow &&
     !s.flags.isIndexOrEtf &&
     !s.flags.insufficientHistory &&
@@ -170,6 +174,7 @@ export function buildScorecard(rows: ScorecardCase[]): Scorecard {
   const kinds = new Map<ScorecardCase["kind"], ScorecardCase[]>();
   for (const r of rows) {
     if (r.verdict !== "matched" && r.verdict !== "missed") continue;
+    if (!SITE_KINDS.has(r.kind)) continue;
     const list = kinds.get(r.kind) ?? [];
     list.push(r);
     kinds.set(r.kind, list);
