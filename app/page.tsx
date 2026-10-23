@@ -27,7 +27,7 @@ export default async function Home() {
   const justIn = [...newest].sort((a, b) => b.score - a.score).slice(0, 4);
   const exampleSummary = all.find((s) => s.verdict === "matched" && s.score >= 40) ?? all[0] ?? null;
   const example = exampleSummary ? await getEvent(exampleSummary.catalyst.id) : null;
-  const { checked, unusual, unusualRight } = stats.past;
+  const { checked, unusual } = stats.past;
   const upcoming = radar.filter((r) => r.windowOpen).slice(0, 4);
   // The most unusual betting on news still to come, for the line under the opening buttons.
   const live = [...radar.filter((r) => r.windowOpen && r.score >= 40)].sort((a, b) => b.score - a.score)[0] ?? null;
@@ -146,9 +146,9 @@ export default async function Home() {
         <WindowsDiagram />
         {unusual > 0 ? (
           <p className="prose-plain mt-10 max-w-[720px] text-[18px]">
-            So far Foreshadow has checked <strong>{checked.toLocaleString("en-US")} past events</strong> from the last 90 days.
-            The betting was unusual before <strong>{unusual}</strong> of them, and in <strong>{unusualRight}</strong> of those the bets
-            turned out right.
+            So far Foreshadow has checked <strong>{checked.toLocaleString("en-US")} past events</strong> from the last 90 days, and
+            the betting was unusual before <strong>{unusual}</strong> of them. Whether unusual betting tends to be right, compared
+            with ordinary betting, is just below.
           </p>
         ) : null}
       </section>
