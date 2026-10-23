@@ -4,7 +4,7 @@
 
 ![Foreshadow home page: the headline, a short explanation, and a real case with its chart and result](docs/screenshots/home.png)
 
-Before scheduled company news, like an FDA decision or an earnings report, some traders pile into options that only
+Before scheduled company news, like an FDA decision, a drug trial result or an earnings report, some traders pile into options that only
 pay off if the stock jumps, or only if it drops. Foreshadow finds that betting in **Unusual Whales** data, rates how
 unusual it was from 0 to 100 against the stock's own normal, then checks what the stock actually did.
 

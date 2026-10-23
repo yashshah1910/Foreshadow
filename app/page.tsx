@@ -40,7 +40,7 @@ export default async function Home() {
           <h1 className="display text-[44px] text-ink sm:text-[64px]">Spot the big bets placed days before the news.</h1>
           <div className="prose-plain mt-7 space-y-4 text-[18px]">
             <p>
-              Before an FDA decision or an earnings report, some traders pile into{" "}
+              Before an FDA decision, a drug trial result or an earnings report, some traders pile into{" "}
               <span className="term" title="Contracts that pay off if a stock moves past a certain price by a certain date. Calls pay if it rises, puts if it falls.">options</span>{" "}
               that only pay off if the stock jumps, or only if it drops.
             </p>
@@ -128,7 +128,7 @@ export default async function Home() {
         <h2 id="how-h" className="display text-[34px] text-ink sm:text-[42px]">How it works</h2>
         <ol className="mt-10 grid gap-10 md:grid-cols-3 md:gap-8">
           <Step n="1" title="Find the scheduled news">
-            FDA decisions and company earnings reports, from the Unusual Whales calendars. Each one has a date set in advance,
+            FDA decisions, drug trial results and company earnings reports, from the Unusual Whales calendars. Each one has a date set in advance,
             so there is a clear &ldquo;before&rdquo; to look at.
           </Step>
           <Step n="2" title="Measure the betting before it">
