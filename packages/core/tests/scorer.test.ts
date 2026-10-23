@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { WEIGHTS, clipZ, scoreBand, scoreEvent, zScore } from "../src/scorer";
+import { WEIGHTS, agreeWithMoney, clipZ, scoreBand, scoreEvent, zScore } from "../src/scorer";
 import { bearishSpikeInput, bullishSpikeInput, quietInput } from "./helpers";
 
 describe("scorer primitives", () => {
@@ -152,5 +152,20 @@ describe("scoreEvent", () => {
         ],
       ]
     `);
+  });
+});
+
+describe("agreeWithMoney", () => {
+  it("turns a lean that contradicts the money into mixed", () => {
+    expect(agreeWithMoney("bearish", 5_400_000, 1_400_000)).toBe("mixed");
+    expect(agreeWithMoney("bullish", 1_000_000, 3_000_000)).toBe("mixed");
+  });
+
+  it("keeps a lean the money supports or doesn't contradict", () => {
+    expect(agreeWithMoney("bearish", 1_000_000, 3_000_000)).toBe("bearish");
+    expect(agreeWithMoney("bullish", 1_600_000, 1_540_000)).toBe("bullish");
+    expect(agreeWithMoney("bearish", 1_600_000, 1_540_000)).toBe("bearish");
+    expect(agreeWithMoney("bullish", 0, 0)).toBe("bullish");
+    expect(agreeWithMoney("mixed", 5, 1)).toBe("mixed");
   });
 });

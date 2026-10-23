@@ -58,6 +58,23 @@ export const Z_CAP = 4;
 export const MIN_BASELINE_DAYS = 20;
 /** |directionScore| below this -> "mixed". */
 export const MIXED_THRESHOLD = 0.5;
+/** A lean must agree with the money: twice as much premium on one side (2/3 of it) rules out the other lean. */
+export const MONEY_AGREEMENT = 2 / 3;
+
+/**
+ * The composite direction reads each measure against the stock's normal, so a
+ * call-heavy stock can read "bearish" when its calls are merely fewer than
+ * usual. Readers see the absolute money, so a lean that contradicts it (at
+ * least twice as much premium on the other side) becomes "mixed".
+ */
+export function agreeWithMoney(direction: Direction, callPremium: number, putPremium: number): Direction {
+  const total = callPremium + putPremium;
+  if (total <= 0 || direction === "mixed") return direction;
+  const callShare = callPremium / total;
+  if (direction === "bearish" && callShare >= MONEY_AGREEMENT) return "mixed";
+  if (direction === "bullish" && 1 - callShare >= MONEY_AGREEMENT) return "mixed";
+  return direction;
+}
 /** Dark pool prints below this notional are ignored. */
 export const DARK_POOL_MIN_NOTIONAL = 1_000_000;
 /** Score bands. */
@@ -372,6 +389,7 @@ export function scoreEvent(input: ScoreInput): ScoreResult {
   let direction: Direction = "mixed";
   if (directionScore > MIXED_THRESHOLD) direction = "bullish";
   else if (directionScore < -MIXED_THRESHOLD) direction = "bearish";
+  direction = agreeWithMoney(direction, directionalPremium.detail.callPremium, directionalPremium.detail.putPremium);
 
   // ---- Flags ------------------------------------------------------------
   const baselineDaysWithActivity = base.filter(hasActivity).length;
