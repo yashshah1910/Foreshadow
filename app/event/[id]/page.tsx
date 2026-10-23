@@ -177,7 +177,7 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
           <AskPanel
             ticker={s.catalyst.ticker}
             eventDate={s.catalyst.eventDate}
-            summary={`${s.catalyst.ticker} ${eventName(s)} on ${s.catalyst.eventDate}: betting scored ${Math.round(s.score)} out of 100, ${directionPlain(s.direction).toLowerCase()}. Result: ${OUTCOME_SHORT[outcomeOf(s)].toLowerCase()}.`}
+            summary={`${s.catalyst.ticker}${s.company?.name ? ` (${s.company.name})` : ""} ${eventName(s)} on ${s.catalyst.eventDate}: betting scored ${Math.round(s.score)} out of 100, ${directionPlain(s.direction).toLowerCase()}. Result: ${OUTCOME_SHORT[outcomeOf(s)].toLowerCase()}.`}
             pending={s.verdict === "pending"}
           />
           <div className="flex flex-wrap gap-2">
