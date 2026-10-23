@@ -232,6 +232,15 @@ async function loadDarkPoolRanges(
  * contract: at most four rows a day (gains and drops, per side) give the same
  * totals in a fraction of the space.
  */
+/**
+ * What a case page keeps of a footprint day (`footprints`, endpoint "daily"):
+ * it reads only the trades, so open interest is kept as totals and dark-pool
+ * prints are left out.
+ */
+export function pageFootprint(day: DailyFootprint): DailyFootprint {
+  return { ...day, oiChanges: compactOiChanges(day.oiChanges), darkPool: [] };
+}
+
 export function compactOiChanges(rows: OiChange[]): OiChange[] {
   const first = rows[0];
   if (!first) return [];

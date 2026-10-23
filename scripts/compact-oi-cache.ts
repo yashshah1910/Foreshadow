@@ -7,6 +7,7 @@
  *
  *   pnpm tsx scripts/compact-oi-cache.ts --limit 50 # dry run on the first 50 tickers
  *   pnpm tsx scripts/compact-oi-cache.ts --write    # rewrite the rows
+ *   pnpm tsx scripts/compact-oi-cache.ts --write --only GS,PANW
  */
 import { createClient } from "@supabase/supabase-js";
 import type { OiChange } from "@foreshadow/core";
@@ -67,7 +68,8 @@ async function compactTicker(ticker: string): Promise<{ rows: number; before: nu
 }
 
 async function main() {
-  const list = (await tickers()).slice(0, limit);
+  const onlyArg = process.argv.indexOf("--only");
+  const list = onlyArg > 0 ? process.argv[onlyArg + 1].split(",") : (await tickers()).slice(0, limit);
   console.log(`${list.length} tickers with cached open interest${write ? "" : " (dry run)"}`);
   const total = { rows: 0, before: 0, after: 0, failed: 0 };
   let next = 0;
@@ -81,7 +83,7 @@ async function main() {
           total.after += r.after;
         } catch (err) {
           total.failed += 1;
-          console.warn(`  ${list[i]}: ${err instanceof Error ? err.message : String(err)}`);
+          console.warn(`  ${list[i]}: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
         }
         if (i % 200 === 0) console.log(`  ${i}/${list.length} tickers, ${total.rows} days, ${(total.before / 1e6).toFixed(0)} MB → ${(total.after / 1e6).toFixed(1)} MB`);
       }

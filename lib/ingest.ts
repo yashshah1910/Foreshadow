@@ -11,6 +11,7 @@ import {
   buildScoreInput,
   fetchCatalysts,
   loadOutcome,
+  pageFootprint,
 } from "@foreshadow/uw";
 import { loadTaggedCatalysts, tagMacroCatalysts } from "./tagger";
 import {
@@ -460,7 +461,7 @@ async function upsertScore(db: SupabaseClient, s: StoredScore) {
 
 async function upsertFootprints(db: SupabaseClient, ticker: string, days: DailyFootprint[], ohlc: OhlcBar[]) {
   const rows = [
-    ...days.map((d) => ({ ticker, trade_date: d.date, endpoint: "daily", payload: d })),
+    ...days.map((d) => ({ ticker, trade_date: d.date, endpoint: "daily", payload: pageFootprint(d) })),
     ...ohlc.map((b) => ({ ticker, trade_date: b.date, endpoint: "ohlc", payload: b })),
   ];
   for (let i = 0; i < rows.length; i += 200) {

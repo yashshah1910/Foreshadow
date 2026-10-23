@@ -20,7 +20,7 @@ export type { CacheEndpoint, CacheEntry, FootprintCache } from "./cache";
 export { volumePercentile, VOLUME_LOOKBACK_DAYS, VOLUME_MIN_SAMPLES } from "./volume";
 export { thirdFriday, nextMonthlyExpiry } from "./expiry";
 export { findFirstAccessible, historicWarning } from "./access";
-export { loadDailyFootprints, buildScoreInput, loadOutcome } from "./footprint";
+export { loadDailyFootprints, buildScoreInput, loadOutcome, compactOiChanges, pageFootprint } from "./footprint";
 export type { FootprintClient, FootprintLoadResult, LoadFootprintOptions, OutcomeResult, ScoreInputResult } from "./footprint";
 export { fetchCatalysts } from "./catalysts";
 export type { CatalystClient, FetchCatalystsParams } from "./catalysts";
