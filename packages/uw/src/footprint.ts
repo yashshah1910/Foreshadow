@@ -50,7 +50,7 @@ export type FootprintClient = Pick<
   | "getOhlcDaily"
   | "getInterpolatedIv"
 > &
-  Partial<Pick<UwClient, "getDarkPoolRange">>;
+  Partial<Pick<UwClient, "getDarkPoolRange" | "getFlowAlertsRange">>;
 
 export interface LoadFootprintOptions {
   /** Expiry for the skew series; defaults to the monthly expiry after the last date. */
@@ -149,15 +149,32 @@ async function loadFlowAlerts(
     contiguousRuns(missing).map(async (run) => {
       const fetched = new Map<IsoDate, FlowAlert[]>();
       const firstOk = await findFirstAccessible(run.length, async (lo, hi) => {
-        const slice = run.slice(lo, hi);
-        const alerts = await client.getFlowAlerts({
-          ticker,
-          newerThan: slice[0],
-          olderThan: addCalendarDays(slice[slice.length - 1], 1),
-          minPremium,
-        });
-        for (const d of slice) fetched.set(d, []);
-        for (const a of alerts) fetched.get(a.tradeDate)?.push(a);
+        // A busy ticker can pass the client's page cap inside one range. Then only the days newer than the
+        // oldest alert returned are complete: keep those and fetch the rest again, instead of caching them empty.
+        let pending = run.slice(lo, hi);
+        while (pending.length > 0) {
+          const range = { ticker, newerThan: pending[0], olderThan: addCalendarDays(pending[pending.length - 1], 1), minPremium };
+          const { alerts, complete } = client.getFlowAlertsRange
+            ? await client.getFlowAlertsRange(range)
+            : { alerts: await client.getFlowAlerts(range), complete: true };
+          const oldestDay = alerts.reduce<IsoDate | null>((m, a) => (m === null || a.tradeDate < m ? a.tradeDate : m), null);
+          if (complete || oldestDay === null) {
+            for (const d of pending) fetched.set(d, []);
+            for (const a of alerts) fetched.get(a.tradeDate)?.push(a);
+            break;
+          }
+          // Days newer than the oldest alert returned are complete.
+          for (const d of pending.filter((d) => d > oldestDay)) fetched.set(d, []);
+          for (const a of alerts) fetched.get(a.tradeDate)?.push(a);
+          if (pending.some((d) => d > oldestDay)) {
+            pending = pending.filter((d) => d <= oldestDay);
+          } else {
+            // One day alone passes the cap: keep what came back for it, say so, and move on to older days.
+            fetched.set(oldestDay, alerts.filter((a) => a.tradeDate === oldestDay));
+            warnings.push(`flow-alerts: ${ticker} ${oldestDay} has more alerts than one fetch returns; that day is partial`);
+            pending = pending.filter((d) => d < oldestDay);
+          }
+        }
       });
       if (firstOk > 0) warnings.push(historicWarning("flow-alerts", ticker, run, firstOk));
       await cache.setMany(entries(ticker, "flow-alerts", fetched, today));

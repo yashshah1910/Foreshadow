@@ -5,7 +5,7 @@
  *   pnpm ingest --mode radar
  *   pnpm ingest --mode backfill --days 90 --kinds fda,earnings --dry-run
  *
- * Flags: --kinds fda,earnings,…  --tickers AAPL,MSFT  --min-cap 2000000000  --max N  --concurrency N
+ * Flags: --kinds fda,earnings,…  --tickers AAPL,MSFT [--rescore]  --min-cap 2000000000  --max N  --concurrency N
  *        --rpm N (UW requests/minute, default 120)  --dry-run  --loop  --verbose
  *
  * Reads .env (Node 20.12+). `--loop` keeps running batches until nothing is
@@ -61,6 +61,7 @@ async function main() {
       lookbackDays,
       kinds,
       tickers,
+      rescore: args.get("rescore") === "true",
       minEarningsMarketCap,
       dryRun,
       concurrency,

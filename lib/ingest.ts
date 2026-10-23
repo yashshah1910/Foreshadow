@@ -46,6 +46,8 @@ export interface IngestOptions {
   kinds?: CatalystKind[];
   /** Only score these tickers (e.g. to fill in the stocks people look up first). */
   tickers?: string[];
+  /** With `tickers`: score their past catalysts again even when already scored (after a data fix). */
+  rescore?: boolean;
   /** Run the Claude catalyst tagger over POTUS + economic rows (default: all modes but backfill). */
   tagMacro?: boolean;
   log?: (msg: string) => void;
@@ -188,7 +190,9 @@ export async function runIngest(db: SupabaseClient, uw: UwClient, opts: IngestOp
 
       const existing = await loadExistingScores(db, catalysts.map((c) => c.id));
       const only = opts.tickers ? new Set(opts.tickers.map((t) => t.toUpperCase())) : null;
-      candidates = pickCandidates(catalysts, existing, mode, today)
+      candidates = (opts.rescore && only
+        ? catalysts.filter((c) => only.has(c.ticker) && c.eventDate <= today).sort((a, b) => b.eventDate.localeCompare(a.eventDate))
+        : pickCandidates(catalysts, existing, mode, today))
         .filter((c) => !only || only.has(c.ticker))
         .slice(0, maxEvents);
       const tickers = new Set(candidates.map((c) => c.ticker));

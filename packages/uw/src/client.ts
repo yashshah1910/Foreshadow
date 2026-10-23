@@ -89,9 +89,20 @@ export class UwClient extends UwHttp {
    * per 200 alerts. Rows come back oldest-first, de-duplicated by id.
    */
   async getFlowAlerts(params: FlowAlertParams): Promise<FlowAlert[]> {
+    return (await this.getFlowAlertsRange(params)).alerts;
+  }
+
+  /**
+   * Like `getFlowAlerts`, but also says whether the whole range came back.
+   * `complete` is false when the page cap stopped the walk: then only the
+   * days newer than the oldest alert returned are fully covered (busy
+   * tickers like TSLA pass 10,000 alerts in a few weeks).
+   */
+  async getFlowAlertsRange(params: FlowAlertParams): Promise<{ alerts: FlowAlert[]; complete: boolean }> {
     const ticker = params.ticker.toUpperCase();
     const byId = new Map<string, FlowAlert>();
     let olderThan: string | undefined = params.olderThan;
+    let complete = false;
     for (let page = 0; page < MAX_FLOW_PAGES; page++) {
       const rows = await this.requestList<RawFlowAlert>("/api/option-trades/flow-alerts", {
         ticker_symbol: ticker,
@@ -107,10 +118,13 @@ export class UwClient extends UwHttp {
         byId.set(alert.id, alert);
         if (oldest === undefined || alert.executedAt < oldest) oldest = alert.executedAt;
       }
-      if (rows.length < FLOW_PAGE_SIZE || oldest === undefined || oldest === olderThan) break;
+      if (rows.length < FLOW_PAGE_SIZE || oldest === undefined || oldest === olderThan) {
+        complete = true;
+        break;
+      }
       olderThan = oldest;
     }
-    return [...byId.values()].sort((a, b) => a.executedAt.localeCompare(b.executedAt));
+    return { alerts: [...byId.values()].sort((a, b) => a.executedAt.localeCompare(b.executedAt)), complete };
   }
 
   /**

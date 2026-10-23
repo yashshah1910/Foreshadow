@@ -160,6 +160,35 @@ describe("loadDailyFootprints", () => {
     expect(second.calls.skew).toHaveLength(0);
   });
 
+  it("keeps fetching older days when a busy ticker passes the page cap, instead of caching them empty", async () => {
+    const cache = new MemoryCache();
+    const { client } = stubClient({ alertsOn: () => 3 });
+    // Like the real client: newest alerts first, at most 7 per call, and `complete: false` when that cut the range short.
+    const ranges: [string, string][] = [];
+    client.getFlowAlertsRange = async (params) => {
+      ranges.push([params.newerThan, params.olderThan]);
+      const all = (await client.getFlowAlerts(params)).sort((a, b) => b.executedAt.localeCompare(a.executedAt));
+      return { alerts: all.slice(0, 7), complete: all.length <= 7 };
+    };
+    const { days } = await loadDailyFootprints(client, cache, TICKER, dates, { today: TODAY });
+    expect(days.every((d) => d.alerts.length === 3)).toBe(true);
+    expect(ranges.length).toBeGreaterThan(1);
+    for (const d of dates) expect(await cache.get(TICKER, d, "flow-alerts")).toHaveLength(3);
+  });
+
+  it("keeps a single over-cap day as partial with a warning and still loads the older days", async () => {
+    const cache = new MemoryCache();
+    const { client } = stubClient({ alertsOn: (d) => (d === dates[9] ? 9 : 1) });
+    client.getFlowAlertsRange = async (params) => {
+      const all = (await client.getFlowAlerts(params)).sort((a, b) => b.executedAt.localeCompare(a.executedAt) || b.tradeDate.localeCompare(a.tradeDate));
+      return { alerts: all.slice(0, 5), complete: all.length <= 5 };
+    };
+    const { days, warnings } = await loadDailyFootprints(client, cache, TICKER, dates, { today: TODAY });
+    expect(days[9].alerts).toHaveLength(5);
+    expect(warnings.some((w) => w.includes("partial"))).toBe(true);
+    expect(days.slice(0, 9).every((d) => d.alerts.length === 1)).toBe(true);
+  });
+
   it("keeps the OI days that arrived when others fail, so the next run fetches only the rest", async () => {
     const cache = new MemoryCache();
     const { client } = stubClient();
