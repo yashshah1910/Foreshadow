@@ -110,9 +110,10 @@ export const TOOL_BUDGET_EXHAUSTED_NOTE =
   "Tool budget exhausted: do not request any more tools. Answer the question now with the evidence you already have and say what you could not check.";
 
 export function buildInvestigatorUserMessage(question: string, context?: InvestigateContext): string {
-  const lines: string[] = [];
+  // Dates after today haven't happened; without this the model calls them "missing data".
+  const lines: string[] = [`Today: ${new Date().toISOString().slice(0, 10)}`];
   if (context?.ticker) lines.push(`Ticker in view: ${context.ticker}`);
   if (context?.eventDate) lines.push(`Event date in view: ${context.eventDate}`);
   if (context?.summary) lines.push(`Case summary: ${context.summary}`);
-  return lines.length > 0 ? `${lines.join("\n")}\n\nQuestion: ${question}` : question;
+  return `${lines.join("\n")}\n\nQuestion: ${question}`;
 }
