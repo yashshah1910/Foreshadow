@@ -50,8 +50,7 @@ export async function addAlert(formData: FormData): Promise<void> {
   const tickersRaw = String(formData.get("tickers") ?? "").trim();
   const tickers = tickersRaw ? tickersRaw.toUpperCase().split(/[\s,]+/).filter((t) => /^[A-Z.]{1,8}$/.test(t)).slice(0, 50) : null;
   const ok =
-    (kind === "discord" && /^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(target)) ||
-    (kind === "email" && target.includes("@"));
+    kind === "discord" && /^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(target);
   if (!ok) redirect("/settings?error=alert");
   const { error } = await supabase.from("alerts").insert({ user_id: user.id, kind, target, min_score: minScore, tickers });
   if (error) redirect(`/settings?error=${encodeURIComponent(error.message)}`);

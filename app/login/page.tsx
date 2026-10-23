@@ -3,14 +3,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { env, hasSupabase } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { sendMagicLink, signInWithGoogle } from "./actions";
+import { continueAsGuest, signInWithGitHub, signInWithGoogle } from "./actions";
 
 export const metadata: Metadata = { title: "Sign in" };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const sp = await searchParams;
   const next = typeof sp.next === "string" ? sp.next : "/settings";
-  const sent = sp.sent === "1";
   const error = typeof sp.error === "string" ? sp.error : null;
 
   if (!hasSupabase()) {
@@ -30,7 +29,8 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getUser();
   if (data.user) redirect(next);
-  const google = await googleEnabled();
+  const providers = await enabledProviders();
+  const none = !providers.guest && !providers.github && !providers.google;
 
   return (
     <Shell>
@@ -41,36 +41,37 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         unusual. You can also add your own Unusual Whales API key for Ask; it is stored encrypted and only used on the
         server.
       </p>
-      {sent ? (
-        <div className="card mt-6 p-4 text-[15px] text-ink">
-          Check your email for a sign-in link.
-        </div>
-      ) : (
-        <>
-          <form action={sendMagicLink} className="mt-6 flex flex-col gap-3">
+      <div className="mt-6 grid gap-3">
+        {providers.github ? (
+          <form action={signInWithGitHub}>
             <input type="hidden" name="next" value={next} />
-            <label htmlFor="email" className="text-[14px] font-medium text-ink-2">Email</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-              placeholder="you@example.com"
-              className="h-11 rounded-xl bg-surface px-4 text-[15px] text-ink placeholder:text-ink-3"
-            />
-            <button type="submit" className="pressable btn btn-primary w-full">Email me a sign-in link</button>
+            <button type="submit" className="pressable btn btn-primary w-full">Continue with GitHub</button>
           </form>
-          {google ? (
-            <form action={signInWithGoogle} className="mt-3">
-              <input type="hidden" name="next" value={next} />
-              <button type="submit" className="pressable btn w-full bg-surface text-ink hover:bg-surface-3">
-                Continue with Google
-              </button>
-            </form>
-          ) : null}
-        </>
-      )}
+        ) : null}
+        {providers.google ? (
+          <form action={signInWithGoogle}>
+            <input type="hidden" name="next" value={next} />
+            <button type="submit" className="pressable btn w-full bg-surface text-ink hover:bg-surface-3">Continue with Google</button>
+          </form>
+        ) : null}
+        {providers.guest ? (
+          <form action={continueAsGuest}>
+            <input type="hidden" name="next" value={next} />
+            <button type="submit" className={`pressable btn w-full ${providers.github || providers.google ? "bg-surface text-ink hover:bg-surface-3" : "btn-primary"}`}>
+              Continue as a guest
+            </button>
+            <p className="mt-2 text-[13px] leading-relaxed text-ink-3">
+              No email needed. Your settings stay with this browser; signing out ends the guest account.
+            </p>
+          </form>
+        ) : null}
+        {none ? (
+          <p className="card p-4 text-[15px] leading-relaxed text-ink-2">
+            Accounts aren&apos;t open yet. Everything else works without one: your watchlist is kept on this device, and
+            Coming up has a calendar and an RSS feed.
+          </p>
+        ) : null}
+      </div>
       {error ? (
         <p className="mt-4 text-[14px] text-put-ink" role="alert">
           {ERRORS[error] ?? `Sign-in failed: ${error}`}
@@ -81,22 +82,22 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
 }
 
 const ERRORS: Record<string, string> = {
-  email: "Enter a full email address.",
-  link: "That sign-in link has expired or was already used. Ask for a new one below.",
-  auth: "That sign-in link has expired or was already used. Ask for a new one below.",
+  auth: "Sign-in didn't finish. Try again.",
+  busy: "Too many sign-ins from here. Try again in a few minutes.",
+  oauth: "Sign-in didn't start. Try again.",
 };
 
-/** Whether the Supabase project has Google sign-in switched on (its public settings say so); checked hourly. */
-async function googleEnabled(): Promise<boolean> {
+/** Which sign-in options the Supabase project has switched on (its public settings say so); checked every 10 minutes. */
+async function enabledProviders(): Promise<{ guest: boolean; github: boolean; google: boolean }> {
   try {
     const res = await fetch(`${env.supabaseUrl}/auth/v1/settings`, {
       headers: { apikey: env.supabaseAnonKey ?? "" },
-      next: { revalidate: 3600 },
+      next: { revalidate: 600 },
     });
-    const json = (await res.json()) as { external?: { google?: boolean } };
-    return Boolean(json.external?.google);
+    const ext = ((await res.json()) as { external?: Record<string, boolean> }).external ?? {};
+    return { guest: Boolean(ext.anonymous_users), github: Boolean(ext.github), google: Boolean(ext.google) };
   } catch {
-    return false;
+    return { guest: false, github: false, google: false };
   }
 }
 

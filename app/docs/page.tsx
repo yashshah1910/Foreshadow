@@ -285,9 +285,9 @@ export default async function DocsPage() {
 
       <Section id="byok" title="Bring your own key">
         <p>
-          Sign in (email magic link or Google) and paste your Unusual Whales API key in <Link href="/settings" className="link">Settings</Link>. It is
+          Sign in (a guest account, or GitHub or Google where enabled; no email needed) and paste your Unusual Whales API key in <Link href="/settings" className="link">Settings</Link>. It is
           stored in Supabase Vault and only decrypted server-side for your own requests: the Ask panel&apos;s UW tools use it,
-          and Foreshadow never re-serves UW data to anyone else. Watchlists and alerts (Discord webhook or email) fire from
+          and Foreshadow never re-serves UW data to anyone else. Watchlists and Discord-webhook alerts fire from
           the cron when a Coming up score crosses your threshold.
         </p>
       </Section>

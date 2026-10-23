@@ -40,7 +40,7 @@ largest companies) for US companies worth over $2B with listed options, and scor
 | **Calendar** `/calendar.ics` | Subscribe in Google, Apple or Outlook calendar: upcoming news whose betting is already unusual, or with `?tickers=AAPL,TSLA` everything coming up for your stocks, each with its live score and a link to the case. |
 | **How it works** `/docs` | The method in plain words, then the exact formula, data sources, API and MCP setup, with a score sandbox (move each measurement, watch the score; presets are real cases) and a panel that runs any of the five MCP tools in the browser. |
 | **MCP** `/api/mcp` | Remote MCP (streamable HTTP): `foreshadow_score`, `foreshadow_radar`, `foreshadow_history`, `foreshadow_scorecard`, `foreshadow_similar`, plus three prompts (`investigate_case`, `week_ahead`, `stock_track_record`). Plus `packages/mcp-stdio` for stdio-only clients. |
-| **Accounts** `/settings` | Supabase Auth (magic link + Google). Bring your own UW key, stored in Supabase Vault. Watchlists. Discord-webhook or email alerts when a Coming-up score crosses your threshold. |
+| **Accounts** `/settings` | Supabase Auth without email: a one-click guest account (anonymous sign-in), plus GitHub or Google once switched on in Supabase; the sign-in page only shows the options that are on. Bring your own UW key, stored in Supabase Vault. Watchlists. Discord-webhook alerts when a Coming-up score crosses your threshold. |
 
 ## Screenshots
 
@@ -92,7 +92,7 @@ Checks: `pnpm test` (180 tests: scorer, UW client, narrator, plain-English wordi
 | `UW_API_KEY` | Fresh scoring and Coming up. Signed-in users can bring their own key instead (Settings → stored in Vault). |
 | `ANTHROPIC_API_KEY` | The case summaries, stock summaries, the Ask panel and the catalyst tagger. **Without it every surface still works**; the story slot shows the deterministic template. |
 | `CRON_SECRET` | Protects `/api/cron/ingest`. Vercel Cron sends it as a Bearer token; the GitHub Actions radar workflow needs it as a repo secret. |
-| `RESEND_API_KEY` | Email alerts (Discord webhooks need nothing). |
+| `RESEND_API_KEY` | Optional email alerts; needs a sending domain verified in Resend, so the hosted site uses Discord webhooks only. |
 | `NEXT_PUBLIC_POSTHOG_KEY` | Optional product analytics (PostHog, proxied through `/ingest`). Empty → nothing is sent. |
 
 No keys live in the repo; copy `.env.example`.

@@ -57,7 +57,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
           <p className="mb-2 text-[14px] font-medium text-ink-3">Settings</p>
-          <h1 className="display text-[34px]">{user.email}</h1>
+          <h1 className="display text-[34px]">{user.email ?? (user.is_anonymous ? "Guest account" : "Your account")}</h1>
         </div>
         <form action="/auth/signout" method="post">
           <button type="submit" className="pressable rounded-full bg-surface-2 px-3 py-1.5 text-[13px] text-ink-2 hover:text-ink">Sign out</button>
@@ -65,7 +65,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
       </div>
 
       {saved ? <p className="mb-4 rounded-xl bg-surface-2 px-3 py-2 text-[13px] text-ink" role="status">Saved.</p> : null}
-      {error ? <p className="mb-4 rounded-xl bg-put-soft px-3 py-2 text-[13px] text-ink" role="alert">Could not save: {error === "key" ? "that doesn't look like a UW key" : error === "alert" ? "check the webhook URL or email" : error}.</p> : null}
+      {error ? <p className="mb-4 rounded-xl bg-put-soft px-3 py-2 text-[13px] text-ink" role="alert">Could not save: {error === "key" ? "that doesn't look like a UW key" : error === "alert" ? "check the Discord webhook URL" : error}.</p> : null}
 
       <Section title="Unusual Whales API key" blurb="Stored in Supabase Vault, decrypted only on the server for your requests. Used for Coming up, fresh scoring and the Ask panel's Unusual Whales lookups.">
         {keyRow ? (
@@ -92,7 +92,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
         </form>
       </Section>
 
-      <Section title="Alerts" blurb="Fires when a Coming up score crosses your threshold. Discord webhook or email (email needs RESEND_API_KEY on the server).">
+      <Section title="Alerts" blurb="Posts to a Discord channel when a Coming up score crosses your threshold. In Discord: channel settings, Integrations, Webhooks, New webhook, copy its URL.">
         {(alerts as AlertRow[] | null)?.length ? (
           <ul className="mb-4 grid gap-1.5">
             {(alerts as AlertRow[]).map((a) => (
@@ -109,12 +109,9 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
             ))}
           </ul>
         ) : null}
-        <form action={addAlert} className="grid gap-2 sm:grid-cols-[7rem_1fr_5rem_8rem_auto]">
-          <select name="kind" aria-label="Channel" className="h-10 rounded-xl bg-surface px-2 text-[13px] text-ink">
-            <option value="discord">Discord</option>
-            <option value="email">Email</option>
-          </select>
-          <input name="target" aria-label="Webhook URL or email" placeholder="https://discord.com/api/webhooks/… or you@example.com" className="h-10 rounded-xl bg-surface px-3 text-[13px] text-ink placeholder:text-ink-3" />
+        <form action={addAlert} className="grid gap-2 sm:grid-cols-[1fr_5rem_8rem_auto]">
+          <input type="hidden" name="kind" value="discord" />
+          <input name="target" aria-label="Discord webhook URL" placeholder="https://discord.com/api/webhooks/…" className="h-10 rounded-xl bg-surface px-3 text-[13px] text-ink placeholder:text-ink-3" />
           <input name="min_score" type="number" min={0} max={100} defaultValue={70} aria-label="Minimum score" className="h-10 rounded-xl bg-surface px-3 text-[13px] text-ink tnum" />
           <input name="tickers" aria-label="Tickers (optional)" placeholder="tickers, optional" className="h-10 rounded-xl bg-surface px-3 font-mono text-[13px] uppercase text-ink placeholder:normal-case placeholder:font-sans placeholder:text-ink-3" />
           <button type="submit" className="pressable h-10 rounded-md bg-ink px-4 text-[13px] font-medium text-surface">Add</button>
