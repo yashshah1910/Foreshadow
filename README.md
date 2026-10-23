@@ -139,7 +139,9 @@ Claude never computes a number. `packages/narrator/` wraps the Messages API for 
 2. **Catalyst tagger**: maps President's-schedule and economic-calendar rows to tickers and sectors with a confidence.
 3. **Ask** (on case pages, stock pages, Coming up and the Scorecard, with up to three follow-ups in a thread): a short tool loop (at most 4 calls) over the five
    Foreshadow tools **and the Unusual Whales hosted MCP** (`https://api.unusualwhales.com/api/mcp`, with the
-   user's own key, falling back to Foreshadow's tools when that server is unreachable). Answers are under 120
+   user's own key, falling back to Foreshadow's tools when that server is unreachable). Questions about the scored
+   window go to Foreshadow's tools; questions about right now ("what's the latest options flow?") go to the UW MCP
+   server's live flow alerts, and the answer credits it. Answers are under 120
    plain-English words. Questions outside the case, the stock or Foreshadow get one fixed sentence and no tool calls.
 4. **Stock summary**: one paragraph on whether unusual betting keeps showing up before a stock's news.
 
