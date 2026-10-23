@@ -1,11 +1,11 @@
 import type { ScorecardBand } from "@/lib/data";
 
-/** Percent right for unusual (40+) and ordinary (under 20) betting, for a shared bar scale. */
+/** Percent right (among cases where the bets leaned) for unusual (40+) and ordinary (under 20) betting, for a shared bar scale. */
 export function findingRates(bands: ScorecardBand[]): number[] {
   const unusual = bands.filter((b) => b.min >= 40);
-  const u = unusual.reduce((n, b) => n + b.cases, 0);
+  const u = unusual.reduce((n, b) => n + b.leaned, 0);
   const o = bands.find((b) => b.min === 0);
-  return [u ? (unusual.reduce((n, b) => n + b.right, 0) / u) * 100 : 0, o?.cases ? (o.right / o.cases) * 100 : 0];
+  return [u ? (unusual.reduce((n, b) => n + b.right, 0) / u) * 100 : 0, o?.leaned ? (o.right / o.leaned) * 100 : 0];
 }
 
 /**
@@ -15,12 +15,13 @@ export function findingRates(bands: ScorecardBand[]): number[] {
  */
 export function FindingBars({ bands, scaleMax }: { bands: ScorecardBand[]; scaleMax?: number }) {
   const unusual = bands.filter((b) => b.min >= 40);
-  const u = { cases: unusual.reduce((n, b) => n + b.cases, 0), right: unusual.reduce((n, b) => n + b.right, 0) };
+  // Only cases where the bets leaned one way can be right, so they are the denominator.
+  const u = { cases: unusual.reduce((n, b) => n + b.leaned, 0), right: unusual.reduce((n, b) => n + b.right, 0) };
   const o = bands.find((b) => b.min === 0);
-  if (!o || o.cases === 0 || u.cases === 0) return null;
+  if (!o || o.leaned === 0 || u.cases === 0) return null;
   const rows = [
     { label: "Unusual betting", pct: (u.right / u.cases) * 100, cases: u.cases, strong: true },
-    { label: "Ordinary betting", pct: (o.right / o.cases) * 100, cases: o.cases, strong: false },
+    { label: "Ordinary betting", pct: (o.right / o.leaned) * 100, cases: o.leaned, strong: false },
   ];
   const max = scaleMax ?? Math.max(10, ...rows.map((r) => r.pct));
   return (
@@ -32,7 +33,7 @@ export function FindingBars({ bands, scaleMax }: { bands: ScorecardBand[]; scale
             <span className={`block h-full rounded-full ${r.strong ? "bg-ink" : "bg-ink-3"}`} style={{ width: `${Math.max(2, (r.pct / max) * 100)}%` }} />
           </dd>
           <dd className="text-right font-semibold text-ink tnum">
-            {r.pct.toFixed(0)}%<span className="sr-only"> right, of {r.cases} cases</span>
+            {r.pct.toFixed(0)}%<span className="sr-only"> right, of {r.cases} cases where the bets leaned</span>
           </dd>
         </div>
       ))}

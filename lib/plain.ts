@@ -166,26 +166,42 @@ function pct(n: number, d: number): number {
   return d > 0 ? (n / d) * 100 : 0;
 }
 
-/** One honest sentence per kind: unusual (40+) against ordinary (under 20), with the sample size. */
+/** One-sided two-sample z for "rate 1 is higher than rate 2" (pooled). */
+export function liftZ(x1: number, n1: number, x2: number, n2: number): number {
+  if (n1 === 0 || n2 === 0) return 0;
+  const p = (x1 + x2) / (n1 + n2);
+  const se = Math.sqrt(p * (1 - p) * (1 / n1 + 1 / n2));
+  return se > 0 ? (x1 / n1 - x2 / n2) / se : 0;
+}
+
+/** "about 3.5 times" */
+function timesPhrase(times: number): string {
+  if (times > 20) return "far more often than";
+  if (times < 1.95) return "more often than";
+  const half = Math.round(times * 2) / 2;
+  return `about ${Number.isInteger(half) ? half.toFixed(0) : half.toFixed(1)} times as often as`;
+}
+
+/**
+ * One honest sentence per kind: unusual (40+) against ordinary (under 20). Only cases where the bets leaned
+ * can be right, so the rates count those; a lift is claimed only past a one-sided two-sample test.
+ */
 export function scorecardFinding(kind: string, bands: ScorecardBand[]): string {
   const noun = kind === "fda" ? "FDA news" : kind === "earnings" ? "earnings" : "this kind of news";
   const unusual = bands.filter((b) => b.min >= 40);
-  const u = { cases: unusual.reduce((n, b) => n + b.cases, 0), right: unusual.reduce((n, b) => n + b.right, 0) };
+  const u = { leaned: unusual.reduce((n, b) => n + b.leaned, 0), right: unusual.reduce((n, b) => n + b.right, 0) };
   const ordinary = bands.find((b) => b.min === 0);
-  if (!ordinary || ordinary.cases < MIN_CASES) return `Not enough finished cases before ${noun} to compare yet.`;
-  if (u.cases < 5) return `Unusual betting before ${noun} has been rare so far: ${u.cases} case${u.cases === 1 ? "" : "s"}. Too few to judge.`;
-  const up = pct(u.right, u.cases);
-  const op = pct(ordinary.right, ordinary.cases);
-  const early = u.cases < MIN_CASES * 2 ? ` That's only ${u.cases} cases, so treat it as early.` : "";
-  // One-sided check against the ordinary rate: is the lift bigger than chance would give at this sample size?
-  const p0 = Math.min(Math.max(ordinary.right / ordinary.cases, 0.01), 0.99);
-  const z = (u.right / u.cases - p0) / Math.sqrt((p0 * (1 - p0)) / u.cases);
+  if (!ordinary || ordinary.leaned < MIN_CASES) return `Not enough finished cases before ${noun} to compare yet.`;
+  if (u.leaned < 5) return `Unusual betting before ${noun} has been rare so far: ${u.leaned} case${u.leaned === 1 ? "" : "s"}. Too few to judge.`;
+  const up = pct(u.right, u.leaned);
+  const op = pct(ordinary.right, ordinary.leaned);
+  const early = u.leaned < MIN_CASES * 2 ? ` That's only ${u.leaned} cases, so treat it as early.` : "";
+  const z = liftZ(u.right, u.leaned, ordinary.right, ordinary.leaned);
   if (z >= 1.65 && u.right >= 3) {
-    const times = op >= 1 ? up / op : Infinity;
-    const ratio = times > 20 ? "far more often than" : times >= 1.95 ? `about ${Math.round(times)} times as often as` : "more often than";
-    return `Before ${noun}, unusual betting was right ${up.toFixed(0)}% of the time, ${ratio} ordinary betting (${op.toFixed(0)}%).${edgeClause(unusual, ordinary)}${early}`;
+    const ratio = timesPhrase(op >= 1 ? up / op : Infinity);
+    return `Before ${noun}, when the betting leaned one way, unusual betting was right ${up.toFixed(0)}% of the time (${u.right} of ${u.leaned}), ${ratio} ordinary betting (${op.toFixed(0)}%).${edgeClause(unusual, ordinary)}${early}`;
   }
-  return `Before ${noun}, unusual betting hasn't clearly beaten ordinary betting so far: ${up.toFixed(0)}% right against ${op.toFixed(0)}%.${early}`;
+  return `Before ${noun}, unusual betting hasn't clearly beaten ordinary betting so far: ${up.toFixed(0)}% right against ${op.toFixed(0)}%, counting cases where the bets leaned.${early}`;
 }
 
 /**
@@ -227,8 +243,7 @@ export function headlineFinding(kinds: { kind: string; bands: ScorecardBand[] }[
     const n = unusual.reduce((a, b) => a + b.cases, 0);
     const hits = unusual.reduce((a, b) => a + b.movedMore, 0);
     if (!ordinary || ordinary.cases < MIN_CASES || n < MIN_CASES || hits < 3) continue;
-    const p0 = Math.min(Math.max(ordinary.movedMore / ordinary.cases, 0.01), 0.99);
-    const z = (hits / n - p0) / Math.sqrt((p0 * (1 - p0)) / n);
+    const z = liftZ(hits, n, ordinary.movedMore, ordinary.cases);
     if (z < 1.65 || z <= bestZ) continue;
     bestZ = z;
     best = {

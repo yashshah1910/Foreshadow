@@ -24,7 +24,7 @@ export default async function ScorecardPage() {
   const allBands = card.kinds.flatMap((k) => k.bands);
   const beatShare = card.cases > 0 ? Math.round((allBands.reduce((n, b) => n + b.movedMore, 0) / card.cases) * 100) : null;
   const biggest = [...rightCalls].sort((a, b) => Math.abs(b.realizedMovePct ?? 0) - Math.abs(a.realizedMovePct ?? 0)).slice(0, 6);
-  const maxPct = Math.max(...card.kinds.flatMap((k) => k.bands.filter((b) => b.cases >= 3).map((b) => pct(b.right, b.cases))), 0);
+  const maxPct = Math.max(...card.kinds.flatMap((k) => k.bands.filter((b) => b.cases >= 3).map((b) => pct(b.right, b.leaned))), 0);
   const scaleMax = Math.max(30, Math.ceil(maxPct / 10) * 10);
 
   return (
@@ -54,7 +54,8 @@ export default async function ScorecardPage() {
         <h2 id="bands-h" className="display text-[34px] text-ink">How often the bets were right</h2>
         <p className="mt-3 max-w-[720px] text-[16px] leading-relaxed text-ink-2">
           The bets count as right when the stock moved at least as much as options traders expected, in the direction the
-          bets leaned. That is a high bar: options prices already include the expected move, so most bets miss it.
+          bets leaned. That is a high bar: options prices already include the expected move, so most bets miss it. Cases where
+          the bets didn&apos;t lean either way can&apos;t be right, so they are left out of this rate.
         </p>
         {beatShare !== null ? (
           <p className="tray mt-5 max-w-[720px] px-5 py-4 text-[15.5px] leading-relaxed text-ink-2">
@@ -136,11 +137,11 @@ export default async function ScorecardPage() {
 }
 
 function BandRow({ band, scaleMax }: { band: ScorecardBand; scaleMax: number }) {
-  const p = pct(band.right, band.cases);
+  const p = pct(band.right, band.leaned);
   const thin = band.cases < MIN_CASES;
   const width = band.cases ? Math.max(1.5, (p / scaleMax) * 100) : 0;
   const tip = band.cases
-    ? `${band.label}: the bets were right in ${band.right} of ${band.cases} cases (${p.toFixed(0)}%)`
+    ? `${band.label}: the bets were right in ${band.right} of the ${band.leaned} cases where they leaned (${p.toFixed(0)}%)`
     : `${band.label}: no finished cases yet`;
   return (
     <li title={tip} className="card grid grid-cols-[8.5rem_minmax(0,1fr)] items-center gap-4 px-4 py-3.5 sm:grid-cols-[10rem_minmax(0,1fr)]">
@@ -155,7 +156,7 @@ function BandRow({ band, scaleMax }: { band: ScorecardBand; scaleMax: number }) 
               <span className={`block h-full rounded-full ${thin ? "bg-surface-3" : band.min >= 40 ? "bg-ink" : "bg-ink-3"}`} style={{ width: `${width}%` }} />
             </span>
             <span className="mt-1.5 block text-[14px] text-ink-2 tnum">
-              <span className="font-semibold text-ink">{p.toFixed(0)}% right</span>, {band.right} of {band.cases} cases
+              <span className="font-semibold text-ink">{p.toFixed(0)}% right</span>, {band.right} of {band.leaned} that leaned
               {thin ? <span className="ml-2 rounded-full bg-surface-2 px-2 py-0.5 text-[12px] font-medium text-ink-2">few cases</span> : null}
             </span>
           </>
@@ -188,7 +189,7 @@ function NumbersTable({ card }: { card: Scorecard }) {
                 <td className="px-3 py-2.5 text-ink">{KIND_LABELS[k.kind] ?? k.kind}</td>
                 <td className="px-3 py-2.5 text-ink-2">{b.label}</td>
                 <td className="px-3 py-2.5 text-right text-ink-2">{b.cases}</td>
-                <td className="px-3 py-2.5 text-right font-semibold text-ink">{share(b.right, b.cases)}</td>
+                <td className="px-3 py-2.5 text-right font-semibold text-ink">{share(b.right, b.leaned)}</td>
                 <td className="px-3 py-2.5 text-right text-ink-2">{share(b.movedMore, b.cases)}</td>
                 <td className="px-3 py-2.5 text-right text-ink-2">{share(b.leanedRight, b.leaned)}</td>
               </tr>
