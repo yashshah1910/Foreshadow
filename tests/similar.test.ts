@@ -46,4 +46,16 @@ describe("similarCases", () => {
     const r = similarCases(s(30), [s(31, { verdict: "pending" }), s(29, { partialWindow: true })]);
     expect(r.cases).toHaveLength(0);
   });
+  it("counts moves past the expected move and gives the typical actual and expected move", () => {
+    const target = s(50);
+    const pool = [
+      s(50, { realizedMovePct: -12, impliedMovePct: 8 }),
+      s(51, { realizedMovePct: 3, impliedMovePct: 6 }),
+      s(49, { realizedMovePct: -9, impliedMovePct: 10 }),
+    ];
+    const r = similarCases(target, [target, ...pool], 3);
+    expect(r.movedMore).toBe(1);
+    expect(r.typicalMovePct).toBe(9);
+    expect(r.typicalExpectedPct).toBe(8);
+  });
 });

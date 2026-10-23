@@ -215,7 +215,7 @@ export function buildScorecard(rows: ScorecardCase[]): Scorecard {
         leanedRight: leaned.filter((r) => (r.direction === "bullish") === (r.realizedMovePct! > 0)).length,
       };
     });
-    out.push({ kind, cases: list.length, bands });
+    out.push({ kind, cases: list.length, bands, scores: list.map((r) => r.score).sort((a, b) => a - b) });
   }
   out.sort((a, b) => b.cases - a.cases);
   return { cases: out.reduce((n, k) => n + k.cases, 0), kinds: out };

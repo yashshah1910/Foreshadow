@@ -16,9 +16,12 @@ export function RadarList({
   items,
   live,
   leadHistory = null,
+  ranks = {},
 }: {
   items: RadarItem[];
   live: boolean;
+  /** "top 3%" by case id: where each score sits among finished cases of its kind. */
+  ranks?: Record<string, string>;
   /** How similar past betting turned out, for the lead case the server saw (shown only while it is still the lead). */
   leadHistory?: { id: string; text: string } | null;
 }) {
@@ -92,7 +95,7 @@ export function RadarList({
             </a>
           </h2>
           {mine.length > 0 ? (
-            <CaseList rows={mine} mode="live" />
+            <CaseList rows={mine} mode="live" ranks={ranks} />
           ) : (
             <p className="tray px-6 py-5 text-[15px] text-ink-2">
               None of your stocks has news in the next two weeks. Foreshadow will list them here once one does.
@@ -111,7 +114,9 @@ export function RadarList({
               <span className="ticker">{lead.catalyst.ticker}</span> {eventName(lead)}, {fmtDate(lead.catalyst.eventDate, { weekday: true })}
             </span>
             <span className="mt-1 block text-[15.5px] text-ink-2">
-              {lead.score.toFixed(0)} out of 100 after {lead.daysElapsed} of {lead.daysTotal} days, {directionPlain(lead.direction).toLowerCase()}.
+              {lead.score.toFixed(0)} out of 100 after {lead.daysElapsed} of {lead.daysTotal} days
+              {ranks[lead.catalyst.id] ? ` (${ranks[lead.catalyst.id]} of past ${lead.catalyst.kind === "fda" ? "FDA" : "earnings"} cases)` : ""},{" "}
+              {directionPlain(lead.direction).toLowerCase()}.
               Options are pricing in a move of about ±{fmtPct(lead.impliedMovePct, { sign: false, decimals: 0 })}.
             </span>
             {leadHistory?.id === lead.catalyst.id ? <span className="mt-2 block text-[14.5px] text-ink-3">{leadHistory.text}</span> : null}
@@ -143,7 +148,7 @@ export function RadarList({
                   {rows.length} {rows.length === 1 ? "company" : "companies"}
                 </span>
               </h2>
-              <CaseList rows={rows} mode="live" header={i === 0} />
+              <CaseList rows={rows} mode="live" header={i === 0} ranks={ranks} />
             </section>
           ))}
         </div>

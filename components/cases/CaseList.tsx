@@ -21,6 +21,7 @@ export function CaseList({
   empty,
   showYear = false,
   header = true,
+  ranks,
 }: {
   rows: Row[];
   animate?: boolean;
@@ -29,6 +30,8 @@ export function CaseList({
   showYear?: boolean;
   /** Column labels above the rows; turn off for the second and later groups on a page. */
   header?: boolean;
+  /** Optional "top 3%" label by case id, shown under the score. */
+  ranks?: Record<string, string>;
 }) {
   if (rows.length === 0) {
     return (
@@ -91,6 +94,7 @@ export function CaseList({
                     <span className="text-[13px] text-ink-3">
                       <DirectionMark direction={r.direction} short /> {r.direction === "bullish" ? "rise" : r.direction === "bearish" ? "fall" : "mixed"}
                     </span>
+                    {ranks?.[r.catalyst.id] ? <span className="text-[13px] text-ink-3">{ranks[r.catalyst.id]}</span> : null}
                   </span>
                 )}
               </span>

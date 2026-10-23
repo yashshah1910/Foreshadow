@@ -1,7 +1,8 @@
 import { ImageResponse } from "next/og";
-import { getEvent } from "@/lib/data";
+import { getEvent, getScorecard } from "@/lib/data";
 import { fmtDate, fmtPct, KIND_LABELS } from "@/lib/format";
 import { eventName, outcomeOf, scoreWord, type Outcome } from "@/lib/plain";
+import { topShare } from "@/lib/rank";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -27,7 +28,7 @@ const OUTCOME_CARD: Record<Outcome, string> = {
 
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const ev = await getEvent(decodeURIComponent(id));
+  const [ev, card] = await Promise.all([getEvent(decodeURIComponent(id)), getScorecard()]);
   if (!ev) {
     return new ImageResponse(
       <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: PAPER, color: INK, fontSize: 56, fontWeight: 700 }}>
@@ -44,6 +45,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const dirText = s.direction === "bullish" ? "Bets on a rise" : s.direction === "bearish" ? "Bets on a fall" : "Mixed bets";
   const dirColor = s.direction === "bullish" ? CALL : s.direction === "bearish" ? PUT : INK3;
   const verdictText = OUTCOME_CARD[outcomeOf(s)];
+  const top = topShare(s.score, card.kinds.find((k) => k.kind === s.catalyst.kind)?.scores ?? []);
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", background: PAPER, padding: 40, fontFamily: "sans-serif" }}>
@@ -76,6 +78,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
                 <span style={{ fontSize: 168, fontWeight: 800, color: INK, letterSpacing: -6, lineHeight: 1 }}>{s.score.toFixed(0)}</span>
               </div>
               <span style={{ fontSize: 24, color: INK2, marginTop: 4 }}>{`${scoreWord(s.score)} betting`}</span>
+              {top ? <span style={{ fontSize: 20, color: INK3, marginTop: 4 }}>{`${top} of ${s.catalyst.kind === "fda" ? "FDA" : "earnings"} cases`}</span> : null}
             </div>
           </div>
           <div style={{ display: "flex", position: "relative", alignItems: "center", gap: 10, marginTop: "auto", height: 120 }}>

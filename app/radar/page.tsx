@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { getLeaderboard, getRadar, getToday } from "@/lib/data";
+import { getLeaderboard, getRadar, getScorecard, getToday } from "@/lib/data";
 import { similarCases } from "@/lib/similar";
 import { hasSupabase } from "@/lib/env";
 import { RadarList } from "@/components/radar/RadarList";
 import { AskPanel } from "@/components/event/AskPanel";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, fmtPct } from "@/lib/format";
+import { topShare } from "@/lib/rank";
 
 export const metadata: Metadata = {
   title: "Coming up",
@@ -14,18 +15,27 @@ export const metadata: Metadata = {
 export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
   const sp = await searchParams;
   const min = Number(Array.isArray(sp.min) ? sp.min[0] : sp.min) || undefined;
-  const [items, today] = await Promise.all([getRadar(10, min), getToday()]);
+  const [items, today, card] = await Promise.all([getRadar(10, min), getToday(), getScorecard()]);
+  const ranks: Record<string, string> = {};
+  for (const i of items) {
+    const top = i.daysElapsed > 0 ? topShare(i.score, card.kinds.find((k) => k.kind === i.catalyst.kind)?.scores ?? []) : null;
+    if (top) ranks[i.catalyst.id] = top;
+  }
   // How betting like the lead case's has turned out before, chosen the same way the list picks its lead.
   const lead = items.filter((i) => i.windowOpen && i.daysElapsed > 0).sort((a, b) => b.score - a.score)[0];
   let leadHistory: { id: string; text: string } | null = null;
   if (lead && lead.direction !== "mixed") {
-    const sim = similarCases(lead, await getLeaderboard({ kind: lead.catalyst.kind, days: 365, limit: 400 }));
+    const sim = similarCases(lead, await getLeaderboard({ kind: lead.catalyst.kind, limit: 400 }));
     const n = sim.cases.length;
     if (n >= 3) {
       const kind = lead.catalyst.kind === "fda" ? "FDA news" : "earnings";
       leadHistory = {
         id: lead.catalyst.id,
-        text: `Before ${kind}, betting like this (scoring ${sim.lo} to ${sim.hi}, leaning toward a ${lead.direction === "bullish" ? "rise" : "fall"}) has played out ${n} times. The stock moved the bets' way in ${sim.wentTheirWay} and beat the expected move in ${sim.right}.`,
+        text: `Before ${kind}, betting like this (scoring ${sim.lo} to ${sim.hi}, leaning toward a ${lead.direction === "bullish" ? "rise" : "fall"}) has played out ${n} times. The stock moved the bets' way in ${sim.wentTheirWay} and beat the expected move in ${sim.right}${
+          sim.typicalMovePct !== null && sim.typicalExpectedPct !== null
+            ? `; the typical move was ±${fmtPct(sim.typicalMovePct, { sign: false, decimals: 1 })} against ±${fmtPct(sim.typicalExpectedPct, { sign: false, decimals: 1 })} expected`
+            : ""
+        }.`,
       };
     }
   }
@@ -42,7 +52,7 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
           )}
         </p>
       </header>
-      <RadarList items={items} live={hasSupabase()} leadHistory={leadHistory} />
+      <RadarList items={items} live={hasSupabase()} leadHistory={leadHistory} ranks={ranks} />
       <div className="mt-16 max-w-[760px]">
         <AskPanel scope="radar" summary={`The reader is on Coming up, the list of company news due in the next two weeks, as of ${today}.`} />
       </div>

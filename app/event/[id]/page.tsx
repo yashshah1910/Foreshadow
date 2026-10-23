@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getEvent, getLeaderboard, getToday } from "@/lib/data";
+import { getEvent, getLeaderboard, getScorecard, getToday } from "@/lib/data";
 import type { EventSummary } from "@/lib/data";
 import { similarCases, type Similar } from "@/lib/similar";
 import { reactionWindowFor, sessionStarted } from "@foreshadow/core";
@@ -19,6 +19,7 @@ import { Explain } from "@/components/ui/Explain";
 import type { GlossaryKey } from "@/lib/glossary";
 import { caseSummary, directionPlain, eventName, eventPhrase, factsFromStored, OUTCOME_PLAIN, OUTCOME_SHORT, outcomeOf, scoreWord } from "@/lib/plain";
 import { fmtDate, fmtPct } from "@/lib/format";
+import { rankPhrase, stockRankPhrase, topShare } from "@/lib/rank";
 
 export async function generateMetadata({ params }: PageProps<"/event/[id]">): Promise<Metadata> {
   const { id } = await params;
@@ -42,8 +43,12 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
   const session =
     s.catalyst.session === "premarket" ? "before the market opened" : s.catalyst.session === "afterhours" ? "after the market closed" : null;
   const pastRelated = related.filter((r) => r.catalyst.eventDate <= today).slice(0, 6);
-  const pool = await getLeaderboard({ kind: s.catalyst.kind, limit: 400 });
+  const [pool, card] = await Promise.all([getLeaderboard({ kind: s.catalyst.kind, limit: 400 }), getScorecard()]);
   const similar = similarCases(s, pool);
+  const kindScores = card.kinds.find((k) => k.kind === s.catalyst.kind)?.scores ?? [];
+  const kindNoun = s.catalyst.kind === "fda" ? "FDA" : "earnings";
+  const top = topShare(s.score, kindScores);
+  const rank = rankSentence(s, kindScores, kindNoun, related);
   const notes: string[] = [];
   if (s.flags.insufficientHistory) notes.push("This stock had little options trading before, so the comparison is less reliable.");
   if (s.flags.multiCatalyst) notes.push("Another piece of news fell in the same week, so some of the betting may be about that.");
@@ -71,6 +76,7 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
           <span className="ticker tracking-normal">{s.catalyst.ticker}</span> {eventName(s)}
         </h1>
         <p className="prose-plain mt-6 text-[19px]">{caseSummary(s, facts)}</p>
+        {rank ? <p className="prose-plain mt-3 text-[17px] text-ink-2">{rank}</p> : null}
         {notes.length ? (
           <ul className="mt-5 space-y-1.5 text-[15px] text-ink-3">
             {notes.map((n) => (
@@ -84,7 +90,10 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
         <Fact label="Unusual betting" explain="score">
           <span className="numeral text-[34px] text-ink">{s.score >= 70 ? <span className="hl">{s.score.toFixed(0)}</span> : s.score.toFixed(0)}</span>
           <span className="text-[15px] text-ink-3"> / 100</span>
-          <span className="mt-1 block text-[14px] text-ink-3">{scoreWord(s.score)}</span>
+          <span className="mt-1 block text-[14px] text-ink-3">
+            {scoreWord(s.score)}
+            {top ? `, ${top} of ${kindNoun} cases` : ""}
+          </span>
         </Fact>
         <Fact label="The bets leaned" explain="lean">
           <span className="text-[19px] font-semibold text-ink">{directionPlain(s.direction)}</span>
@@ -110,6 +119,8 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
           )}
         </Fact>
       </dl>
+
+      {s.verdict === "pending" && similar.cases.length >= 3 ? <AfterBettingLikeThis s={s} sim={similar} kindNoun={kindNoun} /> : null}
 
       {/* ---------------- The chart ---------------- */}
       <section aria-labelledby="chart-h" className="mt-24">
@@ -210,6 +221,67 @@ function Fact({ label, explain, wide, children }: { label: string; explain?: Glo
       </dt>
       <dd>{children}</dd>
     </div>
+  );
+}
+
+/** Where this score sits among finished cases of the same kind, and among the stock's own. */
+function rankSentence(s: EventSummary, kindScores: number[], kindNoun: string, related: EventSummary[]): string | null {
+  const all = rankPhrase(s.score, kindScores, kindNoun);
+  const own = stockRankPhrase(
+    s.score,
+    related.filter((r) => !r.partialWindow && (r.verdict === "matched" || r.verdict === "missed")).map((r) => r.score),
+    s.catalyst.ticker,
+  );
+  if (!all && !own) return null;
+  const lead = s.partialWindow ? "So far that betting is" : "That betting was";
+  return `${lead} ${[all, own].filter(Boolean).join(", and ")}.`;
+}
+
+/**
+ * For news still to come: how the stock moved after finished cases with betting
+ * like this, next to what options expected. Past results, not a forecast.
+ */
+function AfterBettingLikeThis({ s, sim, kindNoun }: { s: EventSummary; sim: Similar; kindNoun: string }) {
+  const n = sim.cases.length;
+  const lean = s.direction === "bullish" ? "rise" : s.direction === "bearish" ? "fall" : null;
+  return (
+    <section aria-labelledby="after-h" className="tray mt-10 p-2">
+      <div className="px-4 pb-3 pt-4 sm:px-5">
+        <h2 id="after-h" className="text-[19px] font-semibold text-ink">What happened after betting like this</h2>
+        <p className="mt-1 text-[15px] leading-relaxed text-ink-2">
+          {n} finished {kindNoun} cases scored {sim.lo} to {sim.hi}
+          {lean ? ` with bets leaning toward a ${lean}` : ""}. Here is how those stocks moved. It&apos;s a record of the past, not
+          a forecast.
+        </p>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-3">
+        <div className="card px-5 py-4">
+          <p className="text-[14px] font-medium text-ink-3">Moved more than options expected</p>
+          <p className="numeral mt-1 text-[28px] text-ink">
+            {sim.movedMore} <span className="text-[16px] text-ink-3">of {n}</span>
+          </p>
+        </div>
+        <div className="card px-5 py-4">
+          <p className="text-[14px] font-medium text-ink-3">{lean ? `Moved toward a ${lean}, as the bets leaned` : "Bets were right"}</p>
+          <p className="numeral mt-1 text-[28px] text-ink">
+            {lean ? sim.wentTheirWay : sim.right} <span className="text-[16px] text-ink-3">of {n}</span>
+          </p>
+        </div>
+        <div className="card px-5 py-4">
+          <p className="text-[14px] font-medium text-ink-3">Typical move, actual against expected</p>
+          <p className="numeral mt-1 text-[28px] text-ink">
+            {sim.typicalMovePct === null ? "—" : `±${fmtPct(sim.typicalMovePct, { sign: false, decimals: 1 })}`}
+            <span className="text-[16px] text-ink-3">
+              {sim.typicalExpectedPct === null ? "" : ` vs ±${fmtPct(sim.typicalExpectedPct, { sign: false, decimals: 1 })}`}
+            </span>
+          </p>
+        </div>
+      </div>
+      <p className="px-4 pb-2 pt-3 text-[14px] text-ink-3 sm:px-5">
+        This one: options are pricing in about ±{fmtPct(s.impliedMovePct, { sign: false, decimals: 1 })}.{" "}
+        <a href="#similar-h" className="link">See the cases</a>
+      </p>
+    </section>
   );
 }
 

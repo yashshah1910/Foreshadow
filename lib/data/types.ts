@@ -176,7 +176,8 @@ export interface ScorecardBand {
 export interface Scorecard {
   /** Finished cases counted, across every kind. */
   cases: number;
-  kinds: { kind: CatalystKind; cases: number; bands: ScorecardBand[] }[];
+  /** `scores`: every counted case's score, ascending, for ranks (see lib/rank.ts). */
+  kinds: { kind: CatalystKind; cases: number; bands: ScorecardBand[]; scores: number[] }[];
 }
 
 export interface DataSource {
