@@ -17,8 +17,8 @@ interface AskResponse {
 }
 
 const CASE_SUGGESTIONS = ["Why did it score this way?", "What was the biggest bet?", "Has this happened before for this stock?"];
-const PENDING_SUGGESTIONS = ["Why is this betting unusual?", "What would make these bets right?", "Has betting like this been right before?"];
-const STOCK_SUGGESTIONS = ["Does unusual betting show up before its news?", "Which case had the most unusual betting?", "Is any news coming up?"];
+const PENDING_SUGGESTIONS = ["Why is this betting unusual?", "What would make these bets right?", "What's the latest options flow?"];
+const STOCK_SUGGESTIONS = ["Does unusual betting show up before its news?", "Which case had the most unusual betting?", "What's the latest options flow?"];
 const RADAR_SUGGESTIONS = ["Which news coming up has the most unusual betting?", "Is anything leaning toward a fall?", "Has betting like this been right before?"];
 const SCORECARD_SUGGESTIONS = ["Does unusual betting actually work?", "Why are most cases not right?", "What was the best call so far?"];
 
@@ -236,6 +236,6 @@ function Progress({ step, steps }: { step: number; steps: string[] }) {
 }
 
 function Sources({ calls }: { calls: ToolCall[] }) {
-  const names = [...new Set(calls.filter((t) => t.ok).map((t) => SOURCE_NAMES[t.name] ?? (t.source === "uw-mcp" ? "Unusual Whales data" : t.name)))];
+  const names = [...new Set(calls.filter((t) => t.ok).map((t) => SOURCE_NAMES[t.name] ?? (t.source === "uw-mcp" ? "live Unusual Whales data (via its MCP server)" : t.name)))];
   return names.length > 0 ? <p className="mt-3 text-[13px] text-ink-3">Checked: {names.join(", ")}.</p> : null;
 }

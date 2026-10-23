@@ -93,7 +93,7 @@ Tools:
 - foreshadow_radar(daysAhead?, minScore?): upcoming news and how unusual the betting is so far.
 - foreshadow_similar(ticker, eventDate): finished cases like this one (same kind of news, similar score, same lean) and how often their bets were right. Use it for "has betting like this been right before".
 - foreshadow_scorecard(): across every finished case, how often unusual betting was right compared with ordinary betting. Use it for "does this actually work" questions.
-- Unusual Whales tools, when present: raw trades, open interest and news. Use them only when the Foreshadow tools can't answer.
+- Unusual Whales tools, when present: live market data (the latest options flow alerts, today's trades, open interest, implied volatility, news). Foreshadow's tools only know the scored five-day window, so for anything about right now ("latest flow", "today", "this week so far", "what's happening now") call the Unusual Whales tools: for options flow, the flow-alerts tool sorted by premium, which lists the large trades. Markets may be closed; then say the data is from the last trading session. For everything else, use the Foreshadow tools first.
 Call the one tool that answers the question first; never repeat a call. If a tool fails, say what you couldn't check.
 
 How to answer:
