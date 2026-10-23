@@ -92,9 +92,12 @@ describe("investigate (Foreshadow tools only)", () => {
     expect(calls).toHaveLength(3);
     const last = calls[2].params as CreateParams;
     expect(last.tool_choice).toEqual({ type: "none" });
-    expect(last.system).toHaveLength(2);
-    expect(String((last.system as Anthropic.TextBlockParam[])[1].text)).toMatch(/budget exhausted/i);
+    // Earlier thinking blocks are signed against the system prompt, so it must not change; the note rides in the user turn.
+    expect(calls.every((c) => JSON.stringify((c.params as CreateParams).system) === JSON.stringify(first(calls).system))).toBe(true);
     expect(last.messages).toHaveLength(5);
+    const lastUser = last.messages[4].content as Array<{ type: string; text?: string }>;
+    expect(lastUser.map((b) => b.type)).toEqual(["tool_result", "text"]);
+    expect(lastUser[1].text).toMatch(/budget exhausted/i);
     expect(result.stopped).toBe("tool_cap");
     expect(result.answer).toBe("Final answer with what I have.");
     expect(result.toolCalls).toHaveLength(2);
@@ -126,8 +129,10 @@ describe("investigate (Foreshadow tools only)", () => {
     expect(result.toolCalls[0].output).toContain("database offline");
     expect(result.toolCalls[2].output).toBe("tool budget exhausted");
     const second = calls[1].params as CreateParams;
-    const results = second.messages[2].content as Anthropic.ToolResultBlockParam[];
+    const blocks = second.messages[2].content as Array<Anthropic.ToolResultBlockParam | Anthropic.TextBlockParam>;
+    const results = blocks.filter((b): b is Anthropic.ToolResultBlockParam => b.type === "tool_result");
     expect(results.map((r) => [r.tool_use_id, r.is_error])).toEqual([["tu_a", true], ["tu_b", false], ["tu_c", true]]);
+    expect(blocks.at(-1)).toMatchObject({ type: "text", text: expect.stringMatching(/budget exhausted/i) });
     expect(result.stopped).toBe("tool_cap");
   });
 
@@ -155,6 +160,10 @@ describe("investigate (Foreshadow tools only)", () => {
   });
 });
 
+function first(calls: Array<{ params: unknown }>): CreateParams {
+  return calls[0].params as CreateParams;
+}
+
 describe("investigate (checking the answer's figures)", () => {
   it("asks once for a rewrite when a figure isn't in the tool results", async () => {
     const { tools } = makeTools();
@@ -172,6 +181,7 @@ describe("investigate (checking the answer's figures)", () => {
     const last = calls[2].params as CreateParams;
     expect(JSON.stringify(last.messages.at(-1))).toContain("don't appear in the tool results: 12");
     expect(last.tool_choice).toEqual({ type: "none" });
+    expect(last.system).toEqual(first(calls).system);
   });
 
   it("keeps an answer whose figures all come from the results or the question", async () => {

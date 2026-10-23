@@ -69,7 +69,11 @@ export async function POST(request: Request) {
     return Response.json(publicAnswer(result));
   } catch (err) {
     console.error("[ask]", err);
-    const msg = err instanceof NarratorError ? err.message : "Something went wrong while answering. Try again in a moment.";
+    // The raw Claude API message is for the logs, not the reader.
+    const busy = err instanceof NarratorError && (err.status === 429 || err.status === 529);
+    const msg = busy
+      ? "Claude is busy right now. Try again in a minute."
+      : "Something went wrong while answering. Try again in a moment.";
     return Response.json({ error: msg }, { status: 502 });
   }
 }

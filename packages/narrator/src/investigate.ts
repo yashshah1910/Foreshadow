@@ -21,17 +21,20 @@ type TurnLike = { content: ReadonlyArray<AnyBlock>; stop_reason: string | null }
 type ToolResultParam = Pick<Anthropic.ToolResultBlockParam, "type" | "tool_use_id" | "is_error"> & { content: string };
 
 interface Session<T extends TurnLike> {
-  /** `final` adds the budget-exhausted note and forbids further tool use. */
+  /** `final` forbids further tool use. The system prompt never changes between turns: earlier thinking blocks are signed against it. */
   send(final: boolean): Promise<T>;
-  append(turn: T, results: ToolResultParam[]): void;
+  /** `note` rides in the same user turn as the tool results (after them). */
+  append(turn: T, results: ToolResultParam[], note?: string): void;
   /** Adds a plain user message (used to ask for a corrected answer). */
   say(text: string): void;
 }
 
-function systemBlocks<T extends Anthropic.TextBlockParam>(final: boolean): T[] {
-  const blocks = [{ type: "text", text: INVESTIGATOR_SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }] as T[];
-  if (final) blocks.push({ type: "text", text: TOOL_BUDGET_EXHAUSTED_NOTE } as T);
-  return blocks;
+function systemBlocks<T extends Anthropic.TextBlockParam>(): T[] {
+  return [{ type: "text", text: INVESTIGATOR_SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }] as T[];
+}
+
+function userTurn(results: ToolResultParam[], note?: string): Array<ToolResultParam | Anthropic.TextBlockParam> {
+  return note ? [...results, { type: "text", text: note }] : results;
 }
 
 function toolChoice(final: boolean): Anthropic.ToolChoice {
@@ -44,15 +47,15 @@ function plainSession(client: NarratorClient, model: string, messages: Anthropic
       client.messages.create({
         model,
         max_tokens: INVESTIGATE_MAX_TOKENS,
-        system: systemBlocks<Anthropic.TextBlockParam>(final),
+        system: systemBlocks<Anthropic.TextBlockParam>(),
         tools: [...FORESHADOW_TOOL_DEFINITIONS],
         tool_choice: toolChoice(final),
         output_config: { effort: "low" },
         messages,
       }),
-    append: (turn, results) => {
+    append: (turn, results, note) => {
       messages.push({ role: "assistant", content: turn.content });
-      if (results.length > 0) messages.push({ role: "user", content: results });
+      if (results.length > 0 || note) messages.push({ role: "user", content: userTurn(results, note) });
     },
     say: (text) => {
       messages.push({ role: "user", content: text });
@@ -72,16 +75,16 @@ function mcpSession(
         model,
         max_tokens: INVESTIGATE_MAX_TOKENS,
         betas: [MCP_BETA],
-        system: systemBlocks<Anthropic.Beta.BetaTextBlockParam>(final),
+        system: systemBlocks<Anthropic.Beta.BetaTextBlockParam>(),
         mcp_servers: [{ type: "url", url: uwMcp.url, name: UW_MCP_SERVER_NAME, authorization_token: uwMcp.token }],
         tools: [{ type: "mcp_toolset", mcp_server_name: UW_MCP_SERVER_NAME }, ...FORESHADOW_TOOL_DEFINITIONS],
         tool_choice: toolChoice(final),
         output_config: { effort: "low" },
         messages,
       }),
-    append: (turn, results) => {
+    append: (turn, results, note) => {
       messages.push({ role: "assistant", content: turn.content });
-      if (results.length > 0) messages.push({ role: "user", content: results });
+      if (results.length > 0 || note) messages.push({ role: "user", content: userTurn(results, note) });
     },
     say: (text) => {
       messages.push({ role: "user", content: text });
@@ -178,9 +181,10 @@ async function runLoop<T extends TurnLike>(
       toolCalls.push(record);
       results.push({ type: "tool_result", tool_use_id: use.id, content: record.output, is_error: !record.ok });
     }
-    session.append(turn, results);
+    const capped = executed >= maxToolCalls;
+    session.append(turn, results, capped ? TOOL_BUDGET_EXHAUSTED_NOTE : undefined);
 
-    if (executed >= maxToolCalls) {
+    if (capped) {
       const last = await session.send(true);
       recordMcpCalls(last.content, toolCalls);
       return finish(last, model, toolCalls, "tool_cap");
