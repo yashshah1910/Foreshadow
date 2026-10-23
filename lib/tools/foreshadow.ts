@@ -6,10 +6,11 @@
  * trades as examples), never raw Unusual Whales rows or ids.
  */
 
-import { API_SAMPLE_SIZE, getDataSource, sampleTrades, tradeTotals } from "@/lib/data";
+import { API_SAMPLE_SIZE, getDataSource, getScorecard, sampleTrades, tradeTotals } from "@/lib/data";
 import type { EventSummary } from "@/lib/data";
 import { OUTCOME_PLAIN, outcomeOf, scorecardFinding } from "@/lib/plain";
 import { similarCases } from "@/lib/similar";
+import { percentBelow } from "@/lib/rank";
 
 function summarize(s: EventSummary) {
   return {
@@ -51,8 +52,20 @@ export async function foreshadowScore(args: { ticker: string; eventDate: string 
   if (!detail) return { error: "Event not found" };
   const all = detail.footprint.flatMap((d) => d.alerts);
   const totals = tradeTotals(all);
+  const money = detail.stored.breakdown.signals.find((s) => s.key === "directionalPremium")?.detail ?? {};
+  const kindScores = (await getScorecard()).kinds.find((k) => k.kind === pick.catalyst.kind)?.scores ?? [];
   return {
     ...summarize(pick),
+    // Where the score sits among finished cases of the same kind of news.
+    rank: kindScores.length
+      ? { busierThanPct: percentBelow(pick.score, kindScores), outOf: kindScores.length, among: `finished ${pick.catalyst.kind} cases` }
+      : undefined,
+    // Each side on its own, so "bets on a fall" is never quoted as the total.
+    money: {
+      betsOnRise: money.callPremium ?? null,
+      betsOnFall: money.putPremium ?? null,
+      bothSides: money.callPremium !== undefined && money.putPremium !== undefined ? money.callPremium + money.putPremium : null,
+    },
     note: exact[0] ? undefined : `No catalyst exactly on ${args.eventDate}; returning the nearest one.`,
     url: `/event/${encodeURIComponent(pick.catalyst.id)}`,
     signals: detail.stored.breakdown.signals.map((s) => ({
