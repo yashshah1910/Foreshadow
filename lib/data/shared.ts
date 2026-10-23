@@ -114,7 +114,7 @@ export function applyLeaderboardFilters(
 ): EventSummary[] {
   const since = isoDaysAgo(today, filters.days ?? 90);
   const kind = filters.kind ?? "all";
-  const out = rows.filter(
+  const out = oneShareClass(rows).filter(
     (s) =>
       leaderboardEligible(s) &&
       s.catalyst.eventDate >= since &&
@@ -154,8 +154,24 @@ export function toRadarItem(s: EventSummary, today: IsoDate): RadarItem {
   };
 }
 
+/**
+ * One row per company and event: GOOG and GOOGL report the same earnings, so
+ * keep the share class with the higher score (the first seen on a tie).
+ */
+export function oneShareClass<T extends EventSummary>(items: T[]): T[] {
+  const best = new Map<string, T>();
+  for (const s of items) {
+    const company = s.company?.name.toLowerCase().replace(/[^a-z0-9]/g, "") || s.catalyst.ticker;
+    const key = `${company}:${s.catalyst.kind}:${s.catalyst.eventDate}`;
+    const held = best.get(key);
+    if (!held || s.score > held.score) best.set(key, s);
+  }
+  const keep = new Set(best.values());
+  return items.filter((s) => keep.has(s));
+}
+
 export function sortRadar(items: RadarItem[]): RadarItem[] {
-  return [...items].sort((a, b) => {
+  return oneShareClass([...items]).sort((a, b) => {
     if (a.windowOpen !== b.windowOpen) return a.windowOpen ? -1 : 1;
     if (a.windowOpen) return b.score - a.score || a.catalyst.eventDate.localeCompare(b.catalyst.eventDate);
     return a.catalyst.eventDate.localeCompare(b.catalyst.eventDate);
