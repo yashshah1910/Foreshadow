@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { hasSupabase } from "@/lib/env";
+import { env, hasSupabase } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sendMagicLink, signInWithGoogle } from "./actions";
 
@@ -30,6 +30,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getUser();
   if (data.user) redirect(next);
+  const google = await googleEnabled();
 
   return (
     <Shell>
@@ -60,17 +61,43 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
             />
             <button type="submit" className="pressable btn btn-primary w-full">Email me a sign-in link</button>
           </form>
-          <form action={signInWithGoogle} className="mt-3">
-            <input type="hidden" name="next" value={next} />
-            <button type="submit" className="pressable btn w-full bg-surface text-ink hover:bg-surface-3">
-              Continue with Google
-            </button>
-          </form>
+          {google ? (
+            <form action={signInWithGoogle} className="mt-3">
+              <input type="hidden" name="next" value={next} />
+              <button type="submit" className="pressable btn w-full bg-surface text-ink hover:bg-surface-3">
+                Continue with Google
+              </button>
+            </form>
+          ) : null}
         </>
       )}
-      {error ? <p className="mt-4 text-[13px] text-put-ink" role="alert">Sign-in failed: {error}</p> : null}
+      {error ? (
+        <p className="mt-4 text-[14px] text-put-ink" role="alert">
+          {ERRORS[error] ?? `Sign-in failed: ${error}`}
+        </p>
+      ) : null}
     </Shell>
   );
+}
+
+const ERRORS: Record<string, string> = {
+  email: "Enter a full email address.",
+  link: "That sign-in link has expired or was already used. Ask for a new one below.",
+  auth: "That sign-in link has expired or was already used. Ask for a new one below.",
+};
+
+/** Whether the Supabase project has Google sign-in switched on (its public settings say so); checked hourly. */
+async function googleEnabled(): Promise<boolean> {
+  try {
+    const res = await fetch(`${env.supabaseUrl}/auth/v1/settings`, {
+      headers: { apikey: env.supabaseAnonKey ?? "" },
+      next: { revalidate: 3600 },
+    });
+    const json = (await res.json()) as { external?: { google?: boolean } };
+    return Boolean(json.external?.google);
+  } catch {
+    return false;
+  }
 }
 
 function Shell({ children }: { children: React.ReactNode }) {

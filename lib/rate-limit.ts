@@ -20,6 +20,12 @@ export const ASK_LIMITS: Limit[] = [
 ];
 
 /** Summaries are cached after the first write; this only bounds fresh writes. */
+/** Sign-in emails: enough for a typo or two, not enough to spam anyone through our sender. */
+export const SIGN_IN_LIMITS: Limit[] = [
+  { max: 3, windowMs: 10 * MINUTE },
+  { max: 10, windowMs: 24 * HOUR },
+];
+
 export const SUMMARY_LIMITS: Limit[] = [
   { max: 20, windowMs: 10 * MINUTE },
   { max: 120, windowMs: 24 * HOUR },
