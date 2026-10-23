@@ -9,7 +9,7 @@ import { topShare } from "@/lib/rank";
 
 export const metadata: Metadata = {
   title: "Coming up",
-  description: "Company news due in the next two weeks, with the options betting scored day by day as it builds.",
+  description: "Company news due in the next five trading days, with the options betting scored day by day as it builds.",
 };
 
 export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
@@ -44,8 +44,8 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
       <header className="mb-10 max-w-[760px]">
         <h1 className="display text-[44px] text-ink sm:text-[60px]">Coming up</h1>
         <p className="prose-plain mt-5">
-          News scheduled in the next two weeks. Once a stock enters the five trading days before its news, Foreshadow starts
-          scoring the betting, and the score updates through the day. The dots show how many of the five days have passed.
+          News due in the next five trading days. As soon as a stock enters the five trading days before its news, Foreshadow
+          starts scoring the betting, and the score updates through the day. The dots show how many of the five days have passed.
           As of {fmtDate(today, { year: true, weekday: true })}.
           {items.some((i) => i.catalyst.kind === "fda") ? null : (
             <> No FDA decisions with a firm date fall in this window right now, so everything below is earnings.</>
@@ -54,7 +54,7 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
       </header>
       <RadarList items={items} live={hasSupabase()} leadHistory={leadHistory} ranks={ranks} />
       <div className="mt-16 max-w-[760px]">
-        <AskPanel scope="radar" summary={`The reader is on Coming up, the list of company news due in the next two weeks, as of ${today}.`} />
+        <AskPanel scope="radar" summary={`The reader is on Coming up, the list of company news due in the next five trading days, as of ${today}.`} />
       </div>
     </div>
   );

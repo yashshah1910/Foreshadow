@@ -13,7 +13,7 @@ Built for Unusual Whales Hackathon #1 with Next.js 16 and Supabase. The scorer i
 remote MCP server, so Claude can query Foreshadow directly.
 
 The live site covers FDA news from the past year and earnings from the last 90 days (a full year for about 45 of the
-largest companies) for US companies worth over $2B with listed options, and scores news coming up in the next two weeks every 15 minutes.
+largest companies) for US companies worth over $2B with listed options, and scores news coming up in the next five trading days every 15 minutes.
 
 ### A two-minute tour
 
@@ -33,7 +33,7 @@ largest companies) for US companies worth over $2B with listed options, and scor
 | **Past cases** `/leaderboard` | Finished news events (the last 90 days unless you pick another window), ranked by how unusual the betting was, with which way the bets leaned, the move options priced in, the actual move, and whether the bets were right. Filters: FDA or earnings, very unusual only, bets were right, 30 days, 90 days or a year; sort by most unusual, newest or biggest move. |
 | **Case page** `/event/[id]` | One case end to end: a day-by-day chart (stock price on top, one row per measurement below, the five counted days highlighted), every large trade behind the score, the score's arithmetic, a Claude summary, and "Ask about this case". **Replay the days** steps through the chart one trading day at a time with a plain caption, and **Cases like this one** shows how past cases of the same kind, with a similar score and lean, turned out. Shareable, with a generated preview image. |
 | **Stock page** `/ticker/[t]` | Every case for one stock on a timeline, its track record ("very unusual 3 times, right 2 of those") and a Claude summary. It also says when the stock's next news is and when scoring starts, with an RSS feed and a calendar for that stock. Stocks whose news isn't scored yet show what's queued. |
-| **Coming up** `/radar` | A calendar of news due in the next two weeks, grouped by day, scored on the part of the five-day window that has already happened, with the most unusual betting so far at the top. Updates arrive through Supabase Realtime. Ask Claude "which news coming up has the most unusual betting?" right on the page. |
+| **Coming up** `/radar` | A calendar of news due in the next five trading days, grouped by day, scored on the part of the five-day window that has already happened, with the most unusual betting so far at the top. Updates arrive through Supabase Realtime. Ask Claude "which news coming up has the most unusual betting?" right on the page. |
 | **Scorecard** `/scorecard` | Foreshadow grading itself in public: across every finished case, how often the bets were right by kind of news and score band, against ordinary betting as the yardstick. A lift is only claimed when it clears a significance check at that sample size. Ask Claude "does this actually work?" on the page. |
 | **Guess the move** `/guess` | A five-round game on real finished cases: see the ten days of betting before the news with the result hidden, call rise or fall, then compare your record with simply following the bets. Play all cases, FDA news only or earnings only; ↑/↓ on the keyboard work too. |
 | **RSS** `/feed.xml` | Upcoming news once its betting turns unusual, plus recent unusual cases, for any feed reader or a Discord RSS bot. |
@@ -48,15 +48,15 @@ largest companies) for US companies worth over $2B with listed options, and scor
 | --- | --- |
 | ![A case page: what happened, the score, the expected and actual move, and the result](docs/screenshots/case.png) | ![Replay the days: the chart reveals one trading day at a time, with each day in words below](docs/screenshots/replay.png) |
 | **Case page**: what happened and whether the bets were right | **Replay the days** and the counted days in words |
-| ![Scorecard: how often unusual betting was right, against ordinary betting](docs/screenshots/scorecard.png) | ![Coming up: a calendar of news in the next two weeks, scored as the betting builds](docs/screenshots/coming-up.png) |
-| **Scorecard**: Foreshadow grading itself in public | **Coming up**: the next two weeks, scored day by day |
+| ![Scorecard: how often unusual betting was right, against ordinary betting](docs/screenshots/scorecard.png) | ![Coming up: a calendar of news in the next five trading days, scored as the betting builds](docs/screenshots/coming-up.png) |
+| **Scorecard**: Foreshadow grading itself in public | **Coming up**: the next five trading days, scored day by day |
 | ![Ask about this case: a short answer with bullets, from the case's data](docs/screenshots/ask.png) | ![Guess the move: a real case with the result hidden, then revealed](docs/screenshots/guess.png) |
 | **Ask about this case**: Claude with Foreshadow's tools and the UW MCP | **Guess the move**: call rise or fall from the betting, then see if you beat the bets |
 
 ## Run it locally
 
 ```bash
-git clone <repo> && cd foreshadow && pnpm install
+git clone https://github.com/yashshah1910/Foreshadow.git && cd Foreshadow && pnpm install
 cp .env.example .env      # leave everything empty for demo mode
 pnpm dev                  # http://localhost:3000
 ```

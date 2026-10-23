@@ -98,7 +98,7 @@ export function RadarList({
             <CaseList rows={mine} mode="live" ranks={ranks} />
           ) : (
             <p className="tray px-6 py-5 text-[15px] text-ink-2">
-              None of your stocks has news in the next two weeks. Foreshadow will list them here once one does.
+              None of your stocks has news in the next five trading days. Foreshadow will list them here once one does.
             </p>
           )}
         </section>

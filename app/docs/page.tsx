@@ -48,7 +48,7 @@ export default async function DocsPage() {
       <ul className="mt-6 grid gap-2 sm:grid-cols-2">
         {[
           ["/leaderboard", "Past cases", "Every finished case, ranked by how unusual the betting was, and whether it was right. The last 90 days or a year."],
-          ["/radar", "Coming up", "A calendar of news in the next two weeks, scored day by day as the betting builds."],
+          ["/radar", "Coming up", "A calendar of news in the next five trading days, scored day by day as the betting builds."],
           ["/scorecard", "Scorecard", "How often unusual betting has actually been right, against ordinary betting."],
           ["/ticker/TSLA", "Stock pages", "One stock's whole track record. Use the search box at the top to find any company."],
           ["#mcp", "Ask Claude", "Add Foreshadow to Claude or Cursor as a tool, or ask on any case, stock, Coming up or Scorecard page."],

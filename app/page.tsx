@@ -169,9 +169,9 @@ export default async function Home() {
         <WindowsDiagram />
         {unusual > 0 ? (
           <p className="prose-plain mt-10 max-w-[720px] text-[18px]">
-            So far Foreshadow has checked <strong>{checked.toLocaleString("en-US")} past events</strong> from the last 90 days, and
-            the betting was unusual before <strong>{unusual}</strong> of them. Whether unusual betting tends to be right, compared
-            with ordinary betting, is just below.
+            In the last 90 days alone, Foreshadow checked <strong>{checked.toLocaleString("en-US")} past events</strong>, and the
+            betting was unusual before <strong>{unusual}</strong> of them. Whether unusual betting tends to be right, compared with
+            ordinary betting, is just below, over all {scorecard.cases.toLocaleString("en-US")} finished cases.
           </p>
         ) : null}
       </section>
@@ -232,7 +232,7 @@ export default async function Home() {
             <Link href="/radar" className="pressable btn btn-soft h-10 text-[14.5px]">Everything coming up</Link>
           </div>
           <p className="prose-plain mb-7 max-w-[720px]">
-            News due in the next two weeks where the five-day count has already started. The score fills in day by day.
+            News due in the next five trading days, where the five-day count has already started. The score fills in day by day.
           </p>
           <CaseList rows={upcoming} mode="live" />
         </section>

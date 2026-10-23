@@ -372,16 +372,23 @@ export class SupabaseDataSource implements DataSource {
     const today = todayIso();
     const horizon = upcomingTradingDays(today, opts.daysAhead ?? 10);
     const last = horizon[horizon.length - 1];
-    const { data, error } = await this.db
-      .from("scores")
-      .select(LIST_COLUMNS)
-      .eq("partial_window", true)
-      .gt("event_date", today)
-      .lte("event_date", last)
-      .order("score", { ascending: false })
-      .limit(300);
-    if (error) throw error;
-    const items = ((data ?? []) as unknown as ScoreRow[])
+    // Every scored upcoming case, a page at a time: a cut-off by score silently dropped the quiet ones (MSFT, META).
+    const rows: ScoreRow[] = [];
+    for (let from = 0; from < 3000; from += 1000) {
+      const { data, error } = await this.db
+        .from("scores")
+        .select(LIST_COLUMNS)
+        .eq("partial_window", true)
+        .gt("event_date", today)
+        .lte("event_date", last)
+        .order("score", { ascending: false })
+        .order("catalyst_id")
+        .range(from, from + 999);
+      if (error) throw error;
+      rows.push(...((data ?? []) as unknown as ScoreRow[]));
+      if (!data || data.length < 1000) break;
+    }
+    const items = rows
       .map((r) => this.summaryOf(r))
       .filter((s): s is EventSummary => s !== null)
       .map((s) => toRadarItem(s, today))
