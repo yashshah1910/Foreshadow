@@ -195,13 +195,13 @@ export class SupabaseDataSource implements DataSource {
 
   async getScorecard(): Promise<Scorecard> {
     type Row = Pick<ScoreRow, "score" | "direction" | "verdict" | "partial_window" | "flags" | "realized_move_pct" | "implied_move_pct"> & {
-      catalysts: { kind: CatalystKind } | { kind: CatalystKind }[] | null;
+      catalysts: { kind: CatalystKind; title: string } | { kind: CatalystKind; title: string }[] | null;
     };
     const rows: Row[] = [];
     for (let from = 0; ; from += 1000) {
       const { data, error } = await this.db
         .from("scores")
-        .select("score, direction, verdict, partial_window, flags, realized_move_pct, implied_move_pct, catalysts!inner(kind)")
+        .select("score, direction, verdict, partial_window, flags, realized_move_pct, implied_move_pct, catalysts!inner(kind, title)")
         .eq("partial_window", false)
         .in("verdict", ["matched", "missed"])
         .order("catalyst_id")
@@ -216,6 +216,7 @@ export class SupabaseDataSource implements DataSource {
         const cat = Array.isArray(r.catalysts) ? r.catalysts[0] : r.catalysts;
         return {
           kind: cat?.kind ?? "earnings",
+          title: cat?.title,
           score: num(r.score) ?? 0,
           direction: r.direction,
           verdict: r.verdict,

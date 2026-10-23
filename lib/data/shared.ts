@@ -189,6 +189,41 @@ export const SCORECARD_BANDS: { min: number; max: number; label: string }[] = [
   { min: 70, max: 100, label: "70 and up" },
 ];
 
+/**
+ * FDA news comes in two sorts: decisions and trial readouts (binary, market-moving) and routine updates
+ * (presentations, enrollment, dosing, designations). The scorecard tests them apart, so a lift can't come
+ * from simply mixing the two.
+ */
+const FDA_READOUT = /^(top-?line|pdufa|approved|fda approv|fda clearance|positive (results|data|topline|top-line)|results|endpoint|efficacy|marketing authori[sz]ation|positive opinion|complete response|crl|adcom|advisory committee|approval|primary endpoint|phase 3 results|data readout|readout)/i;
+
+export function fdaNewsType(title: string): "readout" | "update" {
+  return FDA_READOUT.test(title.trim()) ? "readout" : "update";
+}
+
+const FDA_GROUPS = [
+  { key: "readout", label: "Decisions and trial readouts" },
+  { key: "update", label: "Routine updates" },
+] as const;
+
+function bandsOf(list: ScorecardCase[]): ScorecardBand[] {
+  return SCORECARD_BANDS.map(({ min, max, label }) => {
+    const inBand = list.filter((r) => Math.round(r.score) >= min && Math.round(r.score) <= max);
+    const leaned = inBand.filter((r) => r.direction !== "mixed" && r.realizedMovePct !== null);
+    return {
+      min,
+      max,
+      label,
+      cases: inBand.length,
+      right: inBand.filter((r) => r.verdict === "matched").length,
+      movedMore: inBand.filter(
+        (r) => r.realizedMovePct !== null && r.impliedMovePct !== null && r.impliedMovePct > 0 && Math.abs(r.realizedMovePct) >= r.impliedMovePct,
+      ).length,
+      leaned: leaned.length,
+      leanedRight: leaned.filter((r) => (r.direction === "bullish") === (r.realizedMovePct! > 0)).length,
+    };
+  });
+}
+
 /** Groups finished cases by kind of news and score band. Kinds with no cases are left out. */
 export function buildScorecard(rows: ScorecardCase[]): Scorecard {
   const kinds = new Map<ScorecardCase["kind"], ScorecardCase[]>();
@@ -201,23 +236,14 @@ export function buildScorecard(rows: ScorecardCase[]): Scorecard {
   }
   const out: Scorecard["kinds"] = [];
   for (const [kind, list] of kinds) {
-    const bands: ScorecardBand[] = SCORECARD_BANDS.map(({ min, max, label }) => {
-      const inBand = list.filter((r) => Math.round(r.score) >= min && Math.round(r.score) <= max);
-      const leaned = inBand.filter((r) => r.direction !== "mixed" && r.realizedMovePct !== null);
-      return {
-        min,
-        max,
-        label,
-        cases: inBand.length,
-        right: inBand.filter((r) => r.verdict === "matched").length,
-        movedMore: inBand.filter(
-          (r) => r.realizedMovePct !== null && r.impliedMovePct !== null && r.impliedMovePct > 0 && Math.abs(r.realizedMovePct) >= r.impliedMovePct,
-        ).length,
-        leaned: leaned.length,
-        leanedRight: leaned.filter((r) => (r.direction === "bullish") === (r.realizedMovePct! > 0)).length,
-      };
-    });
-    out.push({ kind, cases: list.length, bands, scores: list.map((r) => r.score).sort((a, b) => a - b) });
+    const groups =
+      kind === "fda"
+        ? FDA_GROUPS.map((g) => {
+            const sub = list.filter((r) => fdaNewsType(r.title ?? "") === g.key);
+            return { key: g.key, label: g.label, cases: sub.length, bands: bandsOf(sub) };
+          })
+        : undefined;
+    out.push({ kind, cases: list.length, bands: bandsOf(list), scores: list.map((r) => r.score).sort((a, b) => a - b), groups });
   }
   out.sort((a, b) => b.cases - a.cases);
   return { cases: out.reduce((n, k) => n + k.cases, 0), kinds: out };
@@ -232,5 +258,6 @@ export function scorecardCases(rows: EventSummary[]): ScorecardCase[] {
     verdict: s.verdict,
     realizedMovePct: s.realizedMovePct,
     impliedMovePct: s.impliedMovePct,
+    title: s.catalyst.title,
   }));
 }

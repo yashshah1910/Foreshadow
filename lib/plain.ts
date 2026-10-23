@@ -186,8 +186,8 @@ function timesPhrase(times: number): string {
  * One honest sentence per kind: unusual (40+) against ordinary (under 20). Only cases where the bets leaned
  * can be right, so the rates count those; a lift is claimed only past a one-sided two-sample test.
  */
-export function scorecardFinding(kind: string, bands: ScorecardBand[]): string {
-  const noun = kind === "fda" ? "FDA news" : kind === "earnings" ? "earnings" : "this kind of news";
+export function scorecardFinding(kind: string, bands: ScorecardBand[], nounOverride?: string): string {
+  const noun = nounOverride ?? (kind === "fda" ? "FDA news" : kind === "earnings" ? "earnings" : "this kind of news");
   const unusual = bands.filter((b) => b.min >= 40);
   const u = { leaned: unusual.reduce((n, b) => n + b.leaned, 0), right: unusual.reduce((n, b) => n + b.right, 0) };
   const ordinary = bands.find((b) => b.min === 0);

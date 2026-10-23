@@ -46,6 +46,17 @@ export default async function ScorecardPage() {
             <p className="text-[14px] font-medium text-ink-3">{KIND_LABELS[k.kind] ?? k.kind}</p>
             <p className="mt-2 text-[19px] font-semibold leading-snug text-ink">{scorecardFinding(k.kind, k.bands)}</p>
             <FindingBars bands={k.bands} scaleMax={Math.max(10, ...card.kinds.flatMap((x) => findingRates(x.bands)))} />
+            {k.groups ? (
+              <div className="mt-5 grid gap-1.5">
+                <p className="text-[14px] font-medium text-ink-3">Tested apart, so the mix of news can&apos;t explain it</p>
+                {k.groups.map((g) => (
+                  <p key={g.key} className="card px-4 py-3 text-[14.5px] leading-relaxed text-ink-2">
+                    <span className="font-semibold text-ink">{g.label}</span> ({g.cases} cases):{" "}
+                    {scorecardFinding(k.kind, g.bands, g.key === "readout" ? "FDA decisions and trial readouts" : "routine FDA updates")}
+                  </p>
+                ))}
+              </div>
+            ) : null}
           </div>
         ))}
       </section>

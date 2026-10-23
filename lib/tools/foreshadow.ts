@@ -113,6 +113,8 @@ export async function foreshadowHistory(args: { ticker: string }) {
   };
 }
 
+const GROUP_NOUN = { readout: "FDA decisions and trial readouts", update: "routine FDA updates" } as const;
+
 export async function foreshadowScorecard() {
   const card = await getDataSource().getScorecard();
   return {
@@ -130,6 +132,12 @@ export async function foreshadowScorecard() {
         rightPct: b.leaned ? Math.round((b.right / b.leaned) * 100) : null,
         movedMoreThanExpectedPct: b.cases ? Math.round((b.movedMore / b.cases) * 100) : null,
         movedWithLeanPct: b.leaned ? Math.round((b.leanedRight / b.leaned) * 100) : null,
+      })),
+      // FDA only: the same test within decisions and readouts, and within routine updates.
+      groups: k.groups?.map((g) => ({
+        group: g.label,
+        cases: g.cases,
+        finding: scorecardFinding(k.kind, g.bands, GROUP_NOUN[g.key]),
       })),
     })),
   };

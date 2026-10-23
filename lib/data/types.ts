@@ -153,6 +153,8 @@ export interface PastCounts {
 /** One finished case, reduced to what the scorecard needs. */
 export interface ScorecardCase {
   kind: CatalystKind;
+  /** The news title, used to tell FDA decisions and readouts from routine updates. */
+  title?: string;
   score: number;
   direction: Direction;
   verdict: Verdict;
@@ -179,7 +181,14 @@ export interface Scorecard {
   /** Finished cases counted, across every kind. */
   cases: number;
   /** `scores`: every counted case's score, ascending, for ranks (see lib/rank.ts). */
-  kinds: { kind: CatalystKind; cases: number; bands: ScorecardBand[]; scores: number[] }[];
+  kinds: {
+    kind: CatalystKind;
+    cases: number;
+    bands: ScorecardBand[];
+    scores: number[];
+    /** FDA only: the same bands for decisions and readouts, and for routine updates. */
+    groups?: { key: "readout" | "update"; label: string; cases: number; bands: ScorecardBand[] }[];
+  }[];
 }
 
 export interface DataSource {

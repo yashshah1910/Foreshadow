@@ -96,3 +96,15 @@ describe("outcomeOf", () => {
     expect(outcomeOf({ verdict: "missed", direction: "bullish", realizedMovePct: null })).toBe("none");
   });
 });
+
+describe("fdaNewsType", () => {
+  it("tells decisions and readouts from routine updates", async () => {
+    const { fdaNewsType } = await import("@/lib/data/shared");
+    for (const t of ["Top-line results: TNX-103", "PDUFA date: XR-12", "Approved: Zelvo", "FDA clearance", "Positive results: phase 2", "Primary endpoint met"]) {
+      expect(fdaNewsType(t), t).toBe("readout");
+    }
+    for (const t of ["Provided update: NV-387", "Poster presentation: Jornay PM", "Enrollment update", "Dose update", "Designation grant: orphan drug"]) {
+      expect(fdaNewsType(t), t).toBe("update");
+    }
+  });
+});

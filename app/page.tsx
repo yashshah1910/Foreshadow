@@ -151,8 +151,8 @@ export default async function Home() {
         <h2 id="how-h" className="display text-[34px] text-ink sm:text-[42px]">How it works</h2>
         <ol className="mt-10 grid gap-10 md:grid-cols-3 md:gap-8">
           <Step n="1" title="Find the scheduled news">
-            FDA decisions, drug trial results and company earnings reports, from the Unusual Whales calendars. Each one has a date set in advance,
-            so there is a clear &ldquo;before&rdquo; to look at.
+            FDA decisions, drug trial results and company earnings reports, from the Unusual Whales calendars. Each one has a date on the
+            calendar, so there is a clear &ldquo;before&rdquo; to look at.
           </Step>
           <Step n="2" title="Measure the betting before it">
             In the five trading days before the news: how much money went into options bets, how lopsided it was, and how
