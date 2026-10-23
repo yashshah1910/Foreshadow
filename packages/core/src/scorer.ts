@@ -62,6 +62,21 @@ export const MIXED_THRESHOLD = 0.5;
 export const MONEY_AGREEMENT = 2 / 3;
 
 /**
+ * What a reader calls the bets: calls and puts bought at the asking price. Rows stored before the
+ * bought split existed fall back to every call and put traded.
+ */
+export function betsOf(m: Pick<DailyMetrics, "callPremium" | "putPremium" | "boughtCallPremium" | "boughtPutPremium">): { rise: number; fall: number } {
+  return { rise: m.boughtCallPremium ?? m.callPremium, fall: m.boughtPutPremium ?? m.putPremium };
+}
+
+/** The same over the five counted days, from the directional measurement's detail. */
+export function windowBets(detail: Record<string, number> | undefined): { rise: number; fall: number; traded: number } {
+  const d = detail ?? {};
+  const traded = (d.callPremium ?? 0) + (d.putPremium ?? 0);
+  return { rise: d.boughtCallPremium ?? d.callPremium ?? 0, fall: d.boughtPutPremium ?? d.putPremium ?? 0, traded };
+}
+
+/**
  * The composite direction reads each measure against the stock's normal, so a
  * call-heavy stock can read "bearish" when its calls are merely fewer than
  * usual. Readers see the absolute money, so a lean that contradicts it becomes
@@ -199,6 +214,8 @@ export function dailyMetrics(day: DailyFootprint): DailyMetrics {
     callPremium,
     putPremium,
     netPremium: askCall - askPut,
+    boughtCallPremium: askCall,
+    boughtPutPremium: askPut,
     sweepShare: alertCount === 0 ? 0 : sweeps / alertCount,
     oiAbs,
     oiCallMinusPut: oiCall - oiPut,
@@ -275,6 +292,8 @@ export function scoreEvent(input: ScoreInput): ScoreResult {
       netPremiumPerDay: round(netFp, 0),
       callPremium: round(fp.reduce((s, m) => s + m.callPremium, 0), 0),
       putPremium: round(fp.reduce((s, m) => s + m.putPremium, 0), 0),
+      boughtCallPremium: round(fp.reduce((s, m) => s + (m.boughtCallPremium ?? 0), 0), 0),
+      boughtPutPremium: round(fp.reduce((s, m) => s + (m.boughtPutPremium ?? 0), 0), 0),
       askSidePositiveDays: fp.filter((m) => m.netPremium > 0).length,
     },
   });
@@ -400,7 +419,7 @@ export function scoreEvent(input: ScoreInput): ScoreResult {
   let direction: Direction = "mixed";
   if (directionScore > MIXED_THRESHOLD) direction = "bullish";
   else if (directionScore < -MIXED_THRESHOLD) direction = "bearish";
-  direction = agreeWithMoney(direction, directionalPremium.detail.callPremium, directionalPremium.detail.putPremium, netFp, oiImbalance);
+  direction = agreeWithMoney(direction, directionalPremium.detail.boughtCallPremium, directionalPremium.detail.boughtPutPremium, netFp, oiImbalance);
 
   // ---- Flags ------------------------------------------------------------
   const baselineDaysWithActivity = base.filter(hasActivity).length;

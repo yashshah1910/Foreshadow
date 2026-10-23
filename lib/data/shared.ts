@@ -1,4 +1,5 @@
 import {
+  betsOf,
   footprintWindow,
   partialFootprintWindow,
   sessionStarted,
@@ -19,8 +20,9 @@ export function buildStrip(stored: StoredScore): StripDay[] {
     const inWindow = window.has(date);
     return {
       date,
-      call: m?.callPremium ?? 0,
-      put: m?.putPremium ?? 0,
+      // Bets: calls and puts bought at the asking price (see betsOf).
+      call: m ? betsOf(m).rise : 0,
+      put: m ? betsOf(m).fall : 0,
       inWindow,
       future: !m && stored.partialWindow && inWindow,
     };

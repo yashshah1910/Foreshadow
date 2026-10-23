@@ -16,5 +16,9 @@ export function sampleTrades(alerts: readonly FlowAlert[], n: number): SampleTra
 
 /** Count and total amount over every flagged trade. */
 export function tradeTotals(alerts: readonly FlowAlert[]): TradeTotals {
-  return { count: alerts.length, premium: alerts.reduce((sum, a) => sum + a.premium, 0) };
+  return {
+    count: alerts.length,
+    premium: alerts.reduce((sum, a) => sum + a.premium, 0),
+    bought: alerts.reduce((sum, a) => sum + (a.side === "ask" ? a.premium : 0), 0),
+  };
 }

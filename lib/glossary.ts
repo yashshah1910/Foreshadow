@@ -6,7 +6,7 @@ export const GLOSSARY = {
   },
   lean: {
     title: "Which way the bets leaned",
-    body: "Mostly calls means bets on the stock rising; mostly puts means bets on it falling. 'No clear side' means the money was split.",
+    body: "Calls bought at the asking price are bets on the stock rising; puts bought are bets on it falling. Trades sold at the bid don't count. 'No clear side' means the bought money was split.",
   },
   expected: {
     title: "Expected move",

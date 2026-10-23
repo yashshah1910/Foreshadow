@@ -2,9 +2,11 @@ import type { SampleTrade, TradeTotals } from "@/lib/data";
 import { fmtDate, fmtExpiry, fmtMoney, fmtStrike } from "@/lib/format";
 import { money } from "@/lib/plain";
 
+const SIDE_WORD = { ask: "bought", bid: "sold", mid: "between prices" } as const;
+
 /** A few of the biggest trades behind the score, as examples, checkable on Unusual Whales. */
 export function AlertsPanel({ trades, ticker, stats }: { trades: SampleTrade[]; ticker: string; stats: TradeTotals }) {
-  const { count, premium: total } = stats;
+  const { count, premium: total, bought } = stats;
   return (
     <section aria-labelledby="alerts-h">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -16,13 +18,15 @@ export function AlertsPanel({ trades, ticker, stats }: { trades: SampleTrade[]; 
       <p className="mt-2 max-w-[640px] text-[16px] leading-relaxed text-ink-2">
         {count === 0
           ? "No large options trades were flagged in these five days."
-          : `${count.toLocaleString("en-US")} large options ${count === 1 ? "trade was" : "trades were"} flagged in these five days, worth ${money(total)} in total. A call pays off if the stock rises above its price; a put pays off if it falls below.`}
+          : `${count.toLocaleString("en-US")} large options ${count === 1 ? "trade was" : "trades were"} flagged in these five days, worth ${money(total)} in total${
+              bought !== undefined && total > 0 ? `. ${money(bought)} of it was bought at the asking price; those are the bets. The rest was sold or traded between the two prices` : ""
+            }. A call pays off if the stock rises above its price; a put pays off if it falls below.`}
       </p>
       {trades.length > 0 ? (
         <table className="mt-6 w-full border-separate border-spacing-y-1 text-[15px]">
           <thead>
             <tr className="text-left text-[13px] font-medium text-ink-3">
-              <th className="px-3 pb-1 font-medium">Bet</th>
+              <th className="px-3 pb-1 font-medium">Trade</th>
               <th className="px-3 pb-1 font-medium">Strike, expiry</th>
               <th className="hidden px-3 pb-1 font-medium sm:table-cell">Day</th>
               <th className="px-3 pb-1 text-right font-medium">Amount</th>
@@ -36,6 +40,7 @@ export function AlertsPanel({ trades, ticker, stats }: { trades: SampleTrade[]; 
                     <span aria-hidden="true">{a.type === "call" ? "↑" : "↓"}</span>
                     {a.type === "call" ? "Call" : "Put"}
                   </span>
+                  {a.side ? <span className="block text-[13px] text-ink-3">{SIDE_WORD[a.side]}</span> : null}
                 </td>
                 <td className="px-3 py-3 text-ink tnum">
                   {fmtStrike(a.strike)}, {fmtExpiry(a.expiry)}
@@ -43,7 +48,7 @@ export function AlertsPanel({ trades, ticker, stats }: { trades: SampleTrade[]; 
                 </td>
                 <td className="hidden px-3 py-3 text-ink-2 tnum sm:table-cell">
                   {fmtDate(a.tradeDate, { weekday: true })}
-                  {a.isSweep ? <span className="block text-[13px] text-ink-3">Bought fast across exchanges</span> : null}
+                  {a.isSweep ? <span className="block text-[13px] text-ink-3">Filled fast across exchanges</span> : null}
                 </td>
                 <td className="px-3 py-3 text-right font-semibold text-ink tnum">{fmtMoney(a.premium)}</td>
               </tr>

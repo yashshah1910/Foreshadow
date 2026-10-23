@@ -2,7 +2,7 @@
  * Plain-English wording for every number Foreshadow shows. One place, so
  * every page says the same thing the same way.
  */
-import type { Direction, StoredScore, Verdict } from "@foreshadow/core";
+import { windowBets, type Direction, type StoredScore, type Verdict } from "@foreshadow/core";
 import type { EventSummary, ScorecardBand } from "@/lib/data";
 import { fmtDate, fmtPct } from "@/lib/format";
 
@@ -151,8 +151,8 @@ export function factsFromStored(stored: StoredScore): CaseFacts {
   const sig = (k: string) => stored.breakdown.signals.find((s) => s.key === k);
   const dir = sig("directionalPremium");
   const flow = sig("flowIntensity");
-  const call = dir?.detail.callPremium ?? 0;
-  const put = dir?.detail.putPremium ?? 0;
+  // Bets are calls and puts bought at the asking price; trades sold at the bid don't count.
+  const { rise: call, fall: put } = windowBets(dir?.detail);
   const premium = call + put;
   const timesNormal = flow && flow.baselineMean > 0 ? flow.footprintValue / flow.baselineMean : null;
   return { premium, callShare: premium > 0 ? call / premium : 0.5, timesNormal };

@@ -1,15 +1,15 @@
-import type { DailyMetrics } from "@foreshadow/core";
+import { betsOf, type DailyMetrics } from "@foreshadow/core";
 import { fmtDate } from "@/lib/format";
 import { money } from "@/lib/plain";
 
 /**
- * The counted days in words: what was bet on a rise and on a fall each day,
+ * The counted days in words: what was bet on a rise and on a fall each day (calls and puts bought),
  * and how that compares with a normal day for this stock.
  */
 export function FiveDays({ daily, windowDays, normalPerDay }: { daily: DailyMetrics[]; windowDays: string[]; normalPerDay: number | null }) {
   const byDate = new Map(daily.map((d) => [d.date, d]));
   const days = windowDays.map((date) => ({ date, m: byDate.get(date) ?? null }));
-  const max = Math.max(1, ...days.map(({ m }) => (m ? m.callPremium + m.putPremium : 0)));
+  const max = Math.max(1, ...days.map(({ m }) => (m ? betsOf(m).rise + betsOf(m).fall : 0)));
   if (days.length === 0) return null;
   return (
     <section aria-labelledby="five-h" className="mt-14">
@@ -18,8 +18,8 @@ export function FiveDays({ daily, windowDays, normalPerDay }: { daily: DailyMetr
       </h3>
       <ol className="tray mt-4 grid gap-1.5 p-2">
         {days.map(({ date, m }) => {
-          const call = m?.callPremium ?? 0;
-          const put = m?.putPremium ?? 0;
+          const call = m ? betsOf(m).rise : 0;
+          const put = m ? betsOf(m).fall : 0;
           const total = call + put;
           const times = normalPerDay && normalPerDay > 0 && total > 0 ? total / normalPerDay : null;
           const lead = put > call ? [`${money(put)} on a fall`, call > 0 ? `${money(call)} on a rise` : null] : [`${money(call)} on a rise`, put > 0 ? `${money(put)} on a fall` : null];

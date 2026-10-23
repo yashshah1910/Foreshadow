@@ -22,9 +22,9 @@ function alert(id: string, premium: number, executedAt: string): FlowAlert {
 }
 
 describe("toTradeExample", () => {
-  it("drops ids, rule names and every other raw field", () => {
+  it("drops ids, rule names and every other raw field, keeping whether it was bought or sold", () => {
     const t = toTradeExample(alert("792a03e1", 309_060, "2026-09-22T16:54:27Z"));
-    expect(t).toEqual({ tradeDate: "2026-09-22", type: "put", strike: 25, expiry: "2026-11-20", premium: 309_060, isSweep: false });
+    expect(t).toEqual({ tradeDate: "2026-09-22", type: "put", strike: 25, expiry: "2026-11-20", premium: 309_060, isSweep: false, side: "bid" });
   });
 });
 

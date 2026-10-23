@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { DailyMetrics, OhlcBar, SignalBreakdown } from "@foreshadow/core";
+import { betsOf, type DailyMetrics, type OhlcBar, type SignalBreakdown } from "@foreshadow/core";
 import { useMeasure } from "@/lib/hooks/useMeasure";
 import { bandPath } from "@/components/viz/Highlight";
 import { money } from "@/lib/plain";
@@ -299,7 +299,8 @@ function replayCaption(m: ReturnType<typeof layout>, p: TraceProps, i: number): 
   const mt = m.metricsOf(day);
   const counted = p.windowDays.includes(day);
   const side = (v: number, what: string) => (v > 0 ? `${money(v)} bet on a ${what}` : `no large bets on a ${what}`);
-  const bets = mt && (mt.callPremium > 0 || mt.putPremium > 0) ? `${side(mt.callPremium, "rise")}, ${side(mt.putPremium, "fall")}` : "no large bets flagged";
+  const b = mt ? betsOf(mt) : null;
+  const bets = b && (b.rise > 0 || b.fall > 0) ? `${side(b.rise, "rise")}, ${side(b.fall, "fall")}` : "no large bets flagged";
   return counted ? `${date}: ${bets}. This day counts toward the score.` : `${date}: ${bets}. A normal day, for comparison.`;
 }
 
@@ -329,8 +330,11 @@ function TraceTooltip(props: {
       <TipRow label="Close" value={close !== null ? `$${close.toFixed(2)}` : "—"} />
       {metrics ? (
         <>
-          <TipRow label="Bets on a rise" value={fmtMoney(metrics.callPremium)} swatch="call" />
-          <TipRow label="Bets on a fall" value={fmtMoney(metrics.putPremium)} swatch="put" />
+          <TipRow label="Bets on a rise" value={fmtMoney(betsOf(metrics).rise)} swatch="call" />
+          <TipRow label="Bets on a fall" value={fmtMoney(betsOf(metrics).fall)} swatch="put" />
+          {metrics.boughtCallPremium !== undefined ? (
+            <TipRow label="Sold, not counted" value={fmtMoney(Math.max(0, metrics.callPremium + metrics.putPremium - betsOf(metrics).rise - betsOf(metrics).fall))} />
+          ) : null}
           <TipRow label="Large bets" value={String(metrics.alertCount)} />
           <TipRow label="New contracts" value={fmtInt(metrics.oiAbs)} />
           {metrics.volumePercentile !== null ? <TipRow label="Volume vs. normal" value={`${metrics.volumePercentile}th pct`} /> : null}
@@ -471,21 +475,26 @@ function layout(p: TraceProps, width: number) {
     if (key === "flow") {
       const mid = plotTop + h / 2;
       base = mid;
-      const max = Math.max(1, ...days.map((d) => Math.max(val(d)?.callPremium ?? 0, val(d)?.putPremium ?? 0)));
+      const bet = (d: string) => {
+        const mt = val(d);
+        return mt ? betsOf(mt) : { rise: 0, fall: 0 };
+      };
+      const max = Math.max(1, ...days.map((d) => Math.max(bet(d).rise, bet(d).fall)));
       const half = h / 2 - 2;
       let best = 0;
       days.forEach((d, i) => {
         const mt = val(d);
         if (!mt) return;
         const x = xOf(i) - barW / 2;
-        const ch = (mt.callPremium / max) * half;
-        const ph = (mt.putPremium / max) * half;
+        const { rise, fall } = bet(d);
+        const ch = (rise / max) * half;
+        const ph = (fall / max) * half;
         if (ch > 0) marks.push({ kind: "bar", x, y: mid - ch - 1, w: barW, h: ch, cls: "fill-call", op: opFor(d) });
         if (ph > 0) marks.push({ kind: "bar", x, y: mid + 1, w: barW, h: ph, cls: "fill-put", op: opFor(d) });
-        const v = Math.max(mt.callPremium, mt.putPremium);
+        const v = Math.max(rise, fall);
         if (windowSet.has(d) && v > best) {
           best = v;
-          const isCall = mt.callPremium >= mt.putPremium;
+          const isCall = rise >= fall;
           const flip = i > n * 0.6;
           peak = {
             x: flip ? x - 6 : x + barW + 6,

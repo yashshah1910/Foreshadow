@@ -70,7 +70,7 @@ export default async function DocsPage() {
       <dl className="tray mt-6 grid gap-1.5 p-2 text-[16px]">
         {[
           ["Unusual betting (score)", "0 to 100. How far the options activity in the five days before the news was above this stock's normal level. 40 and up is unusual; 70 and up is very unusual."],
-          ["Bets on a rise / a fall", "Which way the money leaned. Mostly calls bought at the asking price means bets on a rise; mostly puts means bets on a fall."],
+          ["Bets on a rise / a fall", "Calls bought at the asking price are bets on a rise; puts bought at the asking price are bets on a fall. Trades sold at the bid (someone taking the other side) aren't counted as bets."],
           ["Expected move", "How big a move options prices implied for the news, in either direction."],
           ["Actual move", "How much the stock really moved: from the close before the news to the close after it."],
           ["Bets were right / wrong", "Right means the stock moved at least as much as expected, and in the direction the bets leaned. Otherwise, wrong."],

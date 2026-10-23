@@ -11,6 +11,7 @@ import type { EventSummary } from "@/lib/data";
 import { OUTCOME_PLAIN, outcomeOf, scorecardFinding } from "@/lib/plain";
 import { similarCases } from "@/lib/similar";
 import { percentBelow } from "@/lib/rank";
+import { windowBets } from "@foreshadow/core";
 
 /** A date close enough to mean the same news: a typo or a timezone slip, not a different quarter. */
 const NEAREST_DAYS = 10;
@@ -63,12 +64,11 @@ export async function foreshadowScore(args: { ticker: string; eventDate: string 
     rank: kindScores.length
       ? { busierThanPct: percentBelow(pick.score, kindScores), outOf: kindScores.length, among: `finished ${pick.catalyst.kind} cases` }
       : undefined,
-    // Each side on its own, so "bets on a fall" is never quoted as the total.
-    money: {
-      betsOnRise: money.callPremium ?? null,
-      betsOnFall: money.putPremium ?? null,
-      bothSides: money.callPremium !== undefined && money.putPremium !== undefined ? money.callPremium + money.putPremium : null,
-    },
+    // Bets are calls and puts bought at the asking price; trades sold at the bid are reported apart.
+    money: (() => {
+      const b = windowBets(money);
+      return { betsOnRise: b.rise, betsOnFall: b.fall, bothSides: b.rise + b.fall, soldOrUnclear: Math.max(0, b.traded - b.rise - b.fall) };
+    })(),
     note: exact[0] ? undefined : `No catalyst exactly on ${args.eventDate}; returning the nearest one.`,
     url: `/event/${encodeURIComponent(pick.catalyst.id)}`,
     signals: detail.stored.breakdown.signals.map((s) => ({

@@ -73,6 +73,8 @@ export interface TradeExample {
   /** Total amount paid, USD. */
   premium: number;
   isSweep: boolean;
+  /** Which side most of it traded on: "ask" = bought, "bid" = sold. Missing on older rows. */
+  side?: OrderSide;
 }
 
 export interface OiChange {
@@ -195,6 +197,12 @@ export interface DailyMetrics {
   putPremium: number;
   /** Ask-side call premium minus ask-side put premium. */
   netPremium: number;
+  /**
+   * Calls and puts bought at the asking price: the bets on a rise and on a fall. `callPremium` and
+   * `putPremium` also count trades sold at the bid. Missing on rows stored before 2026-10-23.
+   */
+  boughtCallPremium?: number;
+  boughtPutPremium?: number;
   sweepShare: number;
   oiAbs: number;
   oiCallMinusPut: number;

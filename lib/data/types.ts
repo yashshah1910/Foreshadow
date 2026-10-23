@@ -78,6 +78,8 @@ export interface EventDetail {
 export interface TradeTotals {
   count: number;
   premium: number;
+  /** The part bought at the asking price: the bets. */
+  bought?: number;
 }
 
 /** One flagged trade shown as an example of the betting behind a score. */

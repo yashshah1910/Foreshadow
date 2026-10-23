@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { WEIGHTS, agreeWithMoney, clipZ, scoreBand, scoreEvent, zScore } from "../src/scorer";
+import { WEIGHTS, agreeWithMoney, betsOf, clipZ, scoreBand, scoreEvent, zScore } from "../src/scorer";
 import { bearishSpikeInput, bullishSpikeInput, quietInput } from "./helpers";
 
 describe("scorer primitives", () => {
@@ -63,7 +63,7 @@ describe("scoreEvent", () => {
 
   it("keeps no Unusual Whales ids or raw fields on the top trades", () => {
     const r = scoreEvent(bearishSpikeInput("ACME", "2026-10-22"));
-    for (const a of r.topAlerts) expect(Object.keys(a).sort()).toEqual(["expiry", "isSweep", "premium", "strike", "tradeDate", "type"]);
+    for (const a of r.topAlerts) expect(Object.keys(a).sort()).toEqual(["expiry", "isSweep", "premium", "side", "strike", "tradeDate", "type"]);
   });
 
   it("a bullish call spike reads bullish", () => {
@@ -167,6 +167,19 @@ describe("agreeWithMoney", () => {
     expect(agreeWithMoney("bearish", 1_600_000, 1_540_000)).toBe("bearish");
     expect(agreeWithMoney("bullish", 0, 0)).toBe("bullish");
     expect(agreeWithMoney("mixed", 5, 1)).toBe("mixed");
+  });
+
+  it("counts only calls and puts bought at the asking price as bets", () => {
+    const r = scoreEvent(bearishSpikeInput("ACME", "2026-10-22"));
+    const d = r.signals.find((s) => s.key === "directionalPremium")!.detail;
+    expect(d.boughtCallPremium + d.boughtPutPremium).toBeLessThanOrEqual(d.callPremium + d.putPremium);
+    for (const m of r.daily) {
+      expect(m.boughtCallPremium).toBeLessThanOrEqual(m.callPremium);
+      expect(m.boughtPutPremium).toBeLessThanOrEqual(m.putPremium);
+    }
+    expect(betsOf({ callPremium: 10, putPremium: 8, boughtCallPremium: 6, boughtPutPremium: 1 })).toEqual({ rise: 6, fall: 1 });
+    // Rows stored before the split fall back to every call and put.
+    expect(betsOf({ callPremium: 10, putPremium: 8 })).toEqual({ rise: 10, fall: 8 });
   });
 
   it("turns a lean into mixed when premium, net ask-side premium and open interest all favour the other side", () => {

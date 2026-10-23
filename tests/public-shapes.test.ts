@@ -7,7 +7,8 @@ import { publicAnswer } from "@/lib/ask";
 import { API_SAMPLE_SIZE, sampleTrades, tradeTotals } from "@/lib/data/sample";
 import { foreshadowHistory, foreshadowRadar, foreshadowScore, foreshadowSimilar } from "@/lib/tools/foreshadow";
 
-const TRADE_KEYS = ["expiry", "isSweep", "premium", "strike", "tradeDate", "type"];
+// `side` is Foreshadow's bought/sold reading of the trade (ask or bid), not a raw UW field.
+const TRADE_KEYS = ["expiry", "isSweep", "premium", "side", "strike", "tradeDate", "type"];
 
 function alert(id: string, premium: number, executedAt = "2026-09-15T15:00:00Z"): FlowAlert {
   return {
@@ -49,7 +50,7 @@ describe("sampleTrades", () => {
   });
 
   it("totals every trade, not just the sample", () => {
-    expect(tradeTotals([alert("a", 10), alert("b", 30)])).toEqual({ count: 2, premium: 40 });
+    expect(tradeTotals([alert("a", 10), alert("b", 30)])).toEqual({ count: 2, premium: 40, bought: 40 });
   });
 });
 
@@ -74,7 +75,7 @@ describe("foreshadow_score", () => {
     const premiums = res.trades.largest.map((t) => t.premium);
     expect(premiums).toEqual([...premiums].sort((a, b) => b - a));
     const keys = keysDeep(res);
-    for (const raw of ["executedAt", "size", "side", "openInterest", "underlyingPrice", "rule", "alerts", "oiChanges", "darkPool"]) {
+    for (const raw of ["executedAt", "size", "openInterest", "underlyingPrice", "rule", "alerts", "oiChanges", "darkPool"]) {
       expect(keys.has(raw), raw).toBe(false);
     }
   });
