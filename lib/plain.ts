@@ -178,9 +178,23 @@ export function scorecardFinding(kind: string, bands: ScorecardBand[]): string {
   if (z >= 1.65 && u.right >= 3) {
     const times = op >= 1 ? up / op : Infinity;
     const ratio = times > 20 ? "far more often than" : times >= 1.95 ? `about ${Math.round(times)} times as often as` : "more often than";
-    return `Before ${noun}, unusual betting was right ${up.toFixed(0)}% of the time, ${ratio} ordinary betting (${op.toFixed(0)}%).${early}`;
+    return `Before ${noun}, unusual betting was right ${up.toFixed(0)}% of the time, ${ratio} ordinary betting (${op.toFixed(0)}%).${edgeClause(unusual, ordinary)}${early}`;
   }
   return `Before ${noun}, unusual betting hasn't clearly beaten ordinary betting so far: ${up.toFixed(0)}% right against ${op.toFixed(0)}%.${early}`;
+}
+
+/**
+ * Where a lift comes from. "Right" needs both a big move and the right direction; when unusual betting
+ * only beats ordinary betting on size, say so rather than imply it knew which way.
+ */
+function edgeClause(unusual: ScorecardBand[], ordinary: ScorecardBand): string {
+  const sum = (k: "cases" | "movedMore" | "leaned" | "leanedRight") => unusual.reduce((n, b) => n + b[k], 0);
+  const bigU = pct(sum("movedMore"), sum("cases"));
+  const bigO = pct(ordinary.movedMore, ordinary.cases);
+  const wayU = pct(sum("leanedRight"), sum("leaned"));
+  const wayO = pct(ordinary.leanedRight, ordinary.leaned);
+  if (sum("leaned") < 5 || wayU > wayO + 5) return "";
+  return ` The edge is in the size of the move: the stock moved more than options expected ${bigU.toFixed(0)}% of the time, against ${bigO.toFixed(0)}%. Which way it moved was close to a coin flip (${wayU.toFixed(0)}% the way the bets leaned).`;
 }
 
 /** Kinds of news ordered so a finding that shows a lift comes first, then by case count. */
