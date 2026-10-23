@@ -36,8 +36,11 @@ export function AlertsPanel({ trades, ticker, stats }: { trades: SampleTrade[]; 
             {trades.map((a, i) => (
               <tr key={i} className="align-top odd:bg-surface-2 [&>td:first-child]:rounded-l-xl [&>td:last-child]:rounded-r-xl">
                 <td className="px-3 py-3">
-                  <span className={`inline-flex items-center gap-1 font-semibold ${a.type === "call" ? "text-call-ink" : "text-put-ink"}`}>
-                    <span aria-hidden="true">{a.type === "call" ? "↑" : "↓"}</span>
+                  {/* Only a bought trade is a bet with a direction; a sold one is someone taking the other side. */}
+                  <span
+                    className={`inline-flex items-center gap-1 font-semibold ${a.side && a.side !== "ask" ? "text-ink-2" : a.type === "call" ? "text-call-ink" : "text-put-ink"}`}
+                  >
+                    {a.side && a.side !== "ask" ? null : <span aria-hidden="true">{a.type === "call" ? "↑" : "↓"}</span>}
                     {a.type === "call" ? "Call" : "Put"}
                   </span>
                   {a.side ? <span className="block text-[13px] text-ink-3">{SIDE_WORD[a.side]}</span> : null}

@@ -31,7 +31,7 @@ export const FORESHADOW_TOOL_DEFINITIONS: readonly Anthropic.Tool[] = [
     input_schema: {
       type: "object",
       properties: {
-        daysAhead: { type: "integer", description: "How many calendar days ahead to include (default 10)" },
+        daysAhead: { type: "integer", description: "Trading days ahead to look (1-30, default 10); only news within five trading days is scored yet" },
         minScore: { type: "number", description: "Only return catalysts scoring at least this (0-100)" },
       },
       required: [],

@@ -51,7 +51,7 @@ server.registerTool(
     description: "Upcoming catalysts ranked by the footprint forming in their partial window.",
     annotations: READ_ONLY,
     inputSchema: z.object({
-      daysAhead: z.number().int().min(1).max(30).default(10),
+      daysAhead: z.number().int().min(1).max(30).default(10).describe("Trading days ahead to look (1-30, default 10); only news within five trading days is scored yet"),
       minScore: z.number().min(0).max(100).optional(),
     }),
   },

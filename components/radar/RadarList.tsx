@@ -12,6 +12,8 @@ import { directionPlain, eventName } from "@/lib/plain";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useWatchlist } from "@/lib/hooks/useWatchlist";
 
+const DAY_ROWS = 12;
+
 export function RadarList({
   items,
   live,
@@ -27,6 +29,8 @@ export function RadarList({
 }) {
   const router = useRouter();
   const [lastEvent, setLastEvent] = useState<string | null>(null);
+  // A busy day can hold a hundred companies; show the most unusual first and the rest on request.
+  const [shownAll, setShownAll] = useState<Set<string>>(() => new Set());
 
   // Supabase Realtime: any change to `scores` refreshes the server data in place.
   useEffect(() => {
@@ -148,7 +152,16 @@ export function RadarList({
                   {rows.length} {rows.length === 1 ? "company" : "companies"}
                 </span>
               </h2>
-              <CaseList rows={rows} mode="live" header={i === 0} ranks={ranks} />
+              <CaseList rows={shownAll.has(day) ? rows : rows.slice(0, DAY_ROWS)} mode="live" header={i === 0} ranks={ranks} />
+              {rows.length > DAY_ROWS && !shownAll.has(day) ? (
+                <button
+                  type="button"
+                  className="pressable btn btn-soft mt-2 h-9 text-[14px]"
+                  onClick={() => setShownAll((s) => new Set(s).add(day))}
+                >
+                  Show the other {rows.length - DAY_ROWS}
+                </button>
+              ) : null}
             </section>
           ))}
         </div>

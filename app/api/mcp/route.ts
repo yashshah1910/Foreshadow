@@ -30,10 +30,10 @@ const handler = createMcpHandler(
       {
         title: "Live Radar: upcoming catalysts ranked by partial footprint",
         description:
-          "Upcoming catalysts in the next N trading days, each scored on the part of its footprint window that has already happened, ranked by score.",
+          "Upcoming catalysts in the next N trading days, each scored on the part of its footprint window that has already happened, ranked by score. Scoring starts when a stock enters the five trading days before its news, so in practice the list holds news up to five trading days out.",
         annotations: READ_ONLY,
         inputSchema: z.object({
-          daysAhead: z.number().int().min(1).max(30).default(10).describe("Trading days ahead (default 10)"),
+          daysAhead: z.number().int().min(1).max(30).default(10).describe("Trading days ahead to look (1-30, default 10); only news within five trading days is scored yet"),
           minScore: z.number().min(0).max(100).optional().describe("Only return open windows with at least this score"),
         }),
       },
