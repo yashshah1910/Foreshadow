@@ -202,6 +202,47 @@ function edgeClause(unusual: ScorecardBand[], ordinary: ScorecardBand): string {
   return ` The edge is in the size of the move: the stock moved more than options expected ${bigU.toFixed(0)}% of the time, against ${bigO.toFixed(0)}%. Which way it moved was close to a coin flip (${wayU.toFixed(0)}% the way the bets leaned).`;
 }
 
+export interface HeadlineFinding {
+  kind: string;
+  /** "FDA news" */
+  noun: string;
+  /** Share of unusual (40+) cases where the stock moved more than options expected, and of ordinary (under 20) ones. */
+  unusualPct: number;
+  ordinaryPct: number;
+  unusualCases: number;
+  ordinaryCases: number;
+}
+
+/**
+ * The strongest claim the record supports, for the landing: the kind of news where, after unusual betting,
+ * the stock moved more than options expected clearly more often than after ordinary betting (the same
+ * one-sided z-test the scorecard uses). Null when no kind clears it.
+ */
+export function headlineFinding(kinds: { kind: string; bands: ScorecardBand[] }[]): HeadlineFinding | null {
+  let best: HeadlineFinding | null = null;
+  let bestZ = -Infinity;
+  for (const k of kinds) {
+    const unusual = k.bands.filter((b) => b.min >= 40);
+    const ordinary = k.bands.find((b) => b.min === 0);
+    const n = unusual.reduce((a, b) => a + b.cases, 0);
+    const hits = unusual.reduce((a, b) => a + b.movedMore, 0);
+    if (!ordinary || ordinary.cases < MIN_CASES || n < MIN_CASES || hits < 3) continue;
+    const p0 = Math.min(Math.max(ordinary.movedMore / ordinary.cases, 0.01), 0.99);
+    const z = (hits / n - p0) / Math.sqrt((p0 * (1 - p0)) / n);
+    if (z < 1.65 || z <= bestZ) continue;
+    bestZ = z;
+    best = {
+      kind: k.kind,
+      noun: k.kind === "fda" ? "FDA news" : k.kind === "earnings" ? "earnings" : "this kind of news",
+      unusualPct: Math.round(pct(hits, n)),
+      ordinaryPct: Math.round(pct(ordinary.movedMore, ordinary.cases)),
+      unusualCases: n,
+      ordinaryCases: ordinary.cases,
+    };
+  }
+  return best;
+}
+
 /** Kinds of news ordered so a finding that shows a lift comes first, then by case count. */
 export function kindsLiftFirst<K extends { kind: string; cases: number; bands: ScorecardBand[] }>(kinds: K[]): K[] {
   const lift = (k: K) => Number(/as often as|more often than/.test(scorecardFinding(k.kind, k.bands)));

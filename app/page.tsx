@@ -9,7 +9,7 @@ import { WindowsDiagram } from "@/components/landing/WindowsDiagram";
 import { VerdictMark } from "@/components/viz/Marks";
 import { CopyCommand } from "@/components/ui/CopyCommand";
 import { env } from "@/lib/env";
-import { eventName, eventPhrase, kindsLiftFirst, scorecardFinding, scoreWord } from "@/lib/plain";
+import { eventName, eventPhrase, headlineFinding, kindsLiftFirst, scorecardFinding, scoreWord } from "@/lib/plain";
 import { fmtDate, fmtPct, KIND_LABELS } from "@/lib/format";
 
 // Live numbers on the landing: render per request.
@@ -28,6 +28,7 @@ export default async function Home() {
   const exampleSummary = all.find((s) => s.verdict === "matched" && s.score >= 40) ?? all[0] ?? null;
   const example = exampleSummary ? await getEvent(exampleSummary.catalyst.id) : null;
   const { checked, unusual } = stats.past;
+  const finding = headlineFinding(scorecard.kinds);
   const upcoming = radar.filter((r) => r.windowOpen).slice(0, 4);
   // The most unusual betting on news still to come, for the line under the opening buttons.
   const live = [...radar.filter((r) => r.windowOpen && r.score >= 40)].sort((a, b) => b.score - a.score)[0] ?? null;
@@ -50,6 +51,28 @@ export default async function Home() {
               checks what the stock actually did.
             </p>
           </div>
+          {finding ? (
+            <Link href="/scorecard" className="tray group mt-8 block p-2 transition-colors hover:bg-surface-3">
+              <span className="block px-3 pb-2 pt-1.5 text-[13.5px] font-medium text-ink-3">What the record shows, before {finding.noun}</span>
+              <span className="grid grid-cols-2 gap-1.5">
+                <span className="card px-4 py-3">
+                  <span className="numeral block text-[30px] text-ink">{finding.unusualPct}%</span>
+                  <span className="mt-0.5 block text-[14px] leading-snug text-ink-2">
+                    of {finding.unusualCases} cases with unusual betting moved more than options expected
+                  </span>
+                </span>
+                <span className="card px-4 py-3">
+                  <span className="numeral block text-[30px] text-ink">{finding.ordinaryPct}%</span>
+                  <span className="mt-0.5 block text-[14px] leading-snug text-ink-2">
+                    of {finding.ordinaryCases} cases with ordinary betting did
+                  </span>
+                </span>
+              </span>
+              <span className="block px-3 pb-1 pt-2 text-[13.5px] text-ink-3 group-hover:text-ink">
+                Big moves, not which way: see the scorecard <span aria-hidden="true">→</span>
+              </span>
+            </Link>
+          ) : null}
           <div className="mt-9 flex flex-wrap items-center gap-3">
             <Link href="/leaderboard" className="pressable btn btn-primary">Browse past cases</Link>
             <Link href="/radar" className="pressable btn btn-soft">See what&apos;s coming up</Link>

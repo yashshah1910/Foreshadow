@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { caseSummary } from "@/lib/plain";
+import { caseSummary, headlineFinding } from "@/lib/plain";
 import type { EventSummary } from "@/lib/data";
 
 const summary = (over: Partial<EventSummary>): EventSummary =>
@@ -71,5 +71,19 @@ describe("caseSummary for FDA news", () => {
       { premium: 3_200_000, callShare: 0.2, timesNormal: 9 },
     );
     expect(text).toContain("before TENX's news on Aug 10 (Top-line results: TNX-103)");
+  });
+});
+
+describe("headlineFinding", () => {
+  const band = (min: number, max: number, cases: number, movedMore: number) => ({ min, max, label: `${min}`, cases, right: 0, movedMore, leaned: 0, leanedRight: 0 });
+  it("names the kind where unusual betting clearly came before bigger moves", () => {
+    const f = headlineFinding([
+      { kind: "earnings", bands: [band(0, 19, 692, 208), band(20, 39, 316, 98), band(40, 69, 47, 15), band(70, 100, 1, 0)] },
+      { kind: "fda", bands: [band(0, 19, 400, 56), band(20, 39, 150, 30), band(40, 69, 30, 8), band(70, 100, 0, 0)] },
+    ]);
+    expect(f).toMatchObject({ kind: "fda", noun: "FDA news", unusualPct: 27, ordinaryPct: 14, unusualCases: 30 });
+  });
+  it("claims nothing when no kind clears the test", () => {
+    expect(headlineFinding([{ kind: "earnings", bands: [band(0, 19, 692, 208), band(40, 69, 47, 15)] }])).toBeNull();
   });
 });
