@@ -82,6 +82,9 @@ interface FootprintRow {
 }
 
 const IN_CHUNK = 200;
+/** Busy tickers' flow alerts run to hundreds of KB a day; read those endpoints a few days per query so a read can't time out. */
+const HEAVY_IN_CHUNK = 10;
+const HEAVY_ENDPOINTS: ReadonlySet<string> = new Set(["flow-alerts", "oi-change", "darkpool"]);
 const UPSERT_CHUNK = 500;
 /** Keep each upsert well under Postgres' statement timeout: big tickers carry thousands of contracts per day. */
 const UPSERT_MAX_BYTES = 1_500_000;
@@ -154,7 +157,7 @@ export class SupabaseCache implements FootprintCache {
   async getMany<T>(ticker: string, tradeDates: IsoDate[], endpoint: CacheEndpoint): Promise<Map<IsoDate, T>> {
     const out = new Map<IsoDate, T>();
     if (tradeDates.length === 0) return out;
-    for (const dates of chunk([...new Set(tradeDates)], IN_CHUNK)) {
+    for (const dates of chunk([...new Set(tradeDates)], HEAVY_ENDPOINTS.has(endpoint) ? HEAVY_IN_CHUNK : IN_CHUNK)) {
       const data = await withRetry("footprint cache read failed", async () =>
         this.supabase
           .from(this.table)
