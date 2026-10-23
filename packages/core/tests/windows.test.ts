@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   addTradingDays,
+  todayIso,
   baselineWindow,
   chartWindow,
   footprintWindow,
@@ -76,5 +77,12 @@ describe("trading calendar", () => {
       "2026-10-26",
       "2026-10-27",
     ]);
+  });
+});
+
+describe("todayIso", () => {
+  it("uses New York's date, not UTC's", () => {
+    expect(todayIso(new Date("2026-10-23T03:30:00Z"))).toBe("2026-10-22");
+    expect(todayIso(new Date("2026-10-23T14:00:00Z"))).toBe("2026-10-23");
   });
 });

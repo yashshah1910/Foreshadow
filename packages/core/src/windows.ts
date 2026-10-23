@@ -42,8 +42,13 @@ export function toIso(d: Date): IsoDate {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * Today's date in New York, where the market's day is counted. The UTC date
+ * runs a day ahead every evening from 8 PM ET, and Unusual Whales rejects
+ * requests for that "future" date.
+ */
 export function todayIso(now: Date = new Date()): IsoDate {
-  return toIso(now);
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
 }
 
 export function isWeekend(date: IsoDate): boolean {
