@@ -12,6 +12,15 @@ import { OUTCOME_PLAIN, outcomeOf, scorecardFinding } from "@/lib/plain";
 import { similarCases } from "@/lib/similar";
 import { percentBelow } from "@/lib/rank";
 
+/** A date close enough to mean the same news: a typo or a timezone slip, not a different quarter. */
+const NEAREST_DAYS = 10;
+
+function nearest(events: EventSummary[], date: string): EventSummary | undefined {
+  const at = Date.parse(date);
+  const dist = (e: EventSummary) => Math.abs(Date.parse(e.catalyst.eventDate) - at) / 86_400_000;
+  return [...events].filter((e) => dist(e) <= NEAREST_DAYS).sort((a, b) => dist(a) - dist(b))[0];
+}
+
 function summarize(s: EventSummary) {
   return {
     id: s.catalyst.id,
@@ -40,14 +49,8 @@ export async function foreshadowScore(args: { ticker: string; eventDate: string 
   const dossier = await ds.getTickerDossier(ticker);
   if (!dossier) return { error: `No scored catalysts for ${ticker}` };
   const exact = dossier.events.filter((e) => e.catalyst.eventDate === args.eventDate);
-  const pick =
-    exact[0] ??
-    [...dossier.events].sort(
-      (a, b) =>
-        Math.abs(Date.parse(a.catalyst.eventDate) - Date.parse(args.eventDate)) -
-        Math.abs(Date.parse(b.catalyst.eventDate) - Date.parse(args.eventDate)),
-    )[0];
-  if (!pick) return { error: `No catalyst for ${ticker} near ${args.eventDate}` };
+  const pick = exact[0] ?? nearest(dossier.events, args.eventDate);
+  if (!pick) return { error: `No scored news for ${ticker} within ${NEAREST_DAYS} days of ${args.eventDate}` };
   const detail = await ds.getEvent(pick.catalyst.id);
   if (!detail) return { error: "Event not found" };
   const all = detail.footprint.flatMap((d) => d.alerts);
@@ -115,7 +118,7 @@ export async function foreshadowScorecard() {
   return {
     cases: card.cases,
     definition:
-      "The bets were right when the stock moved at least as much as options priced in, in the direction the bets leaned. The 0-19 band is ordinary betting, the yardstick.",
+      "The bets were right when the stock moved at least as much as options priced in, in the direction the bets leaned. rightPct counts only cases where the bets leaned (leanedCases). The 0-19 band is ordinary betting, the yardstick; findings claim a lift only past a one-sided two-sample test (z >= 1.65).",
     kinds: card.kinds.map((k) => ({
       kind: k.kind,
       cases: k.cases,
@@ -123,7 +126,8 @@ export async function foreshadowScorecard() {
       bands: k.bands.map((b) => ({
         scores: b.label,
         cases: b.cases,
-        rightPct: b.cases ? Math.round((b.right / b.cases) * 100) : null,
+        leanedCases: b.leaned,
+        rightPct: b.leaned ? Math.round((b.right / b.leaned) * 100) : null,
         movedMoreThanExpectedPct: b.cases ? Math.round((b.movedMore / b.cases) * 100) : null,
         movedWithLeanPct: b.leaned ? Math.round((b.leanedRight / b.leaned) * 100) : null,
       })),
@@ -135,14 +139,8 @@ export async function foreshadowSimilar(args: { ticker: string; eventDate: strin
   const ds = getDataSource();
   const ticker = args.ticker.trim().toUpperCase();
   const dossier = await ds.getTickerDossier(ticker);
-  const target =
-    dossier?.events.find((e) => e.catalyst.eventDate === args.eventDate) ??
-    [...(dossier?.events ?? [])].sort(
-      (a, b) =>
-        Math.abs(Date.parse(a.catalyst.eventDate) - Date.parse(args.eventDate)) -
-        Math.abs(Date.parse(b.catalyst.eventDate) - Date.parse(args.eventDate)),
-    )[0];
-  if (!target) return { error: `No scored catalysts for ${ticker}` };
+  const target = dossier?.events.find((e) => e.catalyst.eventDate === args.eventDate) ?? nearest(dossier?.events ?? [], args.eventDate);
+  if (!target) return { error: `No scored news for ${ticker} within ${NEAREST_DAYS} days of ${args.eventDate}` };
   const pool = await ds.getLeaderboard({ kind: target.catalyst.kind, limit: 400 });
   const sim = similarCases(target, pool);
   return {
