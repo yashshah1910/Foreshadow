@@ -39,7 +39,8 @@ async function main() {
   const changes = rows.flatMap((r) => {
     const detail = r.signals?.find((s) => s.key === "directionalPremium")?.detail;
     if (!detail) return [];
-    const direction = agreeWithMoney(r.direction, detail.callPremium ?? 0, detail.putPremium ?? 0);
+    const oi = r.signals?.find((s) => s.key === "openInterest")?.detail;
+    const direction = agreeWithMoney(r.direction, detail.callPremium ?? 0, detail.putPremium ?? 0, detail.netPremiumPerDay ?? 0, oi?.imbalance ?? 0);
     if (direction === r.direction) return [];
     const verdict: Verdict = r.verdict === "matched" ? "missed" : r.verdict;
     return [{ id: r.catalyst_id, from: r.direction, direction, verdict, wasMatched: r.verdict === "matched" }];

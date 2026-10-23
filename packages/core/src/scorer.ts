@@ -64,15 +64,26 @@ export const MONEY_AGREEMENT = 2 / 3;
 /**
  * The composite direction reads each measure against the stock's normal, so a
  * call-heavy stock can read "bearish" when its calls are merely fewer than
- * usual. Readers see the absolute money, so a lean that contradicts it (at
- * least twice as much premium on the other side) becomes "mixed".
+ * usual. Readers see the absolute money, so a lean that contradicts it becomes
+ * "mixed": at least twice as much premium on the other side, or the other side
+ * ahead on all three of premium, net ask-side premium and open-interest build.
  */
-export function agreeWithMoney(direction: Direction, callPremium: number, putPremium: number): Direction {
+export function agreeWithMoney(
+  direction: Direction,
+  callPremium: number,
+  putPremium: number,
+  netPremium = 0,
+  oiImbalance = 0,
+): Direction {
   const total = callPremium + putPremium;
   if (total <= 0 || direction === "mixed") return direction;
   const callShare = callPremium / total;
   if (direction === "bearish" && callShare >= MONEY_AGREEMENT) return "mixed";
   if (direction === "bullish" && 1 - callShare >= MONEY_AGREEMENT) return "mixed";
+  const callsAhead = callPremium > putPremium && netPremium > 0 && oiImbalance > 0;
+  const putsAhead = putPremium > callPremium && netPremium < 0 && oiImbalance < 0;
+  if (direction === "bearish" && callsAhead) return "mixed";
+  if (direction === "bullish" && putsAhead) return "mixed";
   return direction;
 }
 /** Dark pool prints below this notional are ignored. */
@@ -389,7 +400,7 @@ export function scoreEvent(input: ScoreInput): ScoreResult {
   let direction: Direction = "mixed";
   if (directionScore > MIXED_THRESHOLD) direction = "bullish";
   else if (directionScore < -MIXED_THRESHOLD) direction = "bearish";
-  direction = agreeWithMoney(direction, directionalPremium.detail.callPremium, directionalPremium.detail.putPremium);
+  direction = agreeWithMoney(direction, directionalPremium.detail.callPremium, directionalPremium.detail.putPremium, netFp, oiImbalance);
 
   // ---- Flags ------------------------------------------------------------
   const baselineDaysWithActivity = base.filter(hasActivity).length;

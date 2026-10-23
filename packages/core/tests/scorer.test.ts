@@ -168,4 +168,13 @@ describe("agreeWithMoney", () => {
     expect(agreeWithMoney("bullish", 0, 0)).toBe("bullish");
     expect(agreeWithMoney("mixed", 5, 1)).toBe("mixed");
   });
+
+  it("turns a lean into mixed when premium, net ask-side premium and open interest all favour the other side", () => {
+    // TSLA before Oct 21, 2026: calls $367M vs puts $290M, +$2.9M a day net to calls, call open interest building.
+    expect(agreeWithMoney("bearish", 367e6, 290e6, 2.9e6, 0.2)).toBe("mixed");
+    expect(agreeWithMoney("bullish", 290e6, 367e6, -2.9e6, -0.2)).toBe("mixed");
+    // One of the three on the lean's side keeps it.
+    expect(agreeWithMoney("bearish", 367e6, 290e6, 2.9e6, -0.2)).toBe("bearish");
+    expect(agreeWithMoney("bearish", 367e6, 290e6, -1e6, 0.2)).toBe("bearish");
+  });
 });
