@@ -15,6 +15,13 @@ const summary = (over: Partial<EventSummary>): EventSummary =>
   }) as unknown as EventSummary;
 
 describe("caseSummary", () => {
+  it("says there were no large trades instead of $0, and where the lean came from", () => {
+    const text = caseSummary(summary({ partialWindow: false }), { premium: 0, callShare: 0, timesNormal: null });
+    expect(text).toContain("made no large options trades");
+    expect(text).not.toContain("$0");
+    expect(text).toContain("lean toward a fall comes only from new open contracts and option prices");
+  });
+
   it("names the overall lean when the money is split between calls and puts", () => {
     const text = caseSummary(summary({}), { premium: 3_100_000, callShare: 0.5, timesNormal: 4 });
     expect(text).toContain("split between calls");

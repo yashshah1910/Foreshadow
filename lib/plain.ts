@@ -107,19 +107,24 @@ export function caseSummary(s: EventSummary, facts: CaseFacts): string {
   const t = s.catalyst.ticker;
   const when = fmtDate(s.catalyst.eventDate, { year: false });
   const side =
-    facts.callShare >= 0.6
+    facts.premium <= 0
+      ? s.direction === "bullish" || s.direction === "bearish"
+        ? `so the lean toward a ${s.direction === "bullish" ? "rise" : "fall"} comes only from new open contracts and option prices`
+        : "and nothing else leaned either way"
+      : facts.callShare >= 0.6
       ? "mostly calls, which pay off if the stock rises"
       : facts.callShare <= 0.4
         ? "mostly puts, which pay off if the stock falls"
         : s.direction === "bullish" || s.direction === "bearish"
           ? `split between calls (bets on a rise) and puts (bets on a fall), though the other signals lean toward a ${s.direction === "bullish" ? "rise" : "fall"}`
           : "split between calls (bets on a rise) and puts (bets on a fall)";
+  const into = facts.premium > 0 ? `put ${money(facts.premium)} into large options bets` : "made no large options trades"
   const pace = facts.timesNormal && facts.timesNormal >= 1.5 ? `, about ${Math.round(facts.timesNormal)}× ${t}'s normal pace` : "";
   const open = s.partialWindow
-    ? `${t} has ${kindNoun(s.catalyst.kind) === "earnings report" ? "an earnings report" : "news"} coming on ${when}. So far this week, traders have put ${money(facts.premium)} into large options bets${pace}, ${side}.`
+    ? `${t} has ${kindNoun(s.catalyst.kind) === "earnings report" ? "an earnings report" : "news"} coming on ${when}. So far this week, traders have ${into}${pace}, ${side}.`
     : s.catalyst.kind === "earnings"
-      ? `In the five trading days before ${t}'s ${eventPhrase(s)} on ${when}, traders put ${money(facts.premium)} into large options bets${pace}, ${side}.`
-      : `In the five trading days before ${t}'s news on ${when} (${eventName(s)}), traders put ${money(facts.premium)} into large options bets${pace}, ${side}.`;
+      ? `In the five trading days before ${t}'s ${eventPhrase(s)} on ${when}, traders ${into}${pace}, ${side}.`
+      : `In the five trading days before ${t}'s news on ${when} (${eventName(s)}), traders ${into}${pace}, ${side}.`;
   const how = `Foreshadow rates that ${scoreWord(s.score).toLowerCase()}: ${s.score.toFixed(0)} out of 100.`;
   let end = "";
   if (s.verdict === "matched" || s.verdict === "missed") {
