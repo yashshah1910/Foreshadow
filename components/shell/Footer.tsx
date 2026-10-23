@@ -29,6 +29,8 @@ export async function Footer() {
           <Link href="/docs#mcp" className="hover:text-ink">Use it from Claude</Link>
           <Link href="/docs#api" className="hover:text-ink">API</Link>
           <a href="/feed.xml" className="hover:text-ink">RSS feed</a>
+          <a href="https://youtu.be/rJRGUTC5jXA" target="_blank" rel="noreferrer" className="hover:text-ink">Demo video</a>
+          <a href="https://github.com/yashshah1910/Foreshadow" target="_blank" rel="noreferrer" className="hover:text-ink">Source code</a>
           {stats?.lastComputedAt ? <span className="text-ink-3">Scores updated {fmtDate(stats.lastComputedAt.slice(0, 10), { year: true })}</span> : null}
         </div>
       </div>

@@ -1,12 +1,14 @@
 # Foreshadow: *Someone knew. Prove it.*
 
-**Live: [foreshadow-six.vercel.app](https://foreshadow-six.vercel.app)** · [![ci](https://github.com/yashshah1910/Foreshadow/actions/workflows/ci.yml/badge.svg)](https://github.com/yashshah1910/Foreshadow/actions/workflows/ci.yml)
+**Live: [foreshadow-six.vercel.app](https://foreshadow-six.vercel.app)** · **Demo video (2:35): [youtu.be/rJRGUTC5jXA](https://youtu.be/rJRGUTC5jXA)** · [![ci](https://github.com/yashshah1910/Foreshadow/actions/workflows/ci.yml/badge.svg)](https://github.com/yashshah1910/Foreshadow/actions/workflows/ci.yml)
 
-![Foreshadow home page: the headline, a short explanation, and a real case with its chart and result](docs/screenshots/home.png)
+[![Watch the 2:35 demo on YouTube: the TENX case, the scorecard, Ask with the Unusual Whales MCP, and Foreshadow's own MCP server](docs/screenshots/demo-video.png)](https://youtu.be/rJRGUTC5jXA)
 
 Before scheduled company news, like an FDA decision, a drug trial result or an earnings report, some traders pile into options that only
 pay off if the stock jumps, or only if it drops. Foreshadow finds that betting in **Unusual Whales** data, rates how
 unusual it was from 0 to 100 against the stock's own normal, then checks what the stock actually did.
+
+![Foreshadow home page: the headline, a short explanation, and a real case with its chart and result](docs/screenshots/home.png)
 
 Built for Unusual Whales Hackathon #1 with Next.js 16 and Supabase. The scorer is plain, deterministic arithmetic
 (no LLM anywhere near the numbers); Claude writes the plain-English summaries and answers questions. There is also a

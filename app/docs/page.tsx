@@ -99,8 +99,16 @@ export default async function DocsPage() {
           ["#api", "API"],
           ["#byok", "Your own key"],
           ["#run", "Run it yourself"],
+          ["https://youtu.be/rJRGUTC5jXA", "Demo video (2:35)"],
         ].map(([href, label]) => (
-          <a key={href} href={href} className="pressable rounded-full bg-surface-2 px-3.5 py-1.5 font-medium text-ink-2 hover:bg-surface-3 hover:text-ink">{label}</a>
+          <a
+            key={href}
+            href={href}
+            {...(href.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}
+            className="pressable rounded-full bg-surface-2 px-3.5 py-1.5 font-medium text-ink-2 hover:bg-surface-3 hover:text-ink"
+          >
+            {label}
+          </a>
         ))}
       </nav>
 
@@ -293,7 +301,7 @@ export default async function DocsPage() {
       </Section>
 
       <Section id="run" title="Run it locally">
-        <pre className="overflow-x-auto well p-4 font-mono text-[13px] text-ink">{`git clone <repo> && cd foreshadow && pnpm install
+        <pre className="overflow-x-auto well p-4 font-mono text-[13px] text-ink">{`git clone https://github.com/yashshah1910/Foreshadow.git && cd Foreshadow && pnpm install
 cp .env.example .env     # leave Supabase empty for demo mode, or add a free project
 pnpm dev                 # http://localhost:3000 — seeded demo data, no keys needed
 
