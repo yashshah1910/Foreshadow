@@ -8,6 +8,7 @@ import { toNarratorError } from "./errors";
 import { INVESTIGATOR_SYSTEM_PROMPT, TOOL_BUDGET_EXHAUSTED_NOTE, buildInvestigatorUserMessage } from "./prompts";
 import { FORESHADOW_TOOL_DEFINITIONS, runForeshadowTool } from "./tools";
 import type { ForeshadowTools, InvestigateInput, InvestigateResult, InvestigateStop, NarratorOptions, ToolCallRecord } from "./types";
+import { verifyNumbers } from "./verify";
 
 export const INVESTIGATE_MAX_TOKENS = 8192;
 export const DEFAULT_MAX_TOOL_CALLS = 6;
@@ -23,6 +24,8 @@ interface Session<T extends TurnLike> {
   /** `final` adds the budget-exhausted note and forbids further tool use. */
   send(final: boolean): Promise<T>;
   append(turn: T, results: ToolResultParam[]): void;
+  /** Adds a plain user message (used to ask for a corrected answer). */
+  say(text: string): void;
 }
 
 function systemBlocks<T extends Anthropic.TextBlockParam>(final: boolean): T[] {
@@ -51,6 +54,9 @@ function plainSession(client: NarratorClient, model: string, messages: Anthropic
       messages.push({ role: "assistant", content: turn.content });
       if (results.length > 0) messages.push({ role: "user", content: results });
     },
+    say: (text) => {
+      messages.push({ role: "user", content: text });
+    },
   };
 }
 
@@ -76,6 +82,9 @@ function mcpSession(
     append: (turn, results) => {
       messages.push({ role: "assistant", content: turn.content });
       if (results.length > 0) messages.push({ role: "user", content: results });
+    },
+    say: (text) => {
+      messages.push({ role: "user", content: text });
     },
   };
 }
@@ -111,11 +120,38 @@ function finish(turn: TurnLike, model: string, toolCalls: ToolCallRecord[], stop
   return { answer: textOf(turn.content), toolCalls, model, stopped: effective };
 }
 
+/**
+ * Every figure in an answer has to come from a tool result or the question, as
+ * with the case stories. If some don't, ask once for a rewrite that uses only
+ * figures from the results.
+ */
+async function checkedFinish<T extends TurnLike>(
+  session: Session<T>,
+  turn: T,
+  model: string,
+  toolCalls: ToolCallRecord[],
+  known: string,
+): Promise<InvestigateResult> {
+  const result = finish(turn, model, toolCalls, "end_turn");
+  if (toolCalls.length === 0) return result;
+  const hay = [known, ...toolCalls.map((t) => t.output)];
+  const check = verifyNumbers(result.answer, hay);
+  if (check.numbersVerified) return result;
+  session.append(turn, []);
+  session.say(
+    `These figures in your answer don't appear in the tool results: ${check.unverifiedNumbers.join(", ")}. Rewrite the answer using only figures that appear in the tool results (rounding is fine), in the same format.`,
+  );
+  const fixed = await session.send(true);
+  const retry = finish(fixed, model, toolCalls, "end_turn");
+  return retry.answer ? retry : result;
+}
+
 async function runLoop<T extends TurnLike>(
   session: Session<T>,
   tools: ForeshadowTools,
   maxToolCalls: number,
   model: string,
+  known: string,
 ): Promise<InvestigateResult> {
   const toolCalls: ToolCallRecord[] = [];
   let executed = 0;
@@ -128,7 +164,7 @@ async function runLoop<T extends TurnLike>(
       continue;
     }
     const uses = turn.content.filter((b): b is Anthropic.ToolUseBlock | Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use");
-    if (turn.stop_reason !== "tool_use" || uses.length === 0) return finish(turn, model, toolCalls, "end_turn");
+    if (turn.stop_reason !== "tool_use" || uses.length === 0) return checkedFinish(session, turn, model, toolCalls, known);
 
     const results: ToolResultParam[] = [];
     for (const use of uses) {
@@ -167,19 +203,21 @@ export async function investigate(input: InvestigateInput, opts: NarratorOptions
   const maxToolCalls = Math.max(0, input.maxToolCalls ?? DEFAULT_MAX_TOOL_CALLS);
   const history = (input.history ?? []).map((m) => ({ role: m.role, content: m.content }));
   const question = { role: "user" as const, content: buildInvestigatorUserMessage(input.question, input.context) };
+  // Figures the reader supplied (the question, the page summary, earlier turns) count as known too.
+  const known = [question.content, ...history.map((m) => m.content)].join("\n");
 
   try {
     if (input.uwMcp) {
       try {
         const messages: Anthropic.Beta.BetaMessageParam[] = [...history, question];
-        return await runLoop(mcpSession(client, model, messages, input.uwMcp), input.tools, maxToolCalls, model);
+        return await runLoop(mcpSession(client, model, messages, input.uwMcp), input.tools, maxToolCalls, model, known);
       } catch (err) {
         // The hosted UW MCP server is sometimes unreachable; answer with the Foreshadow tools instead.
         if (!isMcpConnectionError(err)) throw err;
       }
     }
     const messages: Anthropic.MessageParam[] = [...history, question];
-    return await runLoop(plainSession(client, model, messages), input.tools, maxToolCalls, model);
+    return await runLoop(plainSession(client, model, messages), input.tools, maxToolCalls, model, known);
   } catch (err) {
     throw toNarratorError(err, "investigate");
   }

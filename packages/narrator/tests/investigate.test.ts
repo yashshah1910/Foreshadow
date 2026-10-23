@@ -155,6 +155,42 @@ describe("investigate (Foreshadow tools only)", () => {
   });
 });
 
+describe("investigate (checking the answer's figures)", () => {
+  it("asks once for a rewrite when a figure isn't in the tool results", async () => {
+    const { tools } = makeTools();
+    const { client, calls } = fakeClient({
+      create: (_params, nth) =>
+        nth === 1
+          ? message([toolUse("tu_1", "foreshadow_score", { ticker: "XYZ", eventDate: "2025-10-14" })], "tool_use")
+          : nth === 2
+            ? message([text("XYZ scored 84.3, about 12 times its normal pace.")])
+            : message([text("XYZ scored 84.3, leaning bearish.")]),
+    });
+    const result = await investigate({ question: "How did XYZ score?", tools }, { client, model: "claude-haiku-5-5" });
+    expect(result.answer).toBe("XYZ scored 84.3, leaning bearish.");
+    expect(calls).toHaveLength(3);
+    const last = calls[2].params as CreateParams;
+    expect(JSON.stringify(last.messages.at(-1))).toContain("don't appear in the tool results: 12");
+    expect(last.tool_choice).toEqual({ type: "none" });
+  });
+
+  it("keeps an answer whose figures all come from the results or the question", async () => {
+    const { tools } = makeTools();
+    const { client, calls } = fakeClient({
+      create: (_params, nth) =>
+        nth === 1
+          ? message([toolUse("tu_1", "foreshadow_score", { ticker: "XYZ", eventDate: "2025-10-14" })], "tool_use")
+          : message([text("XYZ scored 84.3 before its Oct 14 news.")]),
+    });
+    const result = await investigate(
+      { question: "How did XYZ score?", context: { ticker: "XYZ", eventDate: "2025-10-14" }, tools },
+      { client, model: "claude-haiku-5-5" },
+    );
+    expect(result.answer).toBe("XYZ scored 84.3 before its Oct 14 news.");
+    expect(calls).toHaveLength(2);
+  });
+});
+
 describe("investigate (with the Unusual Whales MCP server)", () => {
   it("uses the beta endpoint with the MCP connector and records server-side tool calls", async () => {
     const { tools, scoreCalls } = makeTools();
