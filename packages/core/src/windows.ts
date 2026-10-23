@@ -142,6 +142,25 @@ export function partialFootprintWindow(eventDate: IsoDate, today: IsoDate): IsoD
   return footprintWindow(eventDate).filter((d) => d <= today);
 }
 
+/** Minutes past midnight in New York. */
+function newYorkMinutes(now: Date): number {
+  const [h, m] = new Intl.DateTimeFormat("en-GB", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+    .format(now)
+    .split(":")
+    .map(Number);
+  return h * 60 + m;
+}
+
+/**
+ * Whether trading on `date` has started at `now`: any earlier day has, and
+ * today only once the market opens (9:30 New York time). Pages use it so a
+ * read at 3am doesn't count a day that hasn't traded yet.
+ */
+export function sessionStarted(date: IsoDate, now: Date = new Date()): boolean {
+  const today = todayIso(now);
+  return date < today || (date === today && newYorkMinutes(now) >= 9 * 60 + 30);
+}
+
 /** Trading days in (today, today + n] - the Radar horizon. */
 export function upcomingTradingDays(today: IsoDate, n: number): IsoDate[] {
   const out: IsoDate[] = [];

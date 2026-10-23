@@ -1,6 +1,7 @@
 import {
   footprintWindow,
   partialFootprintWindow,
+  sessionStarted,
   scoreBand,
   type Catalyst,
   type IsoDate,
@@ -57,7 +58,8 @@ export function prettyCompanyName(raw: string): string {
   return name
     .split(/\s+/)
     .map((w, i) => {
-      if (KEEP_UPPER.has(w) || /\d/.test(w) || w === "&") return w;
+      // A word with no vowels is an acronym: GSK, NXP, CSX.
+      if (KEEP_UPPER.has(w) || /\d/.test(w) || w === "&" || !/[AEIOUY]/.test(w)) return w;
       const lower = w.toLowerCase();
       if (i > 0 && LOWER.has(lower)) return lower;
       return lower
@@ -142,9 +144,9 @@ export function hitRate(events: EventSummary[]): HitRate {
   };
 }
 
-export function toRadarItem(s: EventSummary, today: IsoDate): RadarItem {
+export function toRadarItem(s: EventSummary, today: IsoDate, now: Date = new Date()): RadarItem {
   const win = footprintWindow(s.catalyst.eventDate);
-  const elapsed = partialFootprintWindow(s.catalyst.eventDate, today).length;
+  const elapsed = partialFootprintWindow(s.catalyst.eventDate, today).filter((d) => sessionStarted(d, now)).length;
   return {
     ...s,
     windowStart: win[0],

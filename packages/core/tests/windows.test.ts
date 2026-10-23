@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   addTradingDays,
+  sessionStarted,
   todayIso,
   baselineWindow,
   chartWindow,
@@ -84,5 +85,16 @@ describe("todayIso", () => {
   it("uses New York's date, not UTC's", () => {
     expect(todayIso(new Date("2026-10-23T03:30:00Z"))).toBe("2026-10-22");
     expect(todayIso(new Date("2026-10-23T14:00:00Z"))).toBe("2026-10-23");
+  });
+});
+
+describe("sessionStarted", () => {
+  it("counts today only once the market has opened in New York", () => {
+    // 3:30am and 9:29am New York (EDT) on Fri Oct 23, 2026: today hasn't traded yet.
+    expect(sessionStarted("2026-10-23", new Date("2026-10-23T07:30:00Z"))).toBe(false);
+    expect(sessionStarted("2026-10-23", new Date("2026-10-23T13:29:00Z"))).toBe(false);
+    expect(sessionStarted("2026-10-23", new Date("2026-10-23T13:30:00Z"))).toBe(true);
+    expect(sessionStarted("2026-10-22", new Date("2026-10-23T07:30:00Z"))).toBe(true);
+    expect(sessionStarted("2026-10-26", new Date("2026-10-23T20:00:00Z"))).toBe(false);
   });
 });

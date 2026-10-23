@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getEvent, getLeaderboard, getToday } from "@/lib/data";
 import type { EventSummary } from "@/lib/data";
 import { similarCases, type Similar } from "@/lib/similar";
-import { reactionWindowFor } from "@foreshadow/core";
+import { reactionWindowFor, sessionStarted } from "@foreshadow/core";
 import { Trace } from "@/components/event/Trace";
 import { AlertsPanel } from "@/components/event/AlertsPanel";
 import { FiveDays } from "@/components/event/FiveDays";
@@ -37,6 +37,8 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
   const { summary: s, stored, windowDays, chartBars, related } = ev;
   const rw = reactionWindowFor(s.catalyst.eventDate, s.catalyst.session);
   const facts = factsFromStored(stored);
+  // Before the market opens, today's (empty) day doesn't count as one of the five.
+  const daysIn = Math.min(stored.flags.footprintDaysUsed, windowDays.filter((d) => sessionStarted(d)).length);
   const session =
     s.catalyst.session === "premarket" ? "before the market opened" : s.catalyst.session === "afterhours" ? "after the market closed" : null;
   const pastRelated = related.filter((r) => r.catalyst.eventDate <= today).slice(0, 6);
@@ -97,8 +99,8 @@ export default async function EventPage({ params }: PageProps<"/event/[id]">) {
         <Fact label="Result" explain="result" wide>
           {s.partialWindow ? (
             <span className="flex flex-col gap-2 text-[15px] text-ink-2">
-              <WindowMeter elapsed={stored.flags.footprintDaysUsed} total={5} />
-              {stored.flags.footprintDaysUsed} of 5 days in
+              <WindowMeter elapsed={daysIn} total={5} />
+              {daysIn} of 5 days in
             </span>
           ) : (
             <span className="flex flex-col gap-2">
