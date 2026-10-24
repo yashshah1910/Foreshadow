@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+# Generated demo data: keep it out of GitHub's language stats.
+supabase/seed.sql linguist-generated=true
+supabase/fixtures/** linguist-generated=true
